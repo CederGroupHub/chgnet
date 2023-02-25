@@ -113,3 +113,39 @@ def write_json(d, fjson):
     """
     with open(fjson, "w") as f:
         json.dump(d, f)
+
+
+def solve_charge_by_mag(structure,
+                        default_ox = {'Li': 1, 'O': -2},
+                        ox_ranges = {'Mn': {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}} ):
+    """
+    Args:
+        structure: input pymatgen structure
+        ox_ranges: user defined range to convert magmoms into formal valence
+    """
+    ox_list = []
+    solved_ox = True
+    mag = structure.site_properties['magmom']
+
+    for site_i, site in enumerate(structure.sites):
+        assigned = False
+        if site.species_string in ox_ranges.keys():
+            for (minmag, maxmag), magox in ox_ranges[site.species_string].items():
+                if mag[site_i] >= minmag and mag[site_i] < maxmag:
+                    ox_list.append(magox)
+                    # print(magox, mag[site_i])
+                    assigned = True
+                    break
+        elif site.species_string in default_ox.keys():
+            ox_list.append(default_ox[site.species_string])
+            assigned = True
+        if not assigned:
+            solved_ox = False
+
+    if solved_ox:
+        print(ox_list)
+        structure.add_oxidation_state_by_site(ox_list)
+        return structure
+
+    else:
+        return
