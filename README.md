@@ -1,5 +1,5 @@
 # CHGNet
-Crystal Hamiltonian Graph neural-Network: A pretrained universal neural network potential for 
+Crystal Hamiltonian Graph neural-Network: A pretrained universal neural network potential for
 charge-informed molecular dynamics and beyond
 ![chgnet](./chgnet.png)
 # Installation:
@@ -52,12 +52,20 @@ md.run(500000) # run a 1 ns MD simulation
 Visualize the magnetic moments after the MD run
 ```python
 from ase.io.trajectory import Trajectory
+from chgnet.utils.utils import solve_charge_by_mag
 traj = Trajectory("md_out.traj")
-mag = traj[100].get_magnetic_moments()
+mag = traj[-1].get_magnetic_moments()
 
 # convert to pymatgen structure
 from pymatgen.io.ase import AseAtomsAdaptor
-structure = AseAtomsAdaptor.get_structure(traj[100])
+
+# get the non-charge-decorated structure
+structure = AseAtomsAdaptor.get_structure(traj[-1])
+print(structure)
+
+# get the charge-decorated structure
+s_chg = solve_charge_by_mag(structure)
+print(s_chg)
 ```
 ## Structure Optimization
 ```python
