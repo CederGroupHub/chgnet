@@ -28,8 +28,8 @@ prediction = chgnet.predict_structure(structure)
 ## Molecular Dynamics:
 Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through ASE environment
 ```python
-from gcn.chgnet.model.model import CHGNet
-from gcn.chgnet.model.dynamics import MolecularDynamics
+from chgnet.model.model import CHGNet
+from chgnet.model.dynamics import MolecularDynamics
 from pymatgen.core import Structure
 
 structure = Structure.from_file('examples/o-LiMnO2_unit.cif')
@@ -61,7 +61,7 @@ structure = AseAtomsAdaptor.get_structure(traj[100])
 ```
 ## Structure Optimization
 ```python
-from gcn.chgnet.model import StructOptimizer
+from chgnet.model import StructOptimizer
 relaxer = StructOptimizer()
 result = relaxer.relax(structure, steps=1000)
 ```

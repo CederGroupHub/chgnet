@@ -2,27 +2,23 @@ import os
 import random
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset, DataLoader
-from gcn.chgnet.data.dataset import MPtrjData, MPFData, get_loader
-from gcn.chgnet.graph.crystal_graph import Crystal_Graph, CrystalGraphConverter
-from gcn.toolkit import utils
-import pickle
+from chgnet.data.dataset import StructureJsonData
+from chgnet.graph import CrystalGraphConverter
+import chgnet.utils as utils
 
 datatype = torch.float32
 random.seed(100)
-make_MPF = True
 
-
+# This runnable script show
 def main():
-    if make_MPF is False:
-        data_path = ""
-        graph_dir = ""
-        converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
-        data = MPtrjData(data_path, graph_converter=converter)
-        make_graphs(data, graph_dir)
+    data_path = ""
+    graph_dir = ""
+    converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
+    data = StructureJsonData(data_path, graph_converter=converter)
+    make_graphs(data, graph_dir)
 
 
-def make_graphs(data: MPtrjData, graph_dir, train_ratio=0.8, val_ratio=0.1):
+def make_graphs(data: StructureJsonData, graph_dir, train_ratio=0.8, val_ratio=0.1):
     """
     Make cifs form the MPtrj dataset
     :param train_ratio:
