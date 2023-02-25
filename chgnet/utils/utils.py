@@ -125,7 +125,13 @@ def solve_charge_by_mag(structure,
     """
     ox_list = []
     solved_ox = True
-    mag = structure.site_properties['magmom']
+
+    if "final_magmom" in structure.site_properties.keys():
+        mag_key = "final_magmom"
+    else:
+        mag_key = "magmom"
+        
+    mag = structure.site_properties[mag_key]
 
     for site_i, site in enumerate(structure.sites):
         assigned = False
