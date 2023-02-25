@@ -52,10 +52,8 @@ docs/_build/
 # Extras
 *.xml
 *.csv
-*.tar
 *.pt
 .DS_Store
 .idea
 .ipynb_checkpoints
 test/
-examples/*
