@@ -6,11 +6,8 @@ from torch import Tensor
 
 class Fourier(nn.Module):
     """
-    Fourier Expansion
-    Circular Harmonics function to featurize angles
-    this is the 2d simpler version of spherical harmonics
+    Fourier Expansion for angle feautures
     """
-
     def __init__(self, order: int = 5, learnable: bool = False):
         super().__init__()
         self.order = order
