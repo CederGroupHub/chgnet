@@ -1,6 +1,6 @@
 # CHGNet
 Crystal Hamiltonian Graph neural-Network: A pretrained universal neural network potential for
-charge-informed molecular dynamics and beyond
+charge-informed atomistic modeling
 ![chgnet](./chgnet.png)
 # Installation:
 CHGNet requires
@@ -11,6 +11,7 @@ CHGNet requires
 
 To install:
 ```bash
+pip install -r requirements.txt
 pip install .
 ```
 
@@ -109,3 +110,6 @@ trainer = Trainer(
 
 trainer.train(train_loader, val_loader, test_loader)
 ```
+
+# To Cite:
+
