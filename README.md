@@ -45,7 +45,7 @@ md = MolecularDynamics(
     trajectory=f'md_out.traj',
     logfile=f'md_out.log',
     loginterval = 100,
-    use_device = 'cuda'
+    use_device = 'cpu'    # use 'cuda' for faster MD
 )
 md.run(500000) # run a 1 ns MD simulation
 ```

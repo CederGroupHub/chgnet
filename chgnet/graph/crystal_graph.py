@@ -1,15 +1,11 @@
 from __future__ import print_function, division
 import os
 import sys
-
 import torch
 import torch.nn as nn
 from torch import Tensor
 from pymatgen.core.structure import Structure
 from .graph import Graph, Node
-from chgnet.utils import read_json
-from itertools import permutations
-from typing import List, Tuple
 
 datatype = torch.float32
 
@@ -18,7 +14,6 @@ class Crystal_Graph(object):
     """
     A data class for crystal graph
     """
-
     def __init__(
         self,
         atomic_number: Tensor,
@@ -47,6 +42,8 @@ class Crystal_Graph(object):
                 for bonds in bond_fea [2*n_bond, 3]
             atom_graph_cutoff (float): the cutoff radius to draw edges in atom_graph
             neighbor_image (Tensor): the periodic image specifying the location of neighboring atom [2*n_bond, 3]
+            directed2undirected (Tensor): the mapping from directed edge index to undirected edge index
+                for the atom graph
             undirected2directed (Tensor): the mapping from undirected edge index to directed edge index,
                 this is essentially the inverse mapping of half of the third column in atom_graph,
                 this tensor is needed for computation efficiency. [n_bond]
@@ -59,7 +56,7 @@ class Crystal_Graph(object):
             graph_id (str or None): an id to keep track of this crystal graph
             mp_id (str) or None: Materials Project id of this structure
         Returns:
-            Crystal Graph in its minimal representation
+            Crystal Graph
         """
         super().__init__()
         self.atomic_number = atomic_number
@@ -165,8 +162,7 @@ class CrystalGraphConverter(nn.Module):
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
             bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
             max_num_nbr (int): max number of neighboring node used in atom_graph
-            requires_force (bool): whether to enable force calculation on crystal graph
-            requires_stress (bool): whether to enable stress calculation on crystal graph
+            verbose (bool): whether to print initialization message
         """
         super().__init__()
         self.atom_graph_cutoff = atom_graph_cutoff
@@ -220,9 +216,6 @@ class CrystalGraphConverter(nn.Module):
             )
         except:
             structure.to(filename="bond_graph_error.cif")
-            # print(graph.undirected_edges_list)
-            # print()
-            # print(graph.directed_edges_list)
             sys.exit()
         bond_graph = torch.tensor(bond_graph, dtype=torch.int64)
         undirected2directed = torch.tensor(undirected2directed, dtype=torch.int64)
@@ -268,150 +261,3 @@ class CrystalGraphConverter(nn.Module):
     @classmethod
     def from_dict(cls, dict):
         return CrystalGraphConverter(**dict)
-
-
-class CrystalGraphConverter_dgl(nn.Module):
-    """
-    Convert a pymatgen.core.Structure to a Crystal_Graph,
-    where only the minimal essential information is kept
-    """
-
-    def __init__(
-        self,
-        atom_graph_cutoff: float,
-        bond_graph_cutoff: float = None,
-        max_num_nbr: int = None,
-        requires_force=True,
-        requires_stress=True,
-    ):
-        """
-        Initialize the Crystal Graph Converter
-        Args:
-            atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
-            bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
-            max_num_nbr (int): max number of neighboring node used in atom_graph
-            requires_force (bool): whether to enable force calculation on crystal graph
-            requires_stress (bool): whether to enable stress calculation on crystal graph
-        """
-        super().__init__()
-        self.atom_graph_cutoff = atom_graph_cutoff
-        if bond_graph_cutoff is None:
-            self.bond_graph_cutoff = atom_graph_cutoff
-        else:
-            self.bond_graph_cutoff = bond_graph_cutoff
-        self.max_num_nbr = max_num_nbr
-        self.requires_force = requires_force
-        self.requires_stress = requires_stress
-        print(
-            f"CrystalGraphConverter initialized with atom_cutoff{atom_graph_cutoff}, "
-            f"bond_cutoff{bond_graph_cutoff}"
-        )
-
-    def forward(self, structure: Structure, graph_id=None, mp_id=None) -> Crystal_Graph:
-        """
-        convert a structure, return a Crystal_Graph
-        Args:
-            structure (pymatgen.core.Structure): structure to convert
-            graph_id (str or None): an id to keep track of this crystal graph
-            mp_id (str) or None: Materials Project id of this structure
-        Return:
-            Crystal_Graph
-        """
-        n_atom = int(structure.composition.num_atoms)
-        atomic_number = torch.tensor(
-            [i.specie.Z for i in structure], dtype=int, requires_grad=False
-        )
-        atom_frac_coord = torch.tensor(
-            structure.frac_coords, dtype=datatype, requires_grad=self.requires_force
-        )
-        lattice = torch.tensor(
-            structure.lattice.matrix, dtype=datatype, requires_grad=self.requires_stress
-        )
-        center_index, neighbor_index, image, distance = self.get_neighbors(structure)
-
-        # Make Graph
-        graph = Graph([Node(index=i) for i in range(n_atom)])
-        for i, j, im, d in zip(center_index, neighbor_index, image, distance):
-            graph.add_edge(center_index=i, neighbor_index=j, image=im, distance=d)
-
-        # Atom Graph
-        atom_graph, directed2undirected = graph.adjacency_list()
-        atom_graph = torch.tensor(atom_graph, dtype=torch.int64)
-        directed2undirected = torch.tensor(directed2undirected, dtype=torch.int64)
-
-        # Bond Graph
-        bond_graph, undirected2directed = graph.line_graph_adjacency_list(
-            cutoff=self.bond_graph_cutoff
-        )
-        bond_graph = torch.tensor(bond_graph, dtype=torch.int64)
-        undirected2directed = torch.tensor(undirected2directed, dtype=torch.int64)
-
-        # Check if graph has isolated atom
-        has_no_isolated_atom = set(set(range(n_atom))).issubset(center_index)
-        if has_no_isolated_atom is False:
-            # Discard this structure if it has isolated atom in the graph
-            raise ValueError(
-                f"{graph_id} has isolated atom with r_cutoff={self.atom_graph_cutoff}, should be skipped"
-            )
-
-        return Crystal_Graph(
-            atomic_number=atomic_number,
-            atom_frac_coord=atom_frac_coord,
-            atom_graph=atom_graph,
-            neighbor_image=torch.tensor(image, dtype=datatype),
-            directed2undirected=directed2undirected,
-            undirected2directed=undirected2directed,
-            bond_graph=bond_graph,
-            lattice=lattice,
-            graph_id=graph_id,
-            mp_id=mp_id,
-            composition=structure.composition.formula,
-            atom_graph_cutoff=self.atom_graph_cutoff,
-            bond_graph_cutoff=self.bond_graph_cutoff,
-        )
-
-    def get_neighbors(self, structure: Structure):
-        center_index, neighbor_index, image, distance = structure.get_neighbor_list(
-            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
-        )
-        return center_index, neighbor_index, image, distance
-
-    def as_dict(self):
-        return {
-            "atom_graph_cutoff": self.atom_graph_cutoff,
-            "bond_graph_cutoff": self.bond_graph_cutoff,
-            "max_num_nbr": self.max_num_nbr,
-            "requires_force": self.requires_force,
-            "requires_stress": self.requires_stress,
-        }
-
-    @classmethod
-    def from_dict(cls, dict):
-        return CrystalGraphConverter(**dict)
-
-
-class CGCNNAtomFeaturizer(nn.Module):
-    """
-    Featurize an atom by chemical priori
-    """
-
-    def __init__(self, atom_feature_dim: int = 100, atom_init_json_path=None):
-        super().__init__()
-        if atom_init_json_path == None:
-            atom_init_json_path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "cgcnn_atom_init.json"
-            )
-        atom_init = read_json(atom_init_json_path)
-        atom_init = torch.tensor(list(atom_init.values()), dtype=datatype)
-        self.embedding = nn.Embedding.from_pretrained(atom_init, freeze=True)
-        self.fc = nn.Linear(92, atom_feature_dim)
-
-    def forward(self, structure: Structure) -> Tensor:
-        """
-        Convert the structure to a atom embedding tensor
-        Args:
-            structure (Pymatgen.Structure): Pymatgen structure
-        Returns:
-            torch.Tensor of atom embeddings [n_atom X atom_feature_dim]
-        """
-        return self.fc(self.embedding(self.get_atomic_numbers(structure)))

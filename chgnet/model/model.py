@@ -256,6 +256,8 @@ class CHGNet(nn.Module):
             task (str): the prediction task
                         eg: 'e', 'em', 'ef', 'efs', 'efsm'
                         default is 'e'
+            return_atom_feas (bool): whether to return the atom features before last conv layer
+            return_crystal_feas (bool): whether to return crystal feature
         Returns:
             model output
         """
