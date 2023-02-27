@@ -50,6 +50,7 @@ coverage.xml
 docs/_build/
 
 # Extras
+*.traj
 *.xml
 *.csv
 *.pt
