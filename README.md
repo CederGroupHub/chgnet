@@ -1,7 +1,12 @@
 # CHGNet
 Crystal Hamiltonian Graph neural-Network: A pretrained universal neural network potential for
 charge-informed atomistic modeling
-![chgnet](./chgnet.png)
+![chgnet](./chgnet-logo.png)
+CHGNet is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project, 
+a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
+CHGNet highlights its ability to study electron interactions and charge distribution 
+in atomistic modeling with near DFT accuracy.
+
 # Installation:
 CHGNet requires
 - numpy~=1.21.6
@@ -27,7 +32,7 @@ prediction = chgnet.predict_structure(structure)
 ```
 
 ## Molecular Dynamics:
-Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through ASE environment
+Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through `ASE` environment
 ```python
 from chgnet.model.model import CHGNet
 from chgnet.model.dynamics import MolecularDynamics

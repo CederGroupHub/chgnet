@@ -2,7 +2,6 @@ import sys
 from typing import Optional, Union
 import pickle
 import contextlib
-
 import numpy as np
 import torch
 from chgnet.model import CHGNet
@@ -43,9 +42,9 @@ class CHGNetCalculator(Calculator):
 
     def __init__(
         self,
-        model: CHGNet = None,
-        use_device: str = None,
-        stress_weight: float = 1 / 160.21766208,
+        model: Optional[CHGNet] = None,
+        use_device: Optional[str] = None,
+        stress_weight: Optional[float] = 1 / 160.21766208,
         **kwargs,
     ):
         """
@@ -55,6 +54,7 @@ class CHGNetCalculator(Calculator):
                 either "cpu", "cuda", or "mps".
                 If not specified, the default device is automatically
                 selected based on the available options.
+            stress_weight (float): the conversion factor to convert GPa to eV/A^3
         """
         # Call super class constructor
         super().__init__(**kwargs)
@@ -64,7 +64,7 @@ class CHGNetCalculator(Calculator):
             self.device = use_device
         elif torch.cuda.is_available():
             self.device = "cuda"
-        #  mps is disabled
+        #  mps is disabled before stable version of pytorch on apple mps is released
         # elif torch.backends.mps.is_available():
         #     self.device = 'mps'
         else:
@@ -85,13 +85,13 @@ class CHGNetCalculator(Calculator):
         """
         Calculate various properties of the atoms using CHGNet.
 
-        Parameters:
-        - atoms (Optional[Atoms]): The atoms object to calculate properties for.
-        - desired_properties (Optional[list]): The properties to calculate. Default is all properties.
-        - changed_properties (Optional[list]): The changes made to the system. Default is all changes.
+        Args:
+            atoms (Optional[Atoms]): The atoms object to calculate properties for.
+            desired_properties (Optional[list]): The properties to calculate. Default is all properties.
+            changed_properties (Optional[list]): The changes made to the system. Default is all changes.
 
         Returns:
-        None
+            None
         """
         desired_properties = desired_properties or all_properties
         changed_properties = changed_properties or all_changes
@@ -126,9 +126,19 @@ class StructOptimizer:
         self,
         model: CHGNet = None,
         optimizer_class: Optional[Union[Optimizer, str]] = "FIRE",
-        stress_weight: float = 1 / 160.21766208,
         use_device: str = None,
+        stress_weight: float = 1 / 160.21766208,
     ):
+        """
+        Args:
+            model (CHGNet): instance of a chgnet model
+            optimizer_class (Optimizer,str): choose optimizer from ASE, default = FIRE
+            use_device (str, optional): The device to be used for predictions,
+                either "cpu", "cuda", or "mps".
+                If not specified, the default device is automatically
+                selected based on the available options.
+            stress_weight (float): the conversion factor to convert GPa to eV/A^3
+        """
         if isinstance(optimizer_class, str):
             if optimizer_class in OPTIMIZERS:
                 optimizer_class = OPTIMIZERS[optimizer_class]
@@ -152,6 +162,20 @@ class StructOptimizer:
         trajectory_save_interval: Optional[int] = 1,
         **kwargs,
     ):
+        """
+        relax the Structure/Atoms until maximum force is smaller than fmax
+        Args:
+            atoms (Union[Structure, Atoms]): A Structure or Atoms object to relax.
+            fmax (Optional[float]): The maximum force tolerance for relaxation. Default is 0.1.
+            steps (Optional[int]): The maximum number of steps for relaxation. Default is 500.
+            relax_cell (Optional[bool]): Whether to relax the cell as well. Default is True.
+            save_path (Optional[str]): The path to save the trajectory. Default is None.
+            trajectory_save_interval (Optional[int]): The interval to save the trajectory. Default is 1.
+            **kwargs: Additional parameters for the optimizer.
+
+        Returns:
+            A dictionary containing the final relaxed structure and the trajectory.
+        """
         if isinstance(atoms, Structure):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
@@ -270,18 +294,18 @@ class MolecularDynamics:
         Args:
             atoms (Atoms): atoms to run the MD
             model (CHGNet): model
-            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-                use with extra caution
+            ensemble (str): choose from 'nvt' or 'npt'
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
             taut (float): time constant for Berendsen temperature coupling
             taup (float): time constant for pressure coupling
-            compressibility_au (float): compressibility of the material in A^3/eV
+            compressibility_au (float): compressibility of the material in A^3/eV, needed for npt
             trajectory (str or Trajectory): Attach trajectory object
             logfile (str): open this file for recording MD outputs
             loginterval (int): write to log file every interval steps
             append_trajectory (bool): Whether to append to prev trajectory
+            use_device (str): the device for
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
