@@ -8,14 +8,14 @@ from typing import List, Tuple
 
 class AtomConv(nn.Module):
     """
-    Convolution Layer to update atom_feas
+    A convolution Layer to update atom features
     """
 
     def __init__(
         self,
         atom_fea_dim: int,
         bond_fea_dim: int,
-        hidden_dim: int = 0,
+        hidden_dim: int = 64,
         dropout: float = 0,
         activation: str = "silu",
         norm: str = None,
@@ -23,6 +23,22 @@ class AtomConv(nn.Module):
         resnet: bool = True,
         **kwargs
     ):
+        """
+        Args:
+            atom_fea_dim (int): The dimensionality of the input atom features.
+            bond_fea_dim (int): The dimensionality of the input bond features.
+            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
+            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated atom features.
+                Must be one of "batch", "layer", or None. Default: None.
+            use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
+                Default: True.
+            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+                Default: True.
+            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """
         super().__init__()
         self.use_mlp_out = use_mlp_out
         self.resnet = resnet
@@ -50,16 +66,21 @@ class AtomConv(nn.Module):
         directed2undirected: Tensor,
     ) -> (Tensor, Tensor):
         """
-        Update the atom_feas, and optionally bond_feas
-        Note: num_batch_atoms = sum(num_atoms) in batch
+        Forward pass of AtomConv module that updates the atom features and optionally bond features.
+
         Args:
-            atom_feas (Tensor): [num_batch_atoms, atom_fea_dim]
-            bond_feas (Tensor): [num_undirected_bonds, bond_fea_dim]
-            bond_weights (Tensor): [num_undirected_bonds, bond_fea_dim]
-            atom_graph (Tensor) : [num_directed_bonds, 2]
+            atom_feas (Tensor): Input tensor with shape [num_batch_atoms, atom_fea_dim].
+            bond_feas (Tensor): Input tensor with shape [num_undirected_bonds, bond_fea_dim].
+            bond_weights (Tensor): AtomGraph bond weights with shape [num_undirected_bonds, bond_fea_dim].
+            atom_graph (Tensor): Directed AtomGraph adjacency list with shape [num_directed_bonds, 2].
+            directed2undirected (Tensor): Index tensor with shape [num_undirected_bonds] that maps
+                directed bonds to undirected bonds.
+
         Returns:
-            atom_feas (Tensor): [num_batch_atom, atom_fea_dim]
-            bond_feas (Tensor): [num_undirected_bonds, bond_fea_dim]
+            Tensor: the updated atom features tensor with shape [num_batch_atom, atom_fea_dim]
+
+        Notes:
+            - num_batch_atoms = sum(num_atoms) in batch
         """
         # Make directional messages
         center_atoms = torch.index_select(atom_feas, 0, atom_graph[:, 0])
@@ -89,7 +110,7 @@ class AtomConv(nn.Module):
 
 class BondConv(nn.Module):
     """
-    Convolution Layer to update bond_feas
+    A convolution Layer to update bond features
     """
 
     def __init__(
@@ -97,7 +118,7 @@ class BondConv(nn.Module):
         atom_fea_dim: int,
         bond_fea_dim: int,
         angle_fea_dim: int,
-        hidden_dim: int = 0,
+        hidden_dim: int = 64,
         dropout: float = 0,
         activation: str = "silu",
         norm: str = None,
@@ -105,6 +126,23 @@ class BondConv(nn.Module):
         resnet=True,
         **kwargs
     ):
+        """
+        Args:
+            atom_fea_dim (int): The dimensionality of the input atom features.
+            bond_fea_dim (int): The dimensionality of the input bond features.
+            angle_fea_dim (int): The dimensionality of the input angle features.
+            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
+            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated atom features.
+                Must be one of "batch", "layer", or None. Default: None.
+            use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
+                Default: True.
+            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+                Default: True.
+            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """
         super().__init__()
         self.use_mlp_out = use_mlp_out
         self.resnet = resnet
@@ -132,16 +170,17 @@ class BondConv(nn.Module):
         bond_graph: Tensor,
     ) -> (Tensor, Tensor):
         """
-        Update the bond_feas, and optionally angle_feas
-        Note: num_batch_bonds = sum(num_bonds) in batch
+        Update the bond features.
+
         Args:
-            atom_feas (Tensor): [num_batch_atoms, atom_fea_dim]
-            bond_feas (Tensor): [num_undirected_bonds, bond_fea_dim]
-            bond_weights (Tensor): [num_undirected_bonds, bond_fea_dim]
-            angle_feas (Tensor): [num_batch_angles, atom_fea_dim]
-            bond_graph (Tensor) : [num_batch_angles, 5]
+            atom_feas (Tensor): atom features tensor with shape [num_batch_atoms, atom_fea_dim].
+            bond_feas (Tensor): bond features tensor with shape [num_undirected_bonds, bond_fea_dim].
+            bond_weights (Tensor): BondGraph bond weights with shape [num_undirected_bonds, bond_fea_dim].
+            angle_feas (Tensor): Tensor of shape (num_batch_angles, atom_fea_dim).
+            bond_graph (Tensor): Directed BondGraph tensor with shape [num_batched_angles, 5].
+
         Returns:
-            bond_feas (Tensor): [num_batch_atom, atom_fea_dim]
+            new_bond_feas (Tensor): Tensor of shape (num_batch_atom, bond_fea_dim).
         """
         # Make directional Message
         center_atoms = torch.index_select(atom_feas, 0, bond_graph[:, 0])

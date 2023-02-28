@@ -642,7 +642,7 @@ class BatchedGraph(object):
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
             compute_stress (bool): whether to compute stress
         Returns:
-            assembled batch_graph that contains all information for model
+            assembled batch_graph that is ready for batched forward pass in CHGNet
         """
         atomic_numbers, atom_positions = [], []
         lattice_feas, strains, volumes = [], [], []

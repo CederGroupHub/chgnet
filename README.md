@@ -1,11 +1,13 @@
 # CHGNet
-Crystal Hamiltonian Graph neural-Network: A pretrained universal neural network potential for
-charge-informed atomistic modeling
+A pretrained universal neural network potential for
+**charge**-informed atomistic modeling
 ![chgnet](./chgnet-logo.png)
-CHGNet is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project, 
+**C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project, 
 a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
+
 CHGNet highlights its ability to study electron interactions and charge distribution 
-in atomistic modeling with near DFT accuracy.
+in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with 
+DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
 # Installation:
 CHGNet requires
@@ -53,7 +55,7 @@ md = MolecularDynamics(
     loginterval = 100,
     use_device = 'cpu'    # use 'cuda' for faster MD
 )
-md.run(500000) # run a 1 ns MD simulation
+md.run(50) # run a 0.1 ps MD simulation
 ```
 Visualize the magnetic moments after the MD run
 ```python
@@ -74,6 +76,9 @@ s_chg = solve_charge_by_mag(structure)
 print(s_chg)
 ```
 ## Structure Optimization
+Since `CHGNet` is able to perform fast structure optimization and 
+provide the site-wise magnetic moments. This make it ideal for pre-relaxation and
+magmom initialization for high-accuracy spin-polarized DFT.
 ```python
 from chgnet.model import StructOptimizer
 relaxer = StructOptimizer()
