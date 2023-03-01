@@ -17,51 +17,67 @@ import numpy as np
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, mae
 from chgnet.utils import mkdir, write_json
-from typing import Union
 
 
 class Trainer(object):
     """
-    A trainer to train Crystal Hamiltonian Network using energy
+    A trainer to train CHGNet using energy, force, stress and magmom
     """
 
     def __init__(
         self,
-        model=None,
-        targets="ef",
-        energy_loss_ratio=1,
-        force_loss_ratio=1,
-        stress_loss_ratio=0.2,
-        mag_loss_ratio=0.1,
-        optimizer: str = "SGD",
-        scheduler="CosLR",
-        criterion="MSE",
-        epochs=30,
-        starting_epoch=0,
-        learning_rate=1e-2,
-        print_freq=100,
+        model: nn.Module = None,
+        targets: str = "ef",
+        energy_loss_ratio: float = 1,
+        force_loss_ratio: float = 1,
+        stress_loss_ratio: float = 0.1,
+        mag_loss_ratio: float = 0.1,
+        optimizer: str = "Adam",
+        scheduler: str = "CosLR",
+        criterion: str = "MSE",
+        epochs: int = 50,
+        starting_epoch: int = 0,
+        learning_rate: float = 1e-3,
+        print_freq: int = 100,
         torch_seed: int = None,
         data_seed: int = None,
-        use_device=None,
+        use_device: str = None,
         **kwargs,
     ):
         """
-        Initialize all hyper-parameters
+        Initialize all hyper-parameters for trainer
+
         Args:
-            model (nn.Module): a model that takes structure and output energy
-            graph_converter (nn.Module): a graph_converter to convert structure to graph
-            train_ratio (float): train ratio, used to train the model
-            val_ratio (float): validation ratio, used to determine best model so far
-            test_ratio: test ratio, used to test best model performance
-            optimizer (str): optimizer to update model, default = 'SGD'
-            scheduler (str): learning rate scheduler, default = 'MultiStepLR'
-            criterion (str): loss function criterion, default = 'MSE'
-            normalizer (str): normalizer to pre-process targets, default = 'MeanNorm'
-            epochs (int): number of epochs for training, default = 300
-            learning_rate (float): initial learning rate, default = 1e-2
-            use_cuda (bool): whether to use cuda for training, default = True
-            print_freq (int): frequency to print training output, default = 100
-            kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
+            model (nn.Module): a CHGNet model
+            targets (str): the training targets i.e. "ef", "efs", "efsm"
+                Default = "ef"
+            energy_loss_ratio (float): energy loss ratio in loss function
+                Default = 1
+            force_loss_ratio (float): force loss ratio in loss function
+                Default = 1
+            stress_loss_ratio (float): stress loss ratio in loss function
+                Default = 0.1
+            mag_loss_ratio (float): magmom loss ratio in loss function
+                Default = 0.1
+            optimizer (str): optimizer to update model. Can be "Adam", "SGD", "AdamW", "RAdam"
+                Default = 'Adam'
+            scheduler (str): learning rate scheduler. Can be "CosLR", "ExponentialLR", "CosRestartLR"
+                Default = 'CosLR'
+            criterion (str): loss function criterion. Can be "MSE", "Huber", "MAE"
+                Default = 'MSE'
+            epochs (int): number of epochs for training
+                Default = 50
+            learning_rate (float): initial learning rate
+                Default = 1e-3
+            print_freq (int): frequency to print training output
+                Default = 100
+            torch_seed (int): random seed for torch
+                Default = None
+            data_seed (int): random seed for random
+                Default = None
+            use_device (str, optional): device name to train the CHGNet. Can be "cuda", "cpu"
+                Default = None
+            **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
         # Store trainer args for reproducibility
         self.trainer_args = {
@@ -159,8 +175,9 @@ class Trainer(object):
             self.device = use_device
         elif torch.cuda.is_available():
             self.device = "cuda"
-        elif torch.backends.mps.is_available():
-            self.device = "mps"
+        # mps is disabled until stable version of torch for mps is released
+        # elif torch.backends.mps.is_available():
+        #     self.device = "mps"
         else:
             self.device = "cpu"
 
@@ -174,12 +191,20 @@ class Trainer(object):
         self,
         train_loader: DataLoader,
         val_loader: DataLoader,
-        test_loader: Union[DataLoader, None] = None,
-        save_dir=None,
-        save_test_result=False,
+        test_loader: DataLoader = None,
+        save_dir: str = None,
+        save_test_result: bool = False,
     ):
         """
-        train the model
+        train the model using torch data_loaders
+
+        Args:
+            train_loader (DataLoader): train loader to update CHGNet weights
+            val_loader (DataLoader): val loader to test accuracy after each epoch
+            test_loader (DataLoader):  test loader to test accuracy at end of training, can be None
+            save_dir (str): the dir name to save the trained weights
+                Default = None
+            save_test_result (bool): whether to save the test set prediction in a json file
         """
         assert self.model is not None, "Model need to be initialized"
         global best_checkpoint
@@ -229,9 +254,16 @@ class Trainer(object):
             for i in self.targets:
                 self.training_history[i]["test"].append(test_mae[i])
 
-    def _train(self, train_loader: DataLoader, current_epoch: int):
+    def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
         """
-        Train all data for once
+        Train all data for one epoch
+
+        Args:
+            train_loader (DataLoader): train loader to update CHGNet weights
+            current_epoch (int): used for resume unfinished training
+
+        Returns:
+            dictionary of training errors
         """
         batch_time = AverageMeter()
         data_time = AverageMeter()
@@ -301,10 +333,21 @@ class Trainer(object):
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
     def _validate(
-        self, val_loader: DataLoader, is_test=False, test_result_save_path=None
-    ):
+        self,
+        val_loader: DataLoader,
+        is_test: bool = False,
+        test_result_save_path: str = None
+    ) -> dict:
         """
-        Validate/Test
+        Validation or test step
+
+        Args:
+            val_loader (DataLoader): val loader to test accuracy after each epoch
+            is_test (bool): whether it's test step
+            test_result_save_path (str): path to save test_result
+
+        Returns:
+            dictionary of training errors
         """
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -412,59 +455,17 @@ class Trainer(object):
         print(message)
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
-    def predict(self, test_loader: DataLoader, task="f"):
-        """
-        Validate/Test
-        """
-        # switch to evaluate mode
-        self.model.eval()
-
-        predictions = {}
-        for i, graphs in enumerate(test_loader):
-            if "f" in task or "s" in task:
-                for g in graphs:
-                    requires_force = "f" in self.targets
-                    g.atom_frac_coord.requires_grad = requires_force
-                graphs = [g.to(self.device) for g in graphs]
-            else:
-                with torch.no_grad():
-                    graphs = [g.to(self.device) for g in graphs]
-
-            # compute output
-            prediction = self.model(graphs, task=task)
-            if predictions == {}:
-                for k, v in prediction.items():
-                    if torch.is_tensor(v):
-                        predictions[k] = v.data.cpu()
-                    elif isinstance(v, list):
-                        predictions[k] = [i.data.cpu() for i in v]
-                    else:
-                        raise Exception
-            else:
-                for k, v in prediction.items():
-                    if torch.is_tensor(v):
-                        predictions[k] = torch.cat([predictions[k], v], dim=0)
-                    elif isinstance(v, list):
-                        predictions[k] += [i.data.cpu() for i in v]
-                    else:
-                        raise Exception
-
-            # free memory
-            del graphs, prediction
-
-            if (i + 1) % self.print_freq == 0:
-                message = "Test: [{0}/{1}]\t".format((i + 1), len(test_loader))
-                print(message)
-        return predictions
-
     def get_best_model(self):
+        """
+        Get best model recorded in the trainer
+        """
         if self.best_model == None:
             raise Exception("the model needs to be trained first")
         print("Best model has val MAE = ", min(self.training_history["e"]["val"]))
         return self.best_model
 
     @property
-    def init_keys(self):
+    def _init_keys(self):
         return [
             key
             for key in list(inspect.signature(Trainer.__init__).parameters.keys())
@@ -486,7 +487,15 @@ class Trainer(object):
             filename = "training_result.pth.tar"
         torch.save(state, filename)
 
-    def save_checkpoint(self, epoch, mae_error, save_dir=None):
+    def save_checkpoint(self, epoch: int, mae_error: dict, save_dir: str = None):
+        """
+        function to save CHGNet trained weights after each epoch
+
+        Args:
+            epoch (int): the epoch number
+            mae_error (dict): dictionary that stores the mae errors
+            save_dir (str): the directory to save trained weights
+        """
         for fname in os.listdir(save_dir):
             if fname.startswith("epoch"):
                 os.remove(os.path.join(save_dir, fname))
@@ -539,8 +548,6 @@ class Trainer(object):
     def load(cls, path: str):
         """
         load trainer state_dict
-        :param path:
-        :return:
         """
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
@@ -575,17 +582,41 @@ class Trainer(object):
 
 
 class CombinedLoss(nn.Module):
+    """
+    A combined loss function of energy, force, stress and magmom
+    """
+
     def __init__(
         self,
-        target_str: str = "e",
+        target_str: str = "ef",
         criterion: str = "MSE",
         is_intensive: bool = True,
         energy_loss_ratio: float = 1,
-        force_loss_ratio: float = 0.5,
+        force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
         **kwargs,
     ):
+        """
+        Initialize the combined loss
+
+        Args:
+            target_str: the training target label. Can be "e", "ef", "efs", "efsm" etc.
+                Default = "ef"
+            criterion: loss criterion to use
+                Default = "MSE"
+            is_intensive (bool): whether the energy label is intensive
+                Default = True
+            energy_loss_ratio (float): energy loss ratio in loss function
+                Default = 1
+            force_loss_ratio (float): force loss ratio in loss function
+                Default = 1
+            stress_loss_ratio (float): stress loss ratio in loss function
+                Default = 0.1
+            mag_loss_ratio (float): magmom loss ratio in loss function
+                Default = 0.1
+            **kwargs:
+        """
         super().__init__()
         # Define loss criterion
         if criterion in ["MSE", "mse"]:
@@ -616,7 +647,19 @@ class CombinedLoss(nn.Module):
         self,
         targets: dict,
         prediction: dict,
-    ):
+    ) -> dict:
+        """
+        Compute the combined loss using CHGNet prediction and labels
+        this function can automatically mask out magmom loss contribution of
+        data points without magmom labels.
+
+        Args:
+            targets (dict): DFT labels
+            prediction (dict): CHGNet prediction
+
+        Returns:
+            dictionary of all the loss, MAE and MAE_size
+        """
         out = {"loss": 0}
         # Energy
         if self.energy_loss_ratio != 0 and "e" in targets.keys():

@@ -83,6 +83,15 @@ class Atom_Ref(nn.Module):
         self.fitted = False
 
     def forward(self, graphs: List[Crystal_Graph]):
+        """
+        get the energy of a list of Crystal_Graphs
+
+        Args:
+            graphs (List(Crystal_Graph)): a list of Crystal Graph to compute
+
+        Returns:
+            energy (tensor)
+        """
         assert self.fitted == True, "composition model need to be fitted first!"
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
@@ -161,6 +170,9 @@ class Atom_Ref(nn.Module):
             raise NotImplementedError
 
     def initialize_from_MPtrj(self):
+        """
+        initialize pre-fitted weights from MPtrj dataset
+        """
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [
@@ -265,6 +277,9 @@ class Atom_Ref(nn.Module):
         self.fitted = True
 
     def initialize_from_MPF(self):
+        """
+        initialize pre-fitted weights from MPF dataset
+        """
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [

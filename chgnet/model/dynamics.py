@@ -21,6 +21,9 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
+# We would like to thank M3GNet develop team for this module
+# source: https://github.com/materialsvirtuallab/m3gnet
+
 OPTIMIZERS = {
     "FIRE": FIRE,
     "BFGS": BFGS,
