@@ -64,7 +64,7 @@ class AtomConv(nn.Module):
         bond_weights: Tensor,
         atom_graph: Tensor,
         directed2undirected: Tensor,
-    ) -> (Tensor, Tensor):
+    ) -> Tensor:
         """
         Forward pass of AtomConv module that updates the atom features and optionally bond features.
 
@@ -168,7 +168,7 @@ class BondConv(nn.Module):
         bond_weights: Tensor,
         angle_feas: Tensor,
         bond_graph: Tensor,
-    ) -> (Tensor, Tensor):
+    ) -> Tensor:
         """
         Update the bond features.
 
@@ -176,11 +176,14 @@ class BondConv(nn.Module):
             atom_feas (Tensor): atom features tensor with shape [num_batch_atoms, atom_fea_dim].
             bond_feas (Tensor): bond features tensor with shape [num_undirected_bonds, bond_fea_dim].
             bond_weights (Tensor): BondGraph bond weights with shape [num_undirected_bonds, bond_fea_dim].
-            angle_feas (Tensor): Tensor of shape (num_batch_angles, atom_fea_dim).
+            angle_feas (Tensor): angle features tensor with shape [num_batch_angles, atom_fea_dim].
             bond_graph (Tensor): Directed BondGraph tensor with shape [num_batched_angles, 5].
 
         Returns:
-            new_bond_feas (Tensor): Tensor of shape (num_batch_atom, bond_fea_dim).
+            new_bond_feas (Tensor): bond feature tensor with shape [num_batch_atom, bond_fea_dim].
+
+        Notes:
+            - num_batch_atoms = sum(num_atoms) in batch
         """
         # Make directional Message
         center_atoms = torch.index_select(atom_feas, 0, bond_graph[:, 0])
@@ -230,6 +233,21 @@ class AngleUpdate(nn.Module):
         resnet: bool = True,
         **kwargs
     ):
+        """
+        Args:
+            atom_fea_dim (int): The dimensionality of the input atom features.
+            bond_fea_dim (int): The dimensionality of the input bond features.
+            angle_fea_dim (int): The dimensionality of the input angle features.
+            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 0.
+            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated atom features.
+                Must be one of "batch", "layer", or None. Default: None.
+            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+                Default: True.
+            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """
         super().__init__()
         self.resnet = resnet
         self.activation = find_activation(activation)
@@ -249,17 +267,21 @@ class AngleUpdate(nn.Module):
         bond_feas: Tensor,
         angle_feas: Tensor,
         bond_graph: Tensor,
-    ) -> (Tensor, Tensor):
+    ) -> Tensor:
         """
-        Update the angle_feas
-        Note: num_batch_bonds = sum(num_bonds) in batch
+        Update the angle features using bond graph
+
         Args:
-            atom_feas (Tensor): [num_batch_atoms, atom_fea_dim]
-            bond_feas (Tensor): [num_undirected_bonds, bond_fea_dim]
-            angle_feas (Tensor): [num_batch_angles, atom_fea_dim]
-            bond_graph (Tensor) : [num_batch_angles, 5]
+            atom_feas (Tensor): atom features tensor with shape [num_batch_atoms, atom_fea_dim].
+            bond_feas (Tensor): bond features tensor with shape [num_undirected_bonds, bond_fea_dim].
+            angle_feas (Tensor): angle features tensor with shape [num_batch_angles, atom_fea_dim].
+            bond_graph (Tensor): Directed BondGraph tensor with shape [num_batched_angles, 5].
+
         Returns:
-            bond_feas (Tensor): [num_batch_atom, atom_fea_dim]
+            new_angle_feas (Tensor): angle features tensor with shape [num_batch_angles, atom_fea_dim].
+
+        Notes:
+            - num_batch_atoms = sum(num_atoms) in batch
         """
         # Assemble features
         center_atoms = torch.index_select(atom_feas, 0, bond_graph[:, 0])
@@ -296,10 +318,12 @@ class GraphPooling(nn.Module):
     def forward(self, atom_feas: Tensor, atom_owner: Tensor) -> Tensor:
         """
         Merge the atom features that belong to same graph in a batched graph
+
         Args:
             atom_feas (Tensor): batched atom features after convolution layers
                                 [num_batch_atoms, atom_fea_dim]
             atom_owner (Tensor): graph indices for each atom [num_batch_atoms]
+
         Returns:
             crystal_feas (Tensor): crystal feature matrix
                                    [n_crystals, atom_fea_dim]
@@ -318,6 +342,7 @@ class GraphAttentionReadOut(nn.Module):
     ):
         """
         Initialize the layer
+
         Args:
             atom_fea_dim (int): atom feature dimension
             num_head (int): number of attention heads used
@@ -333,73 +358,12 @@ class GraphAttentionReadOut(nn.Module):
     def forward(self, atom_feas: Tensor, atom_owner: Tensor) -> Tensor:
         """
         Merge the atom features that belong to same graph in a batched graph
+
         Args:
             atom_feas (Tensor): batched atom features after convolution layers
                                 [num_batch_atoms, atom_fea_dim]
             atom_owner (Tensor): graph indices for each atom [num_batch_atoms]
-        Returns:
-            crystal_feas (Tensor): crystal feature matrix
-                                   [n_crystals, atom_fea_dim]
-        """
-        crystal_feas = []
-        weights = self.key(atom_feas)  # [n_batch_atom, n_heads]
-        bincount = torch.bincount(atom_owner)
-        start_index = 0
-        for n_atom in bincount:
-            # find atoms belong to this crystal
-            atom_fea = atom_feas[
-                start_index : start_index + n_atom, :
-            ]  # [n_atom, atom_fea_dim]
 
-            # find weight belong to these atoms
-            weight = self.softmax(
-                weights[start_index : start_index + n_atom, :]
-            )  # [n_atom, n_heads]
-
-            # Weighted summation from multiple attention heads
-            crystal_fea = (atom_fea.T @ weight).view(-1)  # [n_heads * atom_fea_dim]
-
-            # Normalize the crystal feature if the model output is intensive
-            if self.average:
-                crystal_fea = crystal_fea / n_atom
-
-            crystal_feas.append(crystal_fea)
-            start_index += n_atom
-        return torch.stack(crystal_feas, dim=0)
-
-
-class ElementalReadOut(nn.Module):
-    """
-    Read out defined by type of element:
-        assign different layer to different types of elements
-    """
-
-    def __init__(
-        self,
-        atom_fea_dim: int,
-        hidden_dim: int = 32,
-        max_num_elements: int = 94,
-        average=False,
-    ):
-        """
-        Initialize the layer
-        Args:
-            atom_fea_dim (int): atom feature dimension
-            average (bool): whether to average the features
-        """
-        super().__init__()
-        self.linear = nn.Linear(in_features=max_num_elements, out_features=hidden_dim)
-        self.average = average
-
-    def forward(
-        self, atom_feas: Tensor, atomic_numbers: Tensor, atom_owner: Tensor
-    ) -> Tensor:
-        """
-        Merge the atom features that belong to same graph in a batched graph
-        Args:
-            atom_feas (Tensor): batched atom features after convolution layers
-                                [num_batch_atoms, atom_fea_dim]
-            atom_owner (Tensor): graph indices for each atom [num_batch_atoms]
         Returns:
             crystal_feas (Tensor): crystal feature matrix
                                    [n_crystals, atom_fea_dim]

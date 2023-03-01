@@ -44,6 +44,7 @@ class BondEncoder(nn.Module):
     ):
         """
         Initialize the bond encoder
+
         Args:
             atom_graph_cutoff (float): the cutoff for constructing AtomGraph default = 5
             bond_graph_cutoff (float): the cutoff for constructing BondGraph default = 3
@@ -75,11 +76,13 @@ class BondEncoder(nn.Module):
     ) -> (Tensor, Tensor, Tensor):
         """
         Compute the pairwise distance between 2 3d coordinates
+
         Args:
             center (Tensor): 3d cartesian coordinates of center atoms [n_bond, 3]
             neighbor (Tensor): 3d cartesian coordinates of neighbor atoms [n_bond, 3]
             image (Tensor): the periodic image specifying the location of neighboring atom [n_bond, 3]
             lattice (Tensor): the lattice of this structure [3, 3]
+
         Returns:
             bond_basis_ag (Tensor): the bond basis in AtomGraph [n_bond, num_radial]
             bond_basis_ag (Tensor): the bond basis in BondGraph [n_bond, num_radial]
@@ -109,6 +112,7 @@ class AngleEncoder(nn.Module):
     def __init__(self, num_angular: int = 21, learnable: bool = True):
         """
         Initialize the angle encoder
+
         Args:
             num_angular (int): number of angular basis to use
             (Note: num_angular can only be an odd number)
@@ -123,9 +127,11 @@ class AngleEncoder(nn.Module):
     def forward(self, bond_i: Tensor, bond_j: Tensor) -> Tensor:
         """
         Compute the angles between normalized vectors
+
         Args:
             bond_i (Tensor): normalized left bond vector [n_angle, 3]
             bond_j (Tensor): normalized right bond vector [n_angle, 3]
+
         Returns:
             angle_fea (Tensor):  expanded cos_ij [n_angle, angle_feature_dim]
         """

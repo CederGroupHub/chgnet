@@ -6,7 +6,6 @@ from chgnet.graph import CrystalGraphConverter, Crystal_Graph
 from chgnet.model.encoders import AtomEmbedding, BondEncoder, AngleEncoder
 from chgnet.model.layers import *
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
-from chgnet.model.basis import RadialBessel, Fourier
 from chgnet.model.composition_model import Atom_Ref
 from pymatgen.core import Structure
 from typing import List, Union
@@ -25,57 +24,81 @@ class CHGNet(nn.Module):
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
-        composition_model: Union[str, nn.Module] = None,
+        composition_model: Union[nn.Module] = None,
         num_radial: int = 9,
         num_angular: int = 9,
         n_conv: int = 4,
         atom_conv_hidden_dim: Union[List[int], int] = 64,
         update_bond: bool = True,
         bond_conv_hidden_dim: Union[List[int], int] = 64,
-        update_angle: bool = False,
+        update_angle: bool = True,
         angle_layer_hidden_dim: Union[List[int], int] = 0,
         conv_dropout: float = 0,
         read_out: str = "ave",
         mlp_hidden_dims: Union[List[int], int] = [64, 64],
         mlp_dropout: float = 0,
-        mlp_first: bool = False,
+        mlp_first: bool = True,
         is_intensive: bool = True,
         non_linearity: str = "silu",
         atom_graph_cutoff: int = 5,
         bond_graph_cutoff: int = 3,
         cutofff_coeff: float = 5,
-        learnable_rbf: bool = False,
+        learnable_rbf: bool = True,
         **kwargs,
     ):
         """
         Define the model here
         Args:
-            atom_fea_dim (int): atom feature vector embedding dimension
-            bond_fea_dim (int): bond feature vector embedding dimension
-            bond_fea_dim (int): angle feature vector embedding dimension
-            composition_model (str or nn.Module): attach a composition model to predict energy
-                or use str to initialize a pretrained linear regression
-            num_radial (int): number of radial basis used in bond basis expansion
-            num_angular (int): number of angular basis used in angle basis expansion
-            n_conv (int): number of convolution blocks
-            atom_conv_hidden_dims (List or int): hidden dimensions of atom convolution layers
-            update_bond (bool): whether to use bond_conv_layer to update bond embeddings
-            bond_conv_hidden_dim (List or int): hidden dimensions of bond convolution layers
-            update_angle (bool): whether to use angle_update_layer to update angle embeddings
-            angle_layer_hidden_dim (List or int): hidden dimensions of angle layers
-            conv_dropout (float): dropout rate in all conv_layers
+            atom_fea_dim (int): atom feature vector embedding dimension.
+                Default: 64
+            bond_fea_dim (int): bond feature vector embedding dimension.
+                Default: 64
+            bond_fea_dim (int): angle feature vector embedding dimension.
+                Default: 64
+            composition_model (nn.Module, optional): attach a composition model to predict energy
+                or initialize a pretrained linear regression (AtomRef).
+                Default: None
+            num_radial (int): number of radial basis used in bond basis expansion.
+                Default: 9
+            num_angular (int): number of angular basis used in angle basis expansion.
+                Default: 9
+            n_conv (int): number of interaction blocks.
+                Default: 4
+                Note: last interaction block contain only an atom_conv layer
+            atom_conv_hidden_dims (List or int): hidden dimensions of atom convolution layers.
+                Default: 64
+            update_bond (bool): whether to use bond_conv_layer in bond graph to update bond embeddings
+                Default: True.
+            bond_conv_hidden_dim (List or int): hidden dimensions of bond convolution layers.
+                Default: 64
+            update_angle (bool): whether to use angle_update_layer to update angle embeddings.
+                Default: True
+            angle_layer_hidden_dim (List or int): hidden dimensions of angle layers.
+                Default: 0
+            conv_dropout (float): dropout rate in all conv_layers.
+                Default: 0
             read_out (str): method for pooling layer, 'ave' for standard average pooling,
                 'attn' for multi-head attention.
-            mlp_hidden_dims (int or list): readout multilayer perceptron hidden dimensions
-            mlp_dropout (float): dropout rate in readout MLP
-            mlp_first (bool): whether to apply mlp fist then pooling
+                Default: "ave"
+            mlp_hidden_dims (int or list): readout multilayer perceptron hidden dimensions.
+                Default = [64, 64]
+            mlp_dropout (float): dropout rate in readout MLP.
+                Default = 0.
+            is_intensive (bool): whether the energy training label is intensive i.e. energy per atom.
+                Default = True
+            mlp_first (bool): whether to apply mlp fist then pooling.
+                Default = True
             atom_graph_cutoff (float): cutoff radius (A) in creating atom_graph,
-                this need to be consistent with training dataloader
+                this need to be consistent with the value in training dataloader
+                Default: 5
             bond_graph_cutoff (float): cutoff radius (A) in creating bond_graph,
-                this need to be consistent with training dataloader
-            cutoff_coeff (float): cutoff strength used in graph smooth cutoff function
-            is_intensive: whether the energy training label is intensive
-                          i.e. energy/atom
+                this need to be consistent with value in training dataloader
+                Default: 3
+            cutoff_coeff (float): cutoff strength used in graph smooth cutoff function.
+                Default: 5
+            learnable_rbf (bool): whether to set the frequencies in rbf and fourier basis functions learnable.
+                Default: True
+            **kwargs: Additional keyword arguments
         """
         # Store model args for reconstruction
         self.model_args = {
@@ -92,14 +115,13 @@ class CHGNet(nn.Module):
         self.n_conv = n_conv
 
         # Optionally, define composition model
-        if type(composition_model) == str:
-            self.composition_model = Atom_Ref(is_intensive=is_intensive)
-            self.composition_model.initialize_from(composition_model)
-        elif isinstance(composition_model, nn.Module):
+        if isinstance(composition_model, nn.Module):
             self.composition_model = composition_model
         else:
-            self.composition_model = None
+            self.composition_model = Atom_Ref(is_intensive=is_intensive)
+            self.composition_model.initialize_from(composition_model)
         if self.composition_model is not None:
+            # fixed composition_model weights
             for param in self.composition_model.parameters():
                 param.requires_grad = False
 
@@ -248,18 +270,18 @@ class CHGNet(nn.Module):
         task="e",
         return_atom_feas=False,
         return_crystal_feas=False,
-    ):
+    ) -> dict:
         """
         Get prediction associated with input graphs
         Args:
-            graphs (List): a list of Crystal_graphs
+            graphs (List): a list of Crystal_Graphs
             task (str): the prediction task
                         eg: 'e', 'em', 'ef', 'efs', 'efsm'
                         default is 'e'
             return_atom_feas (bool): whether to return the atom features before last conv layer
             return_crystal_feas (bool): whether to return crystal feature
         Returns:
-            model output
+            model output (dict)
         """
         compute_force = "f" in task
         compute_stress = "s" in task
@@ -303,9 +325,21 @@ class CHGNet(nn.Module):
         """
         Get Energy, Force, Stress, Magmom associated with input graphs
         force = - d(Energy)/d(atom_positions)
-        stress = d(Energy)/d(strain)
+        stress = 1/V * d(Energy)/d(strain)
+
         Args:
             g (BatchedGraph): batched graph
+            site_wise (bool): whether to compute magmom.
+                Default = False
+            compute_force (bool): whether to compute force.
+                Default = False
+            compute_stress (bool): whether to compute stress.
+                Default = False
+            return_atom_feas (bool): whether to return atom feautures
+                Default = False
+            return_crystal_feas (bool): whether to return crystal features,
+                only available if self.mlp_first is False
+                Default = False
 
         Returns:
             prediction (dict): containing the fields:
@@ -424,18 +458,32 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Union[Structure, List[Structure]],
-        task="efsm",
-        return_atom_feas=False,
-        return_crystal_feas=False,
-        batch_size=100,
-    ):
+        task: str = "efsm",
+        return_atom_feas: bool = False,
+        return_crystal_feas: bool = False,
+        batch_size: int = 100,
+    ) -> dict:
         """
         Predict from pymatgen.core.Structure
+
         Args:
-            structure (pymatgen.core.Structure): crystal structure to predict
+            structure (Structure, List(Structure)): structure or a list of structures to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
+                Default = "efsm"
+            return_atom_feas (bool): whether to return atom feautures.
+                Default = False
+            return_crystal_feas (bool): whether to return crystal features.
+                only available if self.mlp_first is False
+                Default = False
+            batch_size (int): batch_size for predict structures.
+                Default = 100
+
         Returns:
-            prediction (dict)
+            prediction (dict): containing the fields:
+                e (Tensor) : energy of structures [batch_size, 1]
+                f (Tensor) : force on atoms [num_batch_atoms, 3]
+                s (Tensor) : stress of structure [3 * batch_size, 3]
+                m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
         """
         assert (
             self.graph_converter != None
@@ -463,12 +511,34 @@ class CHGNet(nn.Module):
 
     def predict_graph(
         self,
-        graph,
-        task="e",
-        return_atom_feas=False,
-        return_crystal_feas=False,
-        batch_size=100,
-    ):
+        graph: Union[Crystal_Graph, List[Crystal_Graph]],
+        task: str = "efsm",
+        return_atom_feas: bool = False,
+        return_crystal_feas: bool = False,
+        batch_size: int = 100,
+    ) -> dict:
+        """
+
+        Args:
+            graph (Crystal_Graph): Crystal_Graph or a list of Crystal_Graphs to predict.
+            task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
+                Default = "efsm"
+            return_atom_feas (bool): whether to return atom feautures.
+                Default = False
+            return_crystal_feas (bool): whether to return crystal features.
+                only available if self.mlp_first is False
+                Default = False
+            batch_size (int): batch_size for predict structures.
+                Default = 100
+
+        Returns:
+            prediction (dict): containing the fields:
+                e (Tensor) : energy of structures [batch_size, 1]
+                f (Tensor) : force on atoms [num_batch_atoms, 3]
+                s (Tensor) : stress of structure [3 * batch_size, 3]
+                m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
+
+        """
         if type(graph) == Crystal_Graph:
             self.eval()
             prediction = self.forward(
@@ -540,7 +610,7 @@ class CHGNet(nn.Module):
     @classmethod
     def from_dict(cls, dict, **kwargs):
         """
-        build a Crystal Hamiltonian Graph Network from a saved dictionary
+        build a CHGNet from a saved dictionary
         """
         chgnet = CHGNet(**dict["model_args"])
         chgnet.load_state_dict(dict["state_dict"], **kwargs)
@@ -549,7 +619,7 @@ class CHGNet(nn.Module):
     @classmethod
     def from_file(cls, path, **kwargs):
         """
-        build a Crystal Hamiltonian Graph Network from a path
+        build a CHGNet from a saved file
         """
         state = torch.load(path, map_location=torch.device("cpu"))
         chgnet = CHGNet.from_dict(state["model"], **kwargs)
@@ -558,7 +628,7 @@ class CHGNet(nn.Module):
     @classmethod
     def load(cls, model_name="MPtrj-efsm"):
         """
-        build a Crystal Hamiltonian Graph Network from a saved dictionary
+        load pretrained CHGNet
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if model_name == "MPtrj-efsm":
@@ -590,6 +660,7 @@ class BatchedGraph(object):
     ):
         """
         Batched crystal graph
+
         Args:
             atomic_numbers (Tensor): atomic numbers vector [num_batch_atoms]
             bond_bases_ag (Tensor): bond bases vector for atom_graph
@@ -636,11 +707,13 @@ class BatchedGraph(object):
     ):
         """
         Featurize and assemble a list of graphs
+
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs
             bond_basis_expansion (nn.Module): bond basis expansion layer in CHGNet
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
             compute_stress (bool): whether to compute stress
+
         Returns:
             assembled batch_graph that is ready for batched forward pass in CHGNet
         """

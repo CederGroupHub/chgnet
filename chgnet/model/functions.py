@@ -7,11 +7,17 @@ from typing import List, Union
 def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Tensor:
     """
     aggregate rows in data by specifying the owners
+
     Args:
-        data (Tensor): [n_row, feature_dim]
-        owners (Tensor): [n_row, 1]
+        data (Tensor): data tensor to aggregate [n_row, feature_dim]
+        owners (Tensor): specify the owner of each row [n_row, 1]
         average (bool): if True, average the rows,
                         if False, sum the rows
+            Default = True
+        num_owner (int, optional): the number of owners, this is needed if the
+            max idx of owner is not presented in owners tensor
+            Default = None
+
     Returns:
         output (Tensor): [num_owner, feature_dim]
     """
@@ -35,19 +41,26 @@ def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Ten
 
 class MLP(nn.Module):
     """
-    Multi-Layer Perceptron used for regression on crystal feature
+    Multi-Layer Perceptron used for non-linear regression
     """
 
     def __init__(
         self,
         input_dim: int = None,
         output_dim: int = 1,
-        hidden_dim: Union[List[int], int] = [64, 32],
+        hidden_dim: Union[List[int], int] = [64, 64],
         dropout=0,
         activation="silu",
     ):
         """
-        dropout is only applied to first hidden layer here
+        Args:
+            input_dim (int): the input dimension
+            output_dim (int): the output dimension
+            hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+                the number of hidden units in each layer of the MLP. Default = [64, 64]
+            dropout (float): the dropout rate before each linear layer. Default: 0
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
         """
         super(MLP, self).__init__()
         if hidden_dim is None or hidden_dim == 0:
@@ -69,13 +82,22 @@ class MLP(nn.Module):
             layers.append(nn.Linear(hidden_dim[-1], output_dim))
         self.layers = nn.Sequential(*layers)
 
-    def forward(self, crystal_feas: Tensor) -> Tensor:
-        return self.layers(crystal_feas)
+    def forward(self, X: Tensor) -> Tensor:
+        """
+        Performs a forward pass through the MLP.
+
+        Args:
+            x (Tensor): a tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tensor: a tensor of shape (batch_size, output_dim)
+        """
+        return self.layers(X)
 
 
 class GatedMLP(nn.Module):
     """
-    Gated 2-layer MLP update
+    Gated MLP
     similar model structure is used in CGCNN and M3GNet
     """
 
@@ -88,6 +110,18 @@ class GatedMLP(nn.Module):
         activation="silu",
         norm="batch",
     ):
+        """
+        Args:
+            input_dim (int): the input dimension
+            output_dim (int): the output dimension
+            hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+                the number of hidden units in each layer of the MLP. Default = None
+            dropout (float): the dropout rate before each linear layer. Default: 0
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated atom features.
+                Must be one of "batch", "layer", or None. Default: "batch".
+        """
         super().__init__()
         self.mlp_core = MLP(
             input_dim=input_dim,
@@ -110,6 +144,15 @@ class GatedMLP(nn.Module):
         self.bn2 = find_normalization(name=norm, dim=output_dim)
 
     def forward(self, X: Tensor) -> Tensor:
+        """
+        Performs a forward pass through the MLP.
+
+        Args:
+            X (Tensor): a tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tensor: a tensor of shape (batch_size, output_dim)
+        """
         if self.norm is None:
             core = self.activation(self.mlp_core(X))
             gate = self.sigmoid(self.mlp_gate(X))

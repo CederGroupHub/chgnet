@@ -54,7 +54,11 @@ class Crystal_Graph(object):
             bond_graph_cutoff (float): the cutoff bond length to include bond as nodes in bond_graph
             lattice (Tensor): lattices of the input structure [3, 3]
             graph_id (str or None): an id to keep track of this crystal graph
+                Default = None
             mp_id (str) or None: Materials Project id of this structure
+                Default = None
+            composition: the chemical composition of the compound, used just for better tracking
+                Default = None
         Returns:
             Crystal Graph
         """
@@ -130,6 +134,9 @@ class Crystal_Graph(object):
         return Crystal_Graph(**dic)
 
     def __str__(self):
+        """
+        Details of the graph
+        """
         return (
             f"Crystal Graph {self.composition} \n"
             f"constructed using atom_graph_cutoff={self.atom_graph_cutoff}, "
@@ -153,7 +160,6 @@ class CrystalGraphConverter(nn.Module):
         self,
         atom_graph_cutoff: float,
         bond_graph_cutoff: float = None,
-        max_num_nbr: int = None,
         verbose: bool = True,
     ):
         """
@@ -161,7 +167,6 @@ class CrystalGraphConverter(nn.Module):
         Args:
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
             bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
-            max_num_nbr (int): max number of neighboring node used in atom_graph
             verbose (bool): whether to print initialization message
         """
         super().__init__()
@@ -170,7 +175,6 @@ class CrystalGraphConverter(nn.Module):
             self.bond_graph_cutoff = atom_graph_cutoff
         else:
             self.bond_graph_cutoff = bond_graph_cutoff
-        self.max_num_nbr = max_num_nbr
         if verbose:
             print(
                 f"CrystalGraphConverter initialized with atom_cutoff{atom_graph_cutoff}, "
@@ -183,7 +187,9 @@ class CrystalGraphConverter(nn.Module):
         Args:
             structure (pymatgen.core.Structure): structure to convert
             graph_id (str): an id to keep track of this crystal graph
+                Default = None
             mp_id (str): Materials Project id of this structure
+                Default = None
         Return:
             Crystal_Graph
         """
@@ -244,20 +250,32 @@ class CrystalGraphConverter(nn.Module):
         )
 
     def get_neighbors(self, structure: Structure):
+        """
+        Get neighbot information from pymatgen utility function
+
+        Args:
+            structure(pymatgen.core.Structure): a structure to compute
+
+        Returns:
+            center_index, neighbor_index, image, distance
+        """
         center_index, neighbor_index, image, distance = structure.get_neighbor_list(
             r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
         )
         return center_index, neighbor_index, image, distance
 
     def as_dict(self):
+        """
+        Save the args of the graph converter
+        """
         return {
             "atom_graph_cutoff": self.atom_graph_cutoff,
-            "bond_graph_cutoff": self.bond_graph_cutoff,
-            "max_num_nbr": self.max_num_nbr,
-            "requires_force": self.requires_force,
-            "requires_stress": self.requires_stress,
+            "bond_graph_cutoff": self.bond_graph_cutoff
         }
 
     @classmethod
     def from_dict(cls, dict):
+        """
+        Create converter from dictionary
+        """
         return CrystalGraphConverter(**dict)

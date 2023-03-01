@@ -122,4 +122,13 @@ trainer.train(train_loader, val_loader, test_loader)
 ```
 
 # To Cite:
-
+```text
+@article{deng2023chgnet,
+title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling}, 
+author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
+year={2023},
+eprint={2302.14231},
+archivePrefix={arXiv},
+primaryClass={cond-mat.mtrl-sci}
+}
+```
