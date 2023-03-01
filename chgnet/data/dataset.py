@@ -6,7 +6,6 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset, DataLoader
 from chgnet.graph.crystal_graph import CrystalGraphConverter, Crystal_Graph
-# from gcn.toolkit import utils
 from torch.utils.data.sampler import SubsetRandomSampler
 from typing import List, Union
 import warnings
