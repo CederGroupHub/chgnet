@@ -158,16 +158,20 @@ class CrystalGraphConverter(nn.Module):
 
     def __init__(
         self,
-        atom_graph_cutoff: float,
-        bond_graph_cutoff: float = None,
+        atom_graph_cutoff: float = 5,
+        bond_graph_cutoff: float = 3,
         verbose: bool = True,
     ):
         """
         Initialize the Crystal Graph Converter
+
         Args:
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
+                Default = 5
             bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
+                Default = 3
             verbose (bool): whether to print initialization message
+                Default = True
         """
         super().__init__()
         self.atom_graph_cutoff = atom_graph_cutoff
@@ -184,14 +188,16 @@ class CrystalGraphConverter(nn.Module):
     def forward(self, structure: Structure, graph_id=None, mp_id=None) -> Crystal_Graph:
         """
         convert a structure, return a Crystal_Graph
+
         Args:
             structure (pymatgen.core.Structure): structure to convert
             graph_id (str): an id to keep track of this crystal graph
                 Default = None
             mp_id (str): Materials Project id of this structure
                 Default = None
+
         Return:
-            Crystal_Graph
+            Crystal_Graph that is ready for CHGNet input
         """
         n_atom = int(structure.composition.num_atoms)
         atomic_number = torch.tensor(
@@ -221,6 +227,8 @@ class CrystalGraphConverter(nn.Module):
                 cutoff=self.bond_graph_cutoff
             )
         except:
+            # Report structures that failed creating bond graph
+            # This happen occasionally with pymatgen version issue
             structure.to(filename="bond_graph_error.cif")
             sys.exit()
         bond_graph = torch.tensor(bond_graph, dtype=torch.int64)
@@ -251,7 +259,7 @@ class CrystalGraphConverter(nn.Module):
 
     def get_neighbors(self, structure: Structure):
         """
-        Get neighbot information from pymatgen utility function
+        Get neighbor information from pymatgen utility function
 
         Args:
             structure(pymatgen.core.Structure): a structure to compute

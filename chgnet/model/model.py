@@ -47,7 +47,8 @@ class CHGNet(nn.Module):
         **kwargs,
     ):
         """
-        Define the model here
+        Initialize the CHGNet
+
         Args:
             atom_fea_dim (int): atom feature vector embedding dimension.
                 Default: 64
@@ -158,7 +159,7 @@ class CHGNet(nn.Module):
 
         # Define convolutional layers
         conv_norm = kwargs.pop("conv_norm", None)
-        gMLP_norm = kwargs.pop("gMLP_norm", "batch")
+        gMLP_norm = kwargs.pop("gMLP_norm", None)
         atom_graph_layers = []
         for i in range(n_conv):
             use_mlp_out = False if i == (n_conv - 1) else True
