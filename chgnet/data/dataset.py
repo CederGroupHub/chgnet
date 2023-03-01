@@ -3,112 +3,105 @@ import random
 import functools
 import torch
 import numpy as np
-from torch import Tensor
 from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset, DataLoader
 from gcn.chgnet.graph.crystal_graph import CrystalGraphConverter, Crystal_Graph
 from gcn.toolkit import utils
-from torch.utils.data.sampler import RandomSampler, SubsetRandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler
 from typing import List, Union
 import warnings
 
 warnings.filterwarnings("ignore")
-
 datatype = torch.float32
 
 
-class StructureJsonData(Dataset):
+class StructureData(Dataset):
     """
-    read structure and targets from Json data
+    A simple torch Dataset of structures
     """
 
     def __init__(
         self,
-        json_dir: str,
-        graph_converter: CrystalGraphConverter,
-        targets: str = "e",
-        **kwargs,
+        structures: List,
+        energies: List,
+        forces: List,
+        stresses: List = None,
+        magmoms: List = None,
+        graph_converter: CrystalGraphConverter = None,
     ):
         """
-        Initialize the dataset by reading Json files
-        Args
-            json_dir (str): json path or dir name that contain all the jsons
-            targets (list[str]): list of key words for target properties.
-                                 i.e. energy, force, stress
-            crystal_featurizer: featurizer to convert pymatgen.core.Structure
-                                to graphs (dictionaries)
-        """
-        self.json_dir = json_dir
-        self.data = {}
-        if os.path.isdir(json_dir):
-            for json_path in os.listdir(json_dir):
-                if json_path.endswith(".json"):
-                    print(f"Importing: {json_path}")
-                    self.data.update(utils.read_json(os.path.join(json_dir, json_path)))
-        else:
-            print(f"Importing: {json_dir}")
-            self.data.update(utils.read_json(json_dir))
-        self.graph_ids = list(self.data.keys())
-        random.shuffle(self.graph_ids)
-        print(f"{len(self.graph_ids)} structures imported")
-        self.graph_converter = graph_converter
+        Initialize the dataset
 
-        self.energy_str = kwargs.pop("energy_str", "ef_per_atom")
-        self.targets = targets
-        self.failed_ids = []
+        Args:
+            structures (list): a list of structures
+            energies (list): a list of  energies
+            forces (list): a list of forces
+            stresses (List, optional): a list of stresses
+            magmoms (List, optional): a list of magmoms
+            graph_converter (CrystalGraphConverter, optional):
+                a CrystalGraphConverter to convert the structures,
+                if None, it will be set to CHGNet default converter
+        """
+        self.structures = structures
+        self.energies = energies
+        self.forces = forces
+        self.stresses = stresses
+        self.magmoms = magmoms
+        self.keys = np.arange(len(structures))
+        random.shuffle(self.keys)
+        print(f"{len(self.structures)} structures imported")
+        if graph_converter is not None:
+            self.graph_converter = graph_converter
+        else:
+            self.graph_converter = CrystalGraphConverter(
+                atom_graph_cutoff=5, bond_graph_cutoff=3
+            )
+        self.failed_idx = []
         self.failed_graph_id = {}
 
     def __len__(self):
-        return len(self.graph_ids)
+        return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> (Crystal_Graph, dict):
         """
         get one item in the dataset
+
         Returns:
-            crystal_graph (crystal_graph): graph of the crystal structure
-            targets (dict): dictionary of targets, keys include 'e' 'f' 's' 'm'
-            material_id (str): material_id, which is the
+            crystal_graph (Crystal_Graph): graph of the crystal structure
+            targets (dict): list of targets. i.e. energy, force, stress
         """
-        if idx not in self.failed_ids:
+        if idx not in self.failed_idx:
+            graph_id = self.keys[idx]
             try:
-                graph_id = self.graph_ids[idx]
-                if "material_id" in self.data[graph_id].keys():
-                    mp_id = self.data[graph_id]["material_id"]
-                else:
-                    mp_id = graph_id
-                structure = Structure.from_dict(self.data[graph_id]["structure"])
+                struc = Structure.from_dict(self.structures[graph_id])
                 crystal_graph = self.graph_converter(
-                    structure, graph_id=graph_id, mp_id=mp_id
+                    struc, graph_id=graph_id, mp_id=graph_id
                 )
-                targets = {}
-                for i in self.targets:
-                    if i == "e":
-                        energy = self.data[graph_id][self.energy_str]
-                        targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f":
-                        force = self.data[graph_id]["forces"]
-                        targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s":
-                        stress = self.data[graph_id]["stress"]
-                        # Convert VASP stress
-                        targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
-                        mag = structure.site_properties["magmom"]
-                        # use absolute value for magnetic moments
-                        if mag != None:
-                            targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
-                        else:
-                            targets["m"] = None
+                targets = {
+                    "e": torch.tensor(self.energies[graph_id], dtype=datatype),
+                    "f": torch.tensor(self.forces[graph_id], dtype=datatype),
+                }
+                if self.stresses is not None:
+                    # Convert VASP stress
+                    targets["s"] = torch.tensor(
+                        self.stresses[graph_id], dtype=datatype
+                    ) * (-0.1)
+                if self.magmoms is not None:
+                    mag = self.magmoms[graph_id]
+                    # use absolute value for magnetic moments
+                    if mag is None:
+                        targets["m"] = None
+                    else:
+                        targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
 
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
             except:
-                graph_id = self.graph_ids[idx]
-                structure = Structure.from_dict(self.data[graph_id]["structure"])
-                self.failed_graph_id[graph_id] = structure.composition.formula
-                self.failed_ids.append(idx)
+                struc = Structure.from_dict(self.structures[graph_id])
+                self.failed_graph_id[graph_id] = struc.composition.formula
+                self.failed_idx.append(idx)
                 idx = random.randint(0, len(self) - 1)
                 return self.__getitem__(idx)
         else:
@@ -118,31 +111,40 @@ class StructureJsonData(Dataset):
 
 class CIFData(Dataset):
     """
-    read structure and targets from Json data
+    A dataset from cifs
     """
 
     def __init__(
         self,
-        data_dir: str,
-        graph_converter: CrystalGraphConverter,
-        targets: str = "e",
+        cif_path: str,
+        labels: Union[str, dict] = "labels.json",
+        targets: str = "ef",
+        graph_converter: CrystalGraphConverter = None,
         **kwargs,
     ):
         """
-        Initialize the dataset by reading Json files
+        Initialize the dataset from a directory containing cifs
+
         Args
-            json_dir (str): json path or dir name that contain all the jsons
-            targets (list[str]): list of key words for target properties.
-                                 i.e. energy, force, stress
-            crystal_featurizer: featurizer to convert pymatgen.core.Structure
-                                to graphs (dictionaries)
+            cif_path (str): path that contain all the graphs, labels.json
+            labels (str, dict): the path or dictionary of labels
+            targets (str): the training targets i.e. "ef", "efs", "efsm"
+                Default = "ef"
+            graph_converter (CrystalGraphConverter, optional):
+                a CrystalGraphConverter to convert the structures,
+                if None, it will be set to CHGNet default converter
         """
-        self.data_dir = data_dir
-        self.data = utils.read_json(os.path.join(data_dir, "targets.json"))
-        self.graph_ids = list(self.data.keys())
-        random.shuffle(self.graph_ids)
-        print(f"{data_dir}: {len(self.graph_ids)} structures imported")
-        self.graph_converter = graph_converter
+        self.data_dir = cif_path
+        self.data = utils.read_json(os.path.join(cif_path, labels))
+        self.cif_ids = list(self.data.keys())
+        random.shuffle(self.cif_ids)
+        print(f"{cif_path}: {len(self.cif_ids)} structures imported")
+        if graph_converter is not None:
+            self.graph_converter = graph_converter
+        else:
+            self.graph_converter = CrystalGraphConverter(
+                atom_graph_cutoff=5, bond_graph_cutoff=3
+            )
 
         self.energy_str = kwargs.pop("energy_str", "ef_per_atom")
         self.targets = targets
@@ -150,20 +152,20 @@ class CIFData(Dataset):
         self.failed_graph_id = {}
 
     def __len__(self):
-        return len(self.graph_ids)
+        return len(self.cif_ids)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
         """
         get one item in the dataset
+
         Returns:
-            crystal_graph (dict): graph of the crystal structure
-            targets (list): list of targets. i.e. energy, force, stress
-            material_id (str): material_id, which is the
+            crystal_graph (Crystal_Graph): graph of the crystal structure
+            targets (dict): list of targets. i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
             try:
-                graph_id = self.graph_ids[idx]
+                graph_id = self.cif_ids[idx]
                 if "material_id" in self.data[graph_id].keys():
                     mp_id = self.data[graph_id]["material_id"]
                 else:
@@ -195,9 +197,9 @@ class CIFData(Dataset):
             # Omit structures with isolated atoms. Return another random selected structure
             except:
                 try:
-                    graph_id = self.graph_ids[idx]
+                    graph_id = self.cif_ids[idx]
                 except:
-                    print(idx, len(self.graph_ids))
+                    print(idx, len(self.cif_ids))
                 structure = Structure.from_file(
                     os.path.join(self.data_dir, f"{graph_id}.cif")
                 )
@@ -212,8 +214,9 @@ class CIFData(Dataset):
 
 class GraphData(Dataset):
     """
-    Read graphs
-        this is compatible with the graph.pt documents made by make_graphs.py
+    A dataset of graphs
+    this is compatible with the graph.pt documents made by make_graphs.py
+    we recommend you to use the dataset to avoid graph conversion steps
     """
 
     def __init__(
@@ -225,11 +228,13 @@ class GraphData(Dataset):
         **kwargs,
     ):
         """
-        Initialize the dataset
+        Initialize the dataset from a directory containing saved crystal graphs
+
         Args
             graph_path (str): path that contain all the graphs, labels.json
-            targets (list[str]): list of key words for target properties.
-                                 i.e. 'efs'
+            labels (str, dict): the path or dictionary of labels
+            targets (str): the training targets i.e. "ef", "efs", "efsm"
+                Default = "efsm"
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -255,7 +260,7 @@ class GraphData(Dataset):
         if self.excluded_graph is not None:
             print(f"{len(self.excluded_graph)} graphs are pre-excluded")
 
-        self.energy_str = kwargs.pop("energy_str", "ef_per_atom")
+        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
         self.failed_idx = []
         self.failed_graph_id = []
@@ -266,10 +271,10 @@ class GraphData(Dataset):
     def __getitem__(self, idx):
         """
         get one item in the dataset
+
         Returns:
-            crystal_graph (dict): graph of the crystal structure
-            targets (list): list of targets. i.e. energy, force, stress
-            material_id (str): material_id, which is the
+            crystal_graph (Crystal_Graph): graph of the crystal structure
+            targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
             mp_id, graph_id = self.keys[idx]
@@ -314,26 +319,48 @@ class GraphData(Dataset):
 
     def get_train_val_test_loader(
         self,
-        train_key,
-        val_key,
-        test_key,
+        train_ratio: float = 0.8,
+        val_ratio: float = 0.1,
+        train_key: List[str] = None,
+        val_key: List[str] = None,
+        test_key: List[str] = None,
         batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ):
+    ) -> (DataLoader, DataLoader, DataLoader):
         """
-        get data loaders
-        Returns
-        -------
-        train_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the training data.
-        val_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the validation data.
-        test_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the test data, returns if
-            return_test=True.
+        partition the GraphData using materials id,
+        randomly select the train_keys, val_keys, test_keys by train val test ratio,
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders
+
+        Args:
+            train_ratio (float): The ratio of the dataset to use for training
+                Default = 0.8
+            val_ratio (float): The ratio of the dataset to use for validation
+                Default: 0.1
+            train_key (List(str), optional): a list of mp_ids for train set
+            val_key (List(str), optional): a list of mp_ids for val set
+            test_key (List(str), optional): a list of mp_ids for test set
+            batch_size (int): batch size
+                Default = 32
+            num_workers (int): The number of worker processes for loading the data
+                see torch Dataloader documentation for more info
+                Default = 0
+            pin_memory (bool): Whether to pin the memory of the data loaders
+                Default: True
+
+        Returns:
+            train_loader, val_loader, test_loader
         """
         train_labels, val_labels, test_labels = {}, {}, {}
+        if train_key is None:
+            mp_ids = list(self.labels.keys())
+            random.shuffle(mp_ids)
+            n_train = int(train_ratio * len(mp_ids))
+            n_val = int(val_ratio * len(mp_ids))
+            train_key = mp_ids[:n_train]
+            val_key = mp_ids[n_train : n_train + n_val]
+            test_key = mp_ids[n_train + n_val :]
         for mp_id in train_key:
             try:
                 train_labels[mp_id] = self.labels.pop(mp_id)
@@ -405,7 +432,8 @@ class GraphData(Dataset):
 
 class StructureJsonData(Dataset):
     """
-    read structure and targets from MPtrj dataset
+    read structure and targets from a json file
+    this function is used to load MPtrj dataset
     """
 
     def __init__(
@@ -417,12 +445,12 @@ class StructureJsonData(Dataset):
     ):
         """
         Initialize the dataset by reading Json files
+
         Args
             json_dir (str): json path or dir name that contain all the jsons
-            graph_converter: converter to convert pymatgen.core.Structure
-                    to graphs
-            targets (list[str]): list of key words for target properties.
-                                 i.e. energy, force, stress
+            graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
+            targets (str): the training targets i.e. "ef", "efs", "efsm"
+                Default = "efsm"
         """
         if isinstance(data, str):
             self.data = {}
@@ -458,10 +486,10 @@ class StructureJsonData(Dataset):
     def __getitem__(self, idx):
         """
         get one item in the dataset
+
         Returns:
-            crystal_graph (dict): graph of the crystal structure
-            targets (list): list of targets. i.e. energy, force, stress
-            material_id (str): material_id, which is the
+            crystal_graph (Crystal_Graph): graph of the crystal structure
+            targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
             mp_id, graph_id = self.keys[idx]
@@ -505,29 +533,41 @@ class StructureJsonData(Dataset):
 
     def get_train_val_test_loader(
         self,
-        train_key=None,
-        val_key=None,
-        test_key=None,
-        train_ratio=0.8,
-        val_ratio=0.1,
-        batch_size=64,
+        train_ratio: float = 0.8,
+        val_ratio: float = 0.1,
+        train_key: List[str] = None,
+        val_key: List[str] = None,
+        test_key: List[str] = None,
+        batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ):
+    ) -> (DataLoader, DataLoader, DataLoader):
         """
-        get data loaders
-        Returns
-        -------
-        train_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the training data.
-        val_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the validation data.
-        test_loader: torch.utils.data.DataLoader
-          DataLoader that random samples the test data, returns if
-            return_test=True.
+        partition the Dataset using materials id,
+        randomly select the train_keys, val_keys, test_keys by train val test ratio,
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders
+
+        Args:
+            train_ratio (float): The ratio of the dataset to use for training
+                Default = 0.8
+            val_ratio (float): The ratio of the dataset to use for validation
+                Default: 0.1
+            train_key (List(str), optional): a list of mp_ids for train set
+            val_key (List(str), optional): a list of mp_ids for val set
+            test_key (List(str), optional): a list of mp_ids for test set
+            batch_size (int): batch size
+                Default = 32
+            num_workers (int): The number of worker processes for loading the data
+                see torch Dataloader documentation for more info
+                Default = 0
+            pin_memory (bool): Whether to pin the memory of the data loaders
+                Default: True
+
+        Returns:
+            train_loader, val_loader, test_loader
         """
         train_data, val_data, test_data = {}, {}, {}
-        if train_key == None:
+        if train_key is None:
             mp_ids = list(self.data.keys())
             random.shuffle(mp_ids)
             n_train = int(train_ratio * len(mp_ids))
@@ -588,102 +628,13 @@ class StructureJsonData(Dataset):
         return train_loader, val_loader, test_loader
 
 
-class StructureData(Dataset):
-    """
-    dataset of structures
-    """
-
-    def __init__(
-        self,
-        structures: List,
-        energies: List,
-        forces: List,
-        stresses: List = None,
-        magmoms: List = None,
-        graph_converter: CrystalGraphConverter = None,
-    ):
-        """
-        Initialize the dataset by reading Json files
-        Args
-            json_dir (str): json path or dir name that contain all the jsons
-            graph_converter: converter to convert pymatgen.core.Structure
-                    to graphs
-            targets (list[str]): list of key words for target properties.
-                                 i.e. energy, force, stress
-        """
-        self.structures = structures
-        self.energies = energies
-        self.forces = forces
-        self.stresses = stresses
-        self.magmoms = magmoms
-        self.keys = np.arange(len(structures))
-        random.shuffle(self.keys)
-        print(f"{len(self.structures)} structures imported")
-        if graph_converter is not None:
-            self.graph_converter = graph_converter
-        else:
-            self.graph_converter = CrystalGraphConverter(
-                atom_graph_cutoff=5, bond_graph_cutoff=3
-            )
-        self.failed_idx = []
-        self.failed_graph_id = {}
-
-    def __len__(self):
-        return len(self.keys)
-
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx):
-        """
-        get one item in the dataset
-        Returns:
-            crystal_graph (dict): graph of the crystal structure
-            targets (list): list of targets. i.e. energy, force, stress
-            material_id (str): material_id, which is the
-        """
-        if idx not in self.failed_idx:
-            graph_id = self.keys[idx]
-            try:
-                struc = Structure.from_dict(self.structures[graph_id])
-                crystal_graph = self.graph_converter(
-                    struc, graph_id=graph_id, mp_id=graph_id
-                )
-                targets = {
-                    "e": torch.tensor(self.energies[graph_id], dtype=datatype),
-                    "f": torch.tensor(self.forces[graph_id], dtype=datatype),
-                }
-                if self.stresses is not None:
-                    # Convert VASP stress
-                    targets["s"] = torch.tensor(
-                        self.stresses[graph_id], dtype=datatype
-                    ) * (-0.1)
-                if self.magmoms is not None:
-                    mag = self.magmoms[graph_id]
-                    # use absolute value for magnetic moments
-                    if mag is None:
-                        targets["m"] = None
-                    else:
-                        targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
-
-                return crystal_graph, targets
-
-            # Omit structures with isolated atoms. Return another random selected structure
-            except:
-                struc = Structure.from_dict(self.structures[graph_id])
-                self.failed_graph_id[graph_id] = struc.composition.formula
-                self.failed_idx.append(idx)
-                idx = random.randint(0, len(self) - 1)
-                return self.__getitem__(idx)
-        else:
-            idx = random.randint(0, len(self) - 1)
-            return self.__getitem__(idx)
-
-
 def collate_graphs(batch_data: List):
     """
-    Collate of list of (graph, target) into batch (a large graph),
-    this customized collate function ensures auto diff
+    Collate of list of (graph, target) into batch data,
+
     Args:
         batch_data (list): list of (graph, target(dict))
+
     Returns:
         graphs (List): a list of graphs
         targets (Dict): dictionary of targets, where key and values are:
@@ -704,41 +655,35 @@ def collate_graphs(batch_data: List):
 
 
 def get_train_val_test_loader(
-    dataset,
-    batch_size=64,
-    train_ratio=0.8,
-    val_ratio=0.1,
-    return_test=True,
-    num_workers=0,
-    pin_memory=True,
+    dataset: Dataset,
+    batch_size: int = 64,
+    train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    return_test: bool = True,
+    num_workers: int = 0,
+    pin_memory: bool = True,
 ):
     """
-    Utility function for dividing a dataset to train, val, test datasets.
-    !!! The dataset needs to be shuffled before using the function,
-        otherwise the train,val,test partition is not random
-    Parameters
-    ----------
-    dataset: torch.utils.data.Dataset
-      The full dataset to be divided.
-    collate_fn: torch.utils.data.DataLoader
-    batch_size: int
-    train_ratio: float
-    val_ratio: float
-    test_ratio: float
-    return_test: bool
-      Whether to return the test dataset loader. If False, the last test_size
-      data will be hidden.
-    num_workers: int
-    pin_memory: bool
-    Returns
-    -------
-    train_loader: torch.utils.data.DataLoader
-      DataLoader that random samples the training data.
-    val_loader: torch.utils.data.DataLoader
-      DataLoader that random samples the validation data.
-    (test_loader): torch.utils.data.DataLoader
-      DataLoader that random samples the test data, returns if
-        return_test=True.
+    Randomly partition a dataset into train, val, test loaders
+
+    Args:
+        dataset (Dataset): The dataset to partition.
+        batch_size (int): The batch size for the data loaders
+            Default = 64
+        train_ratio (float): The ratio of the dataset to use for training
+            Default = 0.8
+        val_ratio (float): The ratio of the dataset to use for validation
+            Default: 0.1
+        return_test (bool): Whether to return a test data loader
+            Default = True
+        num_workers (int): The number of worker processes for loading the data
+            see torch Dataloader documentation for more info
+            Default = 0
+        pin_memory (bool): Whether to pin the memory of the data loaders
+            Default: True
+
+    Returns:
+        train_loader, val_loader and optionally test_loader
     """
     total_size = len(dataset)
     indices = list(range(total_size))
@@ -780,14 +725,20 @@ def get_train_val_test_loader(
 
 def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
     """
-    Get dataloader from dataset
+    Get a dataloader from a dataset
+
     Args:
-    dataset (torch.utils.data.Dataset): the dataset
-    batch_size (int): batch size
-    num_workers (int):
-    pin_memory (bool):
+        dataset (Dataset): The dataset to partition.
+        batch_size (int): The batch size for the data loaders
+            Default = 64
+        num_workers (int): The number of worker processes for loading the data
+            see torch Dataloader documentation for more info
+            Default = 0
+        pin_memory (bool): Whether to pin the memory of the data loaders
+            Default: True
+
     Returns:
-    data_loader (torch.utils.data.DataLoader): dataloader object ready to train
+        data_loader
     """
 
     data_loader = DataLoader(
