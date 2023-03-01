@@ -71,6 +71,10 @@ class Composition_model(nn.Module):
 
 
 class Atom_Ref(nn.Module):
+    """
+    A linear regression for elemental energy
+    from: https://github.com/materialsvirtuallab/m3gnet/
+    """
     def __init__(self, is_intensive: bool = True, max_num_elements: int = 94):
         super().__init__()
         self.is_intensive = is_intensive
