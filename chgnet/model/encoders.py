@@ -109,7 +109,7 @@ class AngleEncoder(nn.Module):
     Encode an angle given the two bond vectors using Fourier Expansion.
     """
 
-    def __init__(self, num_angular: int = 21, learnable: bool = True):
+    def __init__(self, num_angular: int = 9, learnable: bool = True):
         """
         Initialize the angle encoder
 
