@@ -124,7 +124,7 @@ trainer = Trainer(
 
 trainer.train(train_loader, val_loader, test_loader)
 ```
-####Note: 
+#### Note: 
 1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`
 2. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in 
 `data/dataset.py`. So `VASP` stress can be directly fed to `StructureData`
