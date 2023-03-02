@@ -1,0 +1,49 @@
+ci:
+  autoupdate_schedule: quarterly
+  skip: [ruff]
+
+default_stages: [commit]
+
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.253
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black-jupyter
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-yaml
+      - id: destroyed-symlinks
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
+    hooks:
+      - id: codespell
+        stages: [commit, commit-msg]
+        args: [--ignore-words-list, struc]
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.6.3
+    hooks:
+      - id: nbqa-ruff
+        args: [--fix]
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+        args: [--drop-empty-cells, --keep-output]
