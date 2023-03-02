@@ -1,4 +1,8 @@
 # CHGNet
+![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/CederGroupHub/chgnet?logo=Github)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/CederGroupHub/chgnet?logo=Github)
+![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
+
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
 ![chgnet](./chgnet-logo.png)
@@ -10,7 +14,7 @@ in atomistic modeling with near DFT accuracy. The charge inference is realized b
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
 # Installation:
-CHGNet requires
+CHGNet is interfaced to `pymatgen` and `ase`, to install:
 - numpy~=1.21.6
 - torch~=1.11.0
 - pymatgen~=2022.4.19
