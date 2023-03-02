@@ -2,6 +2,7 @@ import sys
 from typing import Optional, Union
 import pickle
 import contextlib
+import io
 import numpy as np
 import torch
 from chgnet.model import CHGNet
@@ -67,7 +68,7 @@ class CHGNetCalculator(Calculator):
             self.device = use_device
         elif torch.cuda.is_available():
             self.device = "cuda"
-        #  mps is disabled before stable version of pytorch on apple mps is released
+        # mps is disabled before stable version of pytorch on apple mps is released
         # elif torch.backends.mps.is_available():
         #     self.device = 'mps'
         else:
@@ -163,6 +164,7 @@ class StructOptimizer:
         relax_cell: Optional[bool] = True,
         save_path: Optional[str] = None,
         trajectory_save_interval: Optional[int] = 1,
+        verbose: bool = True,
         **kwargs,
     ):
         """
@@ -184,7 +186,7 @@ class StructOptimizer:
 
         atoms.set_calculator(self.calculator)
 
-        stream = sys.stdout
+        stream = sys.stdout if verbose else io.StringIO()
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if relax_cell:
@@ -193,6 +195,7 @@ class StructOptimizer:
             optimizer.attach(obs, interval=trajectory_save_interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()
+
         if save_path is not None:
             obs.save(save_path)
 

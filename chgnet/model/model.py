@@ -262,7 +262,7 @@ class CHGNet(nn.Module):
         print(
             "CHGNet initialized with",
             sum(p.numel() for p in self.parameters()),
-            f"Parameters, is_intensive={self.is_intensive}",
+            f"Parameters",
         )
 
     def forward(
