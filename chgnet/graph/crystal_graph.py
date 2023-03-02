@@ -1,10 +1,12 @@
-from __future__ import print_function, division
 import os
 import sys
+from typing import Literal
+
 import torch
 import torch.nn as nn
-from torch import Tensor
 from pymatgen.core.structure import Structure
+from torch import Tensor
+
 from .graph import Graph, Node
 
 datatype = torch.float32
@@ -185,7 +187,13 @@ class CrystalGraphConverter(nn.Module):
                 f"bond_cutoff{bond_graph_cutoff}"
             )
 
-    def forward(self, structure: Structure, graph_id=None, mp_id=None) -> Crystal_Graph:
+    def forward(
+        self,
+        structure: Structure,
+        graph_id=None,
+        mp_id=None,
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
+    ) -> Crystal_Graph:
         """
         convert a structure, return a Crystal_Graph
 
@@ -195,11 +203,13 @@ class CrystalGraphConverter(nn.Module):
                 Default = None
             mp_id (str): Materials Project id of this structure
                 Default = None
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms. Defaults to 'error'.
 
         Return:
             Crystal_Graph that is ready for CHGNet input
         """
-        n_atom = int(structure.composition.num_atoms)
+        n_atoms = len(structure)
         atomic_number = torch.tensor(
             [i.specie.Z for i in structure], dtype=int, requires_grad=False
         )
@@ -212,7 +222,7 @@ class CrystalGraphConverter(nn.Module):
         center_index, neighbor_index, image, distance = self.get_neighbors(structure)
 
         # Make Graph
-        graph = Graph([Node(index=i) for i in range(n_atom)])
+        graph = Graph([Node(index=i) for i in range(n_atoms)])
         for i, j, im, d in zip(center_index, neighbor_index, image, distance):
             graph.add_edge(center_index=i, neighbor_index=j, image=im, distance=d)
 
@@ -226,21 +236,29 @@ class CrystalGraphConverter(nn.Module):
             bond_graph, undirected2directed = graph.line_graph_adjacency_list(
                 cutoff=self.bond_graph_cutoff
             )
-        except:
+        except Exception as exc:
             # Report structures that failed creating bond graph
             # This happen occasionally with pymatgen version issue
             structure.to(filename="bond_graph_error.cif")
-            sys.exit()
+            raise SystemExit(
+                f"Failed creating bond graph for {graph_id}, check bond_graph_error.cif"
+            ) from exc
         bond_graph = torch.tensor(bond_graph, dtype=torch.int64)
         undirected2directed = torch.tensor(undirected2directed, dtype=torch.int64)
 
         # Check if graph has isolated atom
-        has_no_isolated_atom = set(set(range(n_atom))).issubset(center_index)
-        if has_no_isolated_atom is False:
+        has_isolated_atom = not set(range(n_atoms)).issubset(center_index)
+        if has_isolated_atom:
+            r_cutoff = self.atom_graph_cutoff
+            msg = f"{graph_id=} has isolated atom with {r_cutoff=}, should be skipped"
+            if on_isolated_atoms == "ignore":
+                return None
+            elif on_isolated_atoms == "warn":
+                print(msg, file=sys.stderr)
+                return None
             # Discard this structure if it has isolated atom in the graph
-            raise ValueError(
-                f"{graph_id} has isolated atom with r_cutoff={self.atom_graph_cutoff}, should be skipped"
-            )
+            raise ValueError(msg)
+
         return Crystal_Graph(
             atomic_number=atomic_number,
             atom_frac_coord=atom_frac_coord,
