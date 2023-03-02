@@ -333,7 +333,7 @@ class CHGNet(nn.Module):
                 Default = False
             compute_stress (bool): whether to compute stress.
                 Default = False
-            return_atom_feas (bool): whether to return atom feautures
+            return_atom_feas (bool): whether to return atom features
                 Default = False
             return_crystal_feas (bool): whether to return crystal features,
                 only available if self.mlp_first is False
@@ -466,7 +466,7 @@ class CHGNet(nn.Module):
             structure (Structure, List(Structure)): structure or a list of structures to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
-            return_atom_feas (bool): whether to return atom feautures.
+            return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
                 only available if self.mlp_first is False
@@ -517,7 +517,7 @@ class CHGNet(nn.Module):
             graph (Crystal_Graph): Crystal_Graph or a list of Crystal_Graphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
-            return_atom_feas (bool): whether to return atom feautures.
+            return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
                 only available if self.mlp_first is False

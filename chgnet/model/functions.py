@@ -186,7 +186,7 @@ def find_activation(name: str):
 
 
 def find_normalization(name: str, dim: int = None):
-    """Return an normalization fuction using name."""
+    """Return an normalization function using name."""
     if name == "batch":
         return nn.BatchNorm1d(dim)
     elif name == "layer":

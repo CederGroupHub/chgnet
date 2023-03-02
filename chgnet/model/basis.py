@@ -5,7 +5,7 @@ from torch import Tensor
 
 
 class Fourier(nn.Module):
-    """Fourier Expansion for angle feautures."""
+    """Fourier Expansion for angle features."""
 
     def __init__(self, order: int = 5, learnable: bool = False):
         """Initialize the Fourier expansion.
