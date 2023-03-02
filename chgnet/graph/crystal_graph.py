@@ -162,7 +162,7 @@ class CrystalGraphConverter(nn.Module):
         self,
         atom_graph_cutoff: float = 5,
         bond_graph_cutoff: float = 3,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         """
         Initialize the Crystal Graph Converter
@@ -183,8 +183,8 @@ class CrystalGraphConverter(nn.Module):
             self.bond_graph_cutoff = bond_graph_cutoff
         if verbose:
             print(
-                f"CrystalGraphConverter initialized with atom_cutoff{atom_graph_cutoff}, "
-                f"bond_cutoff{bond_graph_cutoff}"
+                f"CrystalGraphConverter initialized with atom_cutoff={atom_graph_cutoff}, "
+                f"bond_cutoff={bond_graph_cutoff}"
             )
 
     def forward(

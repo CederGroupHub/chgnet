@@ -121,7 +121,11 @@ trainer = Trainer(
 trainer.train(train_loader, val_loader, test_loader)
 ```
 
-# To Cite:
+# Reference:
+link to our paper:
+https://doi.org/10.48550/arXiv.2302.14231
+
+Please cite the following:
 ```text
 @article{deng2023chgnet,
 title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling}, 
