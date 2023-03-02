@@ -24,6 +24,8 @@ pip install .
 
 # Usage:
 ## Direct Inference (Static Calculation):
+Pretrained `CHGNet` is able to predict the energy (eV/atom), force(eV/A), stress (GPa) 
+and magmom (muB) of a given structure.
 ```python
 from chgnet.model.model import CHGNet
 from pymatgen.core import Structure
@@ -31,6 +33,8 @@ from pymatgen.core import Structure
 chgnet = CHGNet.load()
 structure = Structure.from_file('examples/o-LiMnO2_unit.cif')
 prediction = chgnet.predict_structure(structure)
+print("CHGNet predicted energy=", prediction['e'])
+print("CHGNet predicted magmom=", prediction['m'])
 ```
 
 ## Molecular Dynamics:
@@ -60,29 +64,28 @@ md.run(50) # run a 0.1 ps MD simulation
 Visualize the magnetic moments after the MD run
 ```python
 from ase.io.trajectory import Trajectory
+from pymatgen.io.ase import AseAtomsAdaptor
 from chgnet.utils.utils import solve_charge_by_mag
 traj = Trajectory("md_out.traj")
 mag = traj[-1].get_magnetic_moments()
-
-# convert to pymatgen structure
-from pymatgen.io.ase import AseAtomsAdaptor
 
 # get the non-charge-decorated structure
 structure = AseAtomsAdaptor.get_structure(traj[-1])
 print(structure)
 
 # get the charge-decorated structure
-s_chg = solve_charge_by_mag(structure)
-print(s_chg)
+struc_with_chg = solve_charge_by_mag(structure)
+print(struc_with_chg)
 ```
 ## Structure Optimization
-Since `CHGNet` is able to perform fast structure optimization and 
+`CHGNet` is able to perform fast structure optimization and 
 provide the site-wise magnetic moments. This make it ideal for pre-relaxation and
-magmom initialization for high-accuracy spin-polarized DFT.
+`MAGMOM` initialization in spin-polarized DFT.
 ```python
 from chgnet.model import StructOptimizer
 relaxer = StructOptimizer()
-result = relaxer.relax(structure, steps=1000)
+result = relaxer.relax(structure)
+print('CHGNet relaxed structure', result['final_structure'])
 ```
 
 
@@ -91,6 +94,7 @@ result = relaxer.relax(structure, steps=1000)
 Fine-tuning will help achieve better accuracy if high-precision study
 is desired. To train/tune a `CHGNet`, you need to define your data in a
 pytorch `Dataset` object. The example datasets are provided in `data/dataset.py`
+
 ```python
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
 from chgnet.trainer import Trainer
@@ -120,7 +124,15 @@ trainer = Trainer(
 
 trainer.train(train_loader, val_loader, test_loader)
 ```
-
+####Note: 
+1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`
+2. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in 
+`data/dataset.py`. So `VASP` stress can be directly fed to `StructureData`
+3. To save time from graph conversion step for each training, we recommend you use `GraphData` defined in
+`data/dataset.py`, which reads graph directly from saved directory. To create a saved graphs, 
+see `examples/make_graphs.py`.
+4. Apple’s Metal Performance Shaders `MPS` is currently disabled before stable version of `pytorch` for
+`MPS` is released.
 # Reference:
 link to our paper:
 https://doi.org/10.48550/arXiv.2302.14231
@@ -136,3 +148,8 @@ archivePrefix={arXiv},
 primaryClass={cond-mat.mtrl-sci}
 }
 ```
+
+# Development & Bugs
+`CHGNet` is under active development, if you encounter any bugs in installation and usage, 
+please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contribute!
+
