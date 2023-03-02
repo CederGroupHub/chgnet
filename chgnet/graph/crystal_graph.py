@@ -12,10 +12,9 @@ from .graph import Graph, Node
 datatype = torch.float32
 
 
-class Crystal_Graph(object):
-    """
-    A data class for crystal graph
-    """
+class Crystal_Graph:
+    """A data class for crystal graph."""
+
     def __init__(
         self,
         atomic_number: Tensor,
@@ -32,8 +31,7 @@ class Crystal_Graph(object):
         mp_id: str = None,
         composition: str = None,
     ):
-        """
-        Initialize the crystal graph.
+        """Initialize the crystal graph.
         Attention! This data class is not intended to be created manually.
                    Crystal Graph should be returned by a CrystalGraphConverter
         Args:
@@ -62,7 +60,7 @@ class Crystal_Graph(object):
             composition: the chemical composition of the compound, used just for better tracking
                 Default = None
         Returns:
-            Crystal Graph
+            Crystal Graph.
         """
         super().__init__()
         self.atomic_number = atomic_number
@@ -136,9 +134,7 @@ class Crystal_Graph(object):
         return Crystal_Graph(**dic)
 
     def __str__(self):
-        """
-        Details of the graph
-        """
+        """Details of the graph."""
         return (
             f"Crystal Graph {self.composition} \n"
             f"constructed using atom_graph_cutoff={self.atom_graph_cutoff}, "
@@ -153,9 +149,8 @@ class Crystal_Graph(object):
 
 
 class CrystalGraphConverter(nn.Module):
-    """
-    Convert a pymatgen.core.Structure to a Crystal_Graph,
-    where only the minimal essential information is kept
+    """Convert a pymatgen.core.Structure to a Crystal_Graph,
+    where only the minimal essential information is kept.
     """
 
     def __init__(
@@ -164,8 +159,7 @@ class CrystalGraphConverter(nn.Module):
         bond_graph_cutoff: float = 3,
         verbose: bool = False,
     ):
-        """
-        Initialize the Crystal Graph Converter
+        """Initialize the Crystal Graph Converter.
 
         Args:
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
@@ -194,8 +188,7 @@ class CrystalGraphConverter(nn.Module):
         mp_id=None,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
     ) -> Crystal_Graph:
-        """
-        convert a structure, return a Crystal_Graph
+        """convert a structure, return a Crystal_Graph.
 
         Args:
             structure (pymatgen.core.Structure): structure to convert
@@ -276,8 +269,7 @@ class CrystalGraphConverter(nn.Module):
         )
 
     def get_neighbors(self, structure: Structure):
-        """
-        Get neighbor information from pymatgen utility function
+        """Get neighbor information from pymatgen utility function.
 
         Args:
             structure(pymatgen.core.Structure): a structure to compute
@@ -291,17 +283,13 @@ class CrystalGraphConverter(nn.Module):
         return center_index, neighbor_index, image, distance
 
     def as_dict(self):
-        """
-        Save the args of the graph converter
-        """
+        """Save the args of the graph converter."""
         return {
             "atom_graph_cutoff": self.atom_graph_cutoff,
-            "bond_graph_cutoff": self.bond_graph_cutoff
+            "bond_graph_cutoff": self.bond_graph_cutoff,
         }
 
     @classmethod
     def from_dict(cls, dict):
-        """
-        Create converter from dictionary
-        """
+        """Create converter from dictionary."""
         return CrystalGraphConverter(**dict)

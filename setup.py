@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
+"""Created on Feb 22 2023
+@author: Bowen Deng.
 """
-Created on Feb 22 2023
-@author: Bowen Deng
-"""
-import re
 import os
-from setuptools import setup, find_packages, find_namespace_packages
+import re
+
+from setuptools import find_namespace_packages, setup
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

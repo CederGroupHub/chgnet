@@ -1,49 +1,44 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
-from chgnet.model.basis import RadialBessel, Fourier
+
+from chgnet.model.basis import Fourier, RadialBessel
 
 
 class AtomEmbedding(nn.Module):
-    """
-    Encode an atom by its atomic number using a learnable embedding layer
-    """
+    """Encode an atom by its atomic number using a learnable embedding layer."""
 
     def __init__(self, atom_feature_dim: int, max_num_elements: int = 94):
-        """
-        Initialize the Atom featurizer
+        """Initialize the Atom featurizer
         Args:
-            atom_feature_dim (int): dimension of atomic embedding
+            atom_feature_dim (int): dimension of atomic embedding.
         """
         super().__init__()
         self.embedding = nn.Embedding(max_num_elements, atom_feature_dim)
 
     def forward(self, atomic_numbers: Tensor) -> Tensor:
-        """
-        Convert the structure to a atom embedding tensor
+        """Convert the structure to a atom embedding tensor
         Args:
-            atomic_numbers (Tensor): [n_atom, 1]
+            atomic_numbers (Tensor): [n_atom, 1].
+
         Returns:
-            atom_fea (Tensor): atom embeddings [n_atom, atom_feature_dim]
+            atom_fea (Tensor): atom embeddings [n_atom, atom_feature_dim].
         """
         return self.embedding(atomic_numbers)
 
 
 class BondEncoder(nn.Module):
-    """
-    Encode a chemical bond given the position of two atoms using Gaussian Distance.
-    """
+    """Encode a chemical bond given the position of two atoms using Gaussian Distance."""
 
     def __init__(
-            self,
-            atom_graph_cutoff: float = 5,
-            bond_graph_cutoff: float = 3,
-            num_radial: int = 9,
-            cutoff_coeff: int = 5,
-            learnable: bool = False,
+        self,
+        atom_graph_cutoff: float = 5,
+        bond_graph_cutoff: float = 3,
+        num_radial: int = 9,
+        cutoff_coeff: int = 5,
+        learnable: bool = False,
     ):
-        """
-        Initialize the bond encoder
+        """Initialize the bond encoder.
 
         Args:
             atom_graph_cutoff (float): the cutoff for constructing AtomGraph default = 5
@@ -67,15 +62,14 @@ class BondEncoder(nn.Module):
         )
 
     def forward(
-            self,
-            center: Tensor,
-            neighbor: Tensor,
-            undirected2directed: Tensor,
-            image: Tensor,
-            lattice: Tensor,
+        self,
+        center: Tensor,
+        neighbor: Tensor,
+        undirected2directed: Tensor,
+        image: Tensor,
+        lattice: Tensor,
     ) -> (Tensor, Tensor, Tensor):
-        """
-        Compute the pairwise distance between 2 3d coordinates
+        """Compute the pairwise distance between 2 3d coordinates.
 
         Args:
             center (Tensor): 3d cartesian coordinates of center atoms [n_bond, 3]
@@ -105,13 +99,10 @@ class BondEncoder(nn.Module):
 
 
 class AngleEncoder(nn.Module):
-    """
-    Encode an angle given the two bond vectors using Fourier Expansion.
-    """
+    """Encode an angle given the two bond vectors using Fourier Expansion."""
 
     def __init__(self, num_angular: int = 9, learnable: bool = True):
-        """
-        Initialize the angle encoder
+        """Initialize the angle encoder.
 
         Args:
             num_angular (int): number of angular basis to use
@@ -125,8 +116,7 @@ class AngleEncoder(nn.Module):
         )
 
     def forward(self, bond_i: Tensor, bond_j: Tensor) -> Tensor:
-        """
-        Compute the angles between normalized vectors
+        """Compute the angles between normalized vectors.
 
         Args:
             bond_i (Tensor): normalized left bond vector [n_angle, 3]
@@ -136,7 +126,7 @@ class AngleEncoder(nn.Module):
             angle_fea (Tensor):  expanded cos_ij [n_angle, angle_feature_dim]
         """
         cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (
-                1 - 1e-6
+            1 - 1e-6
         )  # for torch.acos stability
         angle = torch.acos(cosine_ij)
         result = self.fourier_expansion(angle)

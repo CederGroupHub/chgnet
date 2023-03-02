@@ -1,12 +1,12 @@
-import torch
-from torch import Tensor
-import torch.nn as nn
 from typing import List, Union
+
+import torch
+import torch.nn as nn
+from torch import Tensor
 
 
 def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Tensor:
-    """
-    aggregate rows in data by specifying the owners
+    """aggregate rows in data by specifying the owners.
 
     Args:
         data (Tensor): data tensor to aggregate [n_row, feature_dim]
@@ -40,9 +40,7 @@ def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Ten
 
 
 class MLP(nn.Module):
-    """
-    Multi-Layer Perceptron used for non-linear regression
-    """
+    """Multi-Layer Perceptron used for non-linear regression."""
 
     def __init__(
         self,
@@ -52,17 +50,16 @@ class MLP(nn.Module):
         dropout=0,
         activation="silu",
     ):
+        """Args:
+        input_dim (int): the input dimension
+        output_dim (int): the output dimension
+        hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+        the number of hidden units in each layer of the MLP. Default = [64, 64]
+        dropout (float): the dropout rate before each linear layer. Default: 0
+        activation (str, optional): The name of the activation function to use in the gated MLP.
+        Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
         """
-        Args:
-            input_dim (int): the input dimension
-            output_dim (int): the output dimension
-            hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
-                the number of hidden units in each layer of the MLP. Default = [64, 64]
-            dropout (float): the dropout rate before each linear layer. Default: 0
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-        """
-        super(MLP, self).__init__()
+        super().__init__()
         if hidden_dim is None or hidden_dim == 0:
             layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim)]
         elif type(hidden_dim) == int:
@@ -83,8 +80,7 @@ class MLP(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, X: Tensor) -> Tensor:
-        """
-        Performs a forward pass through the MLP.
+        """Performs a forward pass through the MLP.
 
         Args:
             x (Tensor): a tensor of shape (batch_size, input_dim)
@@ -96,9 +92,8 @@ class MLP(nn.Module):
 
 
 class GatedMLP(nn.Module):
-    """
-    Gated MLP
-    similar model structure is used in CGCNN and M3GNet
+    """Gated MLP
+    similar model structure is used in CGCNN and M3GNet.
     """
 
     def __init__(
@@ -110,17 +105,16 @@ class GatedMLP(nn.Module):
         activation="silu",
         norm="batch",
     ):
-        """
-        Args:
-            input_dim (int): the input dimension
-            output_dim (int): the output dimension
-            hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
-                the number of hidden units in each layer of the MLP. Default = None
-            dropout (float): the dropout rate before each linear layer. Default: 0
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated atom features.
-                Must be one of "batch", "layer", or None. Default: "batch".
+        """Args:
+        input_dim (int): the input dimension
+        output_dim (int): the output dimension
+        hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+        the number of hidden units in each layer of the MLP. Default = None
+        dropout (float): the dropout rate before each linear layer. Default: 0
+        activation (str, optional): The name of the activation function to use in the gated MLP.
+        Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+        norm (str, optional): The name of the normalization layer to use on the updated atom features.
+        Must be one of "batch", "layer", or None. Default: "batch".
         """
         super().__init__()
         self.mlp_core = MLP(
@@ -144,8 +138,7 @@ class GatedMLP(nn.Module):
         self.bn2 = find_normalization(name=norm, dim=output_dim)
 
     def forward(self, X: Tensor) -> Tensor:
-        """
-        Performs a forward pass through the MLP.
+        """Performs a forward pass through the MLP.
 
         Args:
             X (Tensor): a tensor of shape (batch_size, input_dim)
@@ -173,9 +166,7 @@ class ScaledSiLU(torch.nn.Module):
 
 
 def find_activation(name: str):
-    """
-    Return an activation function using name
-    """
+    """Return an activation function using name."""
     if name in ["relu"]:
         return nn.ReLU()
     elif name in ["silu", "SILU"]:
@@ -195,9 +186,7 @@ def find_activation(name: str):
 
 
 def find_normalization(name: str, dim: int = None):
-    """
-    Return an normalization fuction using name
-    """
+    """Return an normalization fuction using name."""
     if name == "batch":
         return nn.BatchNorm1d(dim)
     elif name == "layer":

@@ -1,18 +1,18 @@
 import collections
+from typing import List
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torch import Tensor
-from chgnet.graph.crystal_graph import Crystal_Graph
-from chgnet.model.functions import find_activation, GatedMLP
 from pymatgen.core import Structure
-from typing import List
+from torch import Tensor
+
+from chgnet.graph.crystal_graph import Crystal_Graph
+from chgnet.model.functions import GatedMLP, find_activation
 
 
 class Composition_model(nn.Module):
-    """
-    A simple FC model that takes in a chemical composition (no structure info) and output energy
-    """
+    """A simple FC model that takes in a chemical composition (no structure info) and output energy."""
 
     def __init__(
         self,
@@ -35,12 +35,12 @@ class Composition_model(nn.Module):
         self.fc2 = nn.Linear(atom_fea_dim, 1)
 
     def _get_energy(self, composition_feas: Tensor) -> Tensor:
-        """
-        Predict the energy given composition encoding
+        """Predict the energy given composition encoding
         Args:
-            composition_feas: batched atom feature matrix [batch_size, total_num_elements]
+            composition_feas: batched atom feature matrix [batch_size, total_num_elements].
+
         Returns:
-            prediction associated with each composition [batchsize]
+            prediction associated with each composition [batchsize].
         """
         composition_feas = self.activation(self.fc1(composition_feas))
         composition_feas = composition_feas + self.gated_mlp(composition_feas)
@@ -51,15 +51,14 @@ class Composition_model(nn.Module):
         return self._get_energy(composition_feas)
 
     def _assemble_graphs(self, graphs: List[Crystal_Graph]):
-        """
-        Assemble a list of graphs into one-hot composition encodings
+        """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs
         Returns:
-            assembled batch_graph that contains all information for model
+            assembled batch_graph that contains all information for model.
         """
         composition_feas = []
-        for graph_idx, graph in enumerate(graphs):
+        for _graph_idx, graph in enumerate(graphs):
             composition_fea = torch.bincount(
                 graph.atomic_number - 1, minlength=self.max_num_elements
             )
@@ -71,10 +70,10 @@ class Composition_model(nn.Module):
 
 
 class Atom_Ref(nn.Module):
+    """A linear regression for elemental energy
+    from: https://github.com/materialsvirtuallab/m3gnet/.
     """
-    A linear regression for elemental energy
-    from: https://github.com/materialsvirtuallab/m3gnet/
-    """
+
     def __init__(self, is_intensive: bool = True, max_num_elements: int = 94):
         super().__init__()
         self.is_intensive = is_intensive
@@ -83,8 +82,7 @@ class Atom_Ref(nn.Module):
         self.fitted = False
 
     def forward(self, graphs: List[Crystal_Graph]):
-        """
-        get the energy of a list of Crystal_Graphs
+        """get the energy of a list of Crystal_Graphs.
 
         Args:
             graphs (List(Crystal_Graph)): a list of Crystal Graph to compute
@@ -92,17 +90,17 @@ class Atom_Ref(nn.Module):
         Returns:
             energy (tensor)
         """
-        assert self.fitted == True, "composition model need to be fitted first!"
+        assert self.fitted is True, "composition model need to be fitted first!"
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
     def _get_energy(self, composition_feas: Tensor) -> Tensor:
-        """
-        Predict the energy given composition encoding
+        """Predict the energy given composition encoding
         Args:
-            composition_feas: batched atom feature matrix [batch_size, total_num_elements]
+            composition_feas: batched atom feature matrix [batch_size, total_num_elements].
+
         Returns:
-            prediction associated with each composition [batchsize]
+            prediction associated with each composition [batchsize].
         """
         return self.fc(composition_feas).view(-1)
 
@@ -142,15 +140,14 @@ class Atom_Ref(nn.Module):
         self.fitted = True
 
     def _assemble_graphs(self, graphs: List[Crystal_Graph]):
-        """
-        Assemble a list of graphs into one-hot composition encodings
+        """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs
         Returns:
-            assembled batch_graph that contains all information for model
+            assembled batch_graph that contains all information for model.
         """
         composition_feas = []
-        for graph_idx, graph in enumerate(graphs):
+        for _graph_idx, graph in enumerate(graphs):
             composition_fea = torch.bincount(
                 graph.atomic_number - 1, minlength=self.max_num_elements
             )
@@ -170,9 +167,7 @@ class Atom_Ref(nn.Module):
             raise NotImplementedError
 
     def initialize_from_MPtrj(self):
-        """
-        initialize pre-fitted weights from MPtrj dataset
-        """
+        """initialize pre-fitted weights from MPtrj dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [
@@ -277,9 +272,7 @@ class Atom_Ref(nn.Module):
         self.fitted = True
 
     def initialize_from_MPF(self):
-        """
-        initialize pre-fitted weights from MPF dataset
-        """
+        """initialize pre-fitted weights from MPF dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [

@@ -1,10 +1,12 @@
 import os
 import random
+
 import torch
 from pymatgen.core.structure import Structure
+
+import chgnet.utils as utils
 from chgnet.data.dataset import StructureJsonData
 from chgnet.graph import CrystalGraphConverter
-import chgnet.utils as utils
 
 datatype = torch.float32
 random.seed(100)
@@ -12,6 +14,7 @@ random.seed(100)
 
 # This runnable script shows an example to convert a Structure json dataset to graphs
 # and save them. So the you don't have to do graph conversion in each training
+
 
 def main():
     data_path = ""
@@ -22,13 +25,12 @@ def main():
 
 
 def make_graphs(
-        data: StructureJsonData,
-        graph_dir: str,
-        train_ratio: float = 0.8,
-        val_ratio: float = 0.1
+    data: StructureJsonData,
+    graph_dir: str,
+    train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
 ):
-    """
-    Make graphs from a StructureJsonData dataset
+    """Make graphs from a StructureJsonData dataset.
 
     Args:
         data (StructureJsonData): a StructureJsonData
@@ -44,7 +46,7 @@ def make_graphs(
 
     for i, (mp_id, graph_id) in enumerate(data.keys):
         dic = make_one_graph(mp_id, graph_id, data, graph_dir)
-        if dic != False:  # graph made successfully
+        if dic is not False:  # graph made successfully
             if mp_id not in labels.keys():
                 labels[mp_id] = {graph_id: dic}
             else:
@@ -60,9 +62,7 @@ def make_graphs(
 
 
 def make_one_graph(mp_id, graph_id, data, graph_dir):
-    """
-    convert a structure to a Crystal_Graph and save it
-    """
+    """convert a structure to a Crystal_Graph and save it."""
     dic = data.data[mp_id].pop(graph_id)
     struc = Structure.from_dict(dic.pop("structure"))
     try:
@@ -74,11 +74,9 @@ def make_one_graph(mp_id, graph_id, data, graph_dir):
 
 
 def make_partition(
-        data, graph_dir, train_ratio=0.8, val_ratio=0.1, partition_with_frame=False
+    data, graph_dir, train_ratio=0.8, val_ratio=0.1, partition_with_frame=False
 ):
-    """
-    Make a train val test partition
-    """
+    """Make a train val test partition."""
     random.seed(42)
     if partition_with_frame is False:
         material_ids = list(data.keys())

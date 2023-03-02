@@ -1,9 +1,10 @@
-from typing import List, Set
+from typing import List
+
 from chgnet import utils
 
 
-class Node(object):
-    """a node in a graph"""
+class Node:
+    """a node in a graph."""
 
     def __init__(self, index: int, info: dict = None):
         self.index = index
@@ -11,11 +12,10 @@ class Node(object):
         self.neighbors = {}
 
     def add_neighbor(self, index, edge):
-        """
-        draw an edge between self and node
+        """draw an edge between self and node
         Args:
             node (Node): the neighboring node
-            edge (int): for simplicity, just use an index to track this edge
+            edge (int): for simplicity, just use an index to track this edge.
         """
         if index not in self.neighbors.keys():
             self.neighbors[index] = [edge]
@@ -23,8 +23,8 @@ class Node(object):
             self.neighbors[index].append(edge)
 
 
-class UndirectedEdge(object):
-    """An edge in a graph"""
+class UndirectedEdge:
+    """An edge in a graph."""
 
     def __init__(self, nodes: List, index: int = None, info: dict = None):
         self.nodes = nodes
@@ -35,17 +35,16 @@ class UndirectedEdge(object):
         return f"UndirectedEdge{self.index}, Nodes{self.nodes}, info={self.info}"
 
     def __eq__(self, other):
-        if self.nodes == other.nodes:
-            if self.info == other.info:
-                return True
+        if self.nodes == other.nodes and self.info == other.info:
+            return True
         return False
 
     def __repr__(self):
         return str(self)
 
 
-class DirectedEdge(object):
-    """An edge in a graph"""
+class DirectedEdge:
+    """An edge in a graph."""
 
     def __init__(self, nodes: List, index: int, info: dict = None):
         self.nodes = nodes
@@ -80,7 +79,7 @@ class DirectedEdge(object):
         return str(self)
 
 
-class Graph(object):
+class Graph:
     def __init__(self, nodes: list):
         self.nodes = nodes
         self.directed_edges = {}
@@ -89,13 +88,12 @@ class Graph(object):
         self.undirected_edges_list = []
 
     def add_edge(self, center_index, neighbor_index, image, distance):
-        """
-        add an directed edge to the graph
+        """add an directed edge to the graph
         Args:
             center_index: center node index
             neighbor_index: neighbor node index
             image: the periodic cell image the neighbor is from
-            distance: distance between center and neighbor
+            distance: distance between center and neighbor.
         """
         directed_edge_index = len(self.directed_edges_list)
         directed_edge = DirectedEdge(
@@ -156,17 +154,16 @@ class Graph(object):
             return
 
     def adjacency_list(self):
-        """
-        Return:
-            graph: the adjacency list
-            [[0, 1, 0],
-             [0, 2, 1],
-             ... ...  ]
-             the fist column specifies center/source node,
-             the second column specifies neighbor/destination node,
-             the third column specifies the undirected edge index
-                (this is essentially the directed2undirected mapping)
-             of the directed edge on this row
+        """Return:
+        graph: the adjacency list
+        [[0, 1, 0],
+        [0, 2, 1],
+        ... ...  ]
+        the fist column specifies center/source node,
+        the second column specifies neighbor/destination node,
+        the third column specifies the undirected edge index
+        (this is essentially the directed2undirected mapping)
+        of the directed edge on this row.
         """
         graph = [edge.nodes for edge in self.directed_edges_list]
         directed2undirected = [
@@ -175,17 +172,16 @@ class Graph(object):
         return graph, directed2undirected
 
     def line_graph_adjacency_list(self, cutoff):
-        """
-        Return: line graph adjacency list
-            [[0, 1, 1, 2, 2],
-             [0, 1, 1, 4, 23],
-             [1, 4, 23, 5, 66],
-             ... ...  ]
-             the fist column specifies node index at this angle,
-             the second column specifies 1st undirected edge index,
-             the third column specifies 1st directed edge index,
-             the fourth column specifies 2nd undirected edge index,
-             the fifth column specifies 2snd directed edge index,
+        """Return: line graph adjacency list
+        [[0, 1, 1, 2, 2],
+        [0, 1, 1, 4, 23],
+        [1, 4, 23, 5, 66],
+        ... ...  ]
+        the fist column specifies node index at this angle,
+        the second column specifies 1st undirected edge index,
+        the third column specifies 1st directed edge index,
+        the fourth column specifies 2nd undirected edge index,
+        the fifth column specifies 2snd directed edge index,.
         """
         assert len(self.directed_edges_list) == 2 * len(
             self.undirected_edges_list
@@ -203,7 +199,7 @@ class Graph(object):
                 print("Did not find 2 Directed_edges !!!")
                 print(u_edge)
                 print(
-                    f"edge.info['directed_edge_index'] = ",
+                    "edge.info['directed_edge_index'] = ",
                     u_edge.info["directed_edge_index"],
                 )
                 print()
@@ -249,9 +245,7 @@ class Graph(object):
         return line_graph, undirected2directed
 
     def undirected2directed(self):
-        """
-        The index map from undirected_edge index to one of its directed_edge index
-        """
+        """The index map from undirected_edge index to one of its directed_edge index."""
         out = []
         for undirected_edge in self.undirected_edges_list:
             out.append(undirected_edge.info["directed_edge_index"][0])

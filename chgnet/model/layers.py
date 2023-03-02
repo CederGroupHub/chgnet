@@ -1,15 +1,18 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
-from chgnet.model.functions import find_activation, find_normalization
-from chgnet.model.functions import aggregate, MLP, GatedMLP
-from typing import List, Tuple
+
+from chgnet.model.functions import (
+    MLP,
+    GatedMLP,
+    aggregate,
+    find_activation,
+    find_normalization,
+)
 
 
 class AtomConv(nn.Module):
-    """
-    A convolution Layer to update atom features
-    """
+    """A convolution Layer to update atom features."""
 
     def __init__(
         self,
@@ -23,21 +26,20 @@ class AtomConv(nn.Module):
         resnet: bool = True,
         **kwargs
     ):
-        """
-        Args:
-            atom_fea_dim (int): The dimensionality of the input atom features.
-            bond_fea_dim (int): The dimensionality of the input bond features.
-            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
-            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated atom features.
-                Must be one of "batch", "layer", or None. Default: None.
-            use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
-                Default: True.
-            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-                Default: True.
-            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """Args:
+        atom_fea_dim (int): The dimensionality of the input atom features.
+        bond_fea_dim (int): The dimensionality of the input bond features.
+        hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
+        dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+        activation (str, optional): The name of the activation function to use in the gated MLP.
+        Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+        norm (str, optional): The name of the normalization layer to use on the updated atom features.
+        Must be one of "batch", "layer", or None. Default: None.
+        use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
+        Default: True.
+        resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+        Default: True.
+        **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
         self.use_mlp_out = use_mlp_out
@@ -65,8 +67,7 @@ class AtomConv(nn.Module):
         atom_graph: Tensor,
         directed2undirected: Tensor,
     ) -> Tensor:
-        """
-        Forward pass of AtomConv module that updates the atom features and optionally bond features.
+        """Forward pass of AtomConv module that updates the atom features and optionally bond features.
 
         Args:
             atom_feas (Tensor): Input tensor with shape [num_batch_atoms, atom_fea_dim].
@@ -109,9 +110,7 @@ class AtomConv(nn.Module):
 
 
 class BondConv(nn.Module):
-    """
-    A convolution Layer to update bond features
-    """
+    """A convolution Layer to update bond features."""
 
     def __init__(
         self,
@@ -126,22 +125,21 @@ class BondConv(nn.Module):
         resnet=True,
         **kwargs
     ):
-        """
-        Args:
-            atom_fea_dim (int): The dimensionality of the input atom features.
-            bond_fea_dim (int): The dimensionality of the input bond features.
-            angle_fea_dim (int): The dimensionality of the input angle features.
-            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
-            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated atom features.
-                Must be one of "batch", "layer", or None. Default: None.
-            use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
-                Default: True.
-            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-                Default: True.
-            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """Args:
+        atom_fea_dim (int): The dimensionality of the input atom features.
+        bond_fea_dim (int): The dimensionality of the input bond features.
+        angle_fea_dim (int): The dimensionality of the input angle features.
+        hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
+        dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+        activation (str, optional): The name of the activation function to use in the gated MLP.
+        Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+        norm (str, optional): The name of the normalization layer to use on the updated atom features.
+        Must be one of "batch", "layer", or None. Default: None.
+        use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
+        Default: True.
+        resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+        Default: True.
+        **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
         self.use_mlp_out = use_mlp_out
@@ -169,8 +167,7 @@ class BondConv(nn.Module):
         angle_feas: Tensor,
         bond_graph: Tensor,
     ) -> Tensor:
-        """
-        Update the bond features.
+        """Update the bond features.
 
         Args:
             atom_feas (Tensor): atom features tensor with shape [num_batch_atoms, atom_fea_dim].
@@ -217,9 +214,7 @@ class BondConv(nn.Module):
 
 
 class AngleUpdate(nn.Module):
-    """
-    update angle_feas
-    """
+    """update angle_feas."""
 
     def __init__(
         self,
@@ -233,20 +228,19 @@ class AngleUpdate(nn.Module):
         resnet: bool = True,
         **kwargs
     ):
-        """
-        Args:
-            atom_fea_dim (int): The dimensionality of the input atom features.
-            bond_fea_dim (int): The dimensionality of the input bond features.
-            angle_fea_dim (int): The dimensionality of the input angle features.
-            hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 0.
-            dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated atom features.
-                Must be one of "batch", "layer", or None. Default: None.
-            resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-                Default: True.
-            **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """Args:
+        atom_fea_dim (int): The dimensionality of the input atom features.
+        bond_fea_dim (int): The dimensionality of the input bond features.
+        angle_fea_dim (int): The dimensionality of the input angle features.
+        hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 0.
+        dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
+        activation (str, optional): The name of the activation function to use in the gated MLP.
+        Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+        norm (str, optional): The name of the normalization layer to use on the updated atom features.
+        Must be one of "batch", "layer", or None. Default: None.
+        resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
+        Default: True.
+        **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
         self.resnet = resnet
@@ -268,8 +262,7 @@ class AngleUpdate(nn.Module):
         angle_feas: Tensor,
         bond_graph: Tensor,
     ) -> Tensor:
-        """
-        Update the angle features using bond graph
+        """Update the angle features using bond graph.
 
         Args:
             atom_feas (Tensor): atom features tensor with shape [num_batch_atoms, atom_fea_dim].
@@ -303,21 +296,17 @@ class AngleUpdate(nn.Module):
 
 
 class GraphPooling(nn.Module):
-    """
-    Pooling the sub-graphs in the batched graph
-    """
+    """Pooling the sub-graphs in the batched graph."""
 
     def __init__(self, average: bool = False):
-        """
-        Args:
-            average (bool): whether to average the features
+        """Args:
+        average (bool): whether to average the features.
         """
         super().__init__()
         self.average = average
 
     def forward(self, atom_feas: Tensor, atom_owner: Tensor) -> Tensor:
-        """
-        Merge the atom features that belong to same graph in a batched graph
+        """Merge the atom features that belong to same graph in a batched graph.
 
         Args:
             atom_feas (Tensor): batched atom features after convolution layers
@@ -332,16 +321,14 @@ class GraphPooling(nn.Module):
 
 
 class GraphAttentionReadOut(nn.Module):
-    """
-    Multi Head Attention Read Out Layer
-    merge the information from atom_feas to crystal_fea
+    """Multi Head Attention Read Out Layer
+    merge the information from atom_feas to crystal_fea.
     """
 
     def __init__(
         self, atom_fea_dim: int, num_head: int = 3, hidden_dim: int = 32, average=False
     ):
-        """
-        Initialize the layer
+        """Initialize the layer.
 
         Args:
             atom_fea_dim (int): atom feature dimension
@@ -356,8 +343,7 @@ class GraphAttentionReadOut(nn.Module):
         self.average = average
 
     def forward(self, atom_feas: Tensor, atom_owner: Tensor) -> Tensor:
-        """
-        Merge the atom features that belong to same graph in a batched graph
+        """Merge the atom features that belong to same graph in a batched graph.
 
         Args:
             atom_feas (Tensor): batched atom features after convolution layers

@@ -1,12 +1,11 @@
-import torch
-import os
 import json
+import os
+
+import torch
 
 
-class AverageMeter(object):
-    """
-    Computes and stores the average and current value
-    """
+class AverageMeter:
+    """Computes and stores the average and current value."""
 
     def __init__(self):
         self.reset()
@@ -25,11 +24,11 @@ class AverageMeter(object):
             self.avg = self.sum / self.count
 
 
-class MeanNormalizer(object):
+class MeanNormalizer:
     """Normalize a Tensor and restore it later."""
 
     def __init__(self, tensor):
-        """tensor is taken as a sample to calculate the mean and std"""
+        """tensor is taken as a sample to calculate the mean and std."""
         self.mean = torch.mean(tensor)
         self.std = torch.std(tensor)
 
@@ -47,10 +46,8 @@ class MeanNormalizer(object):
         self.std = state_dict["std"]
 
 
-class BaseNormalizer(object):
-    """
-    Base normalizer to normalize target scalar
-    """
+class BaseNormalizer:
+    """Base normalizer to normalize target scalar."""
 
     def __init__(self):
         self.mean = 1
@@ -71,12 +68,11 @@ class BaseNormalizer(object):
 
 
 def mae(prediction, target):
-    """
-    Computes the mean absolute error between prediction and target
+    """Computes the mean absolute error between prediction and target
     Parameters
     ----------
     prediction: torch.Tensor (N, 1)
-    target: torch.Tensor (N, 1)
+    target: torch.Tensor (N, 1).
     """
     return torch.mean(torch.abs(target - prediction))
 
@@ -91,9 +87,8 @@ def mkdir(path):
 
 
 def read_json(fjson):
-    """
-    Args:
-        fjson (str) - file name of json to read
+    """Args:
+        fjson (str) - file name of json to read.
 
     Returns:
         dictionary stored in fjson
@@ -103,10 +98,9 @@ def read_json(fjson):
 
 
 def write_json(d, fjson):
-    """
-    Args:
+    """Args:
         d (dict) - dictionary to write
-        fjson (str) - file name of json to write
+        fjson (str) - file name of json to write.
 
     Returns:
         written dictionary
@@ -115,34 +109,37 @@ def write_json(d, fjson):
         json.dump(d, f)
 
 
-def solve_charge_by_mag(structure,
-                        default_ox = {'Li': 1, 'O': -2},
-                        ox_ranges = {'Mn': {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}} ):
-    """
-    Args:
-        structure: input pymatgen structure
-        ox_ranges: user defined range to convert magmoms into formal valence
+def solve_charge_by_mag(
+    structure,
+    default_ox={"Li": 1, "O": -2},
+    ox_ranges={
+        "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
+    },
+):
+    """Args:
+    structure: input pymatgen structure
+    ox_ranges: user defined range to convert magmoms into formal valence.
     """
     ox_list = []
     solved_ox = True
 
-    if "final_magmom" in structure.site_properties.keys():
+    if "final_magmom" in structure.site_properties:
         mag_key = "final_magmom"
     else:
         mag_key = "magmom"
-        
+
     mag = structure.site_properties[mag_key]
 
     for site_i, site in enumerate(structure.sites):
         assigned = False
-        if site.species_string in ox_ranges.keys():
+        if site.species_string in ox_ranges:
             for (minmag, maxmag), magox in ox_ranges[site.species_string].items():
                 if mag[site_i] >= minmag and mag[site_i] < maxmag:
                     ox_list.append(magox)
                     # print(magox, mag[site_i])
                     assigned = True
                     break
-        elif site.species_string in default_ox.keys():
+        elif site.species_string in default_ox:
             ox_list.append(default_ox[site.species_string])
             assigned = True
         if not assigned:
