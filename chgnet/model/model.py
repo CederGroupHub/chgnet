@@ -1,6 +1,6 @@
 import math
 import os
-from typing import List, Union
+from typing import Literal, Sequence, Union
 
 import torch.nn as nn
 from pymatgen.core import Structure
@@ -25,37 +25,34 @@ class CHGNet(nn.Module):
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
-        composition_model: Union[nn.Module] = None,
+        composition_model: nn.Module = None,
         num_radial: int = 9,
         num_angular: int = 9,
         n_conv: int = 4,
-        atom_conv_hidden_dim: Union[List[int], int] = 64,
+        atom_conv_hidden_dim: Union[Sequence[int], int] = 64,
         update_bond: bool = True,
-        bond_conv_hidden_dim: Union[List[int], int] = 64,
+        bond_conv_hidden_dim: Union[Sequence[int], int] = 64,
         update_angle: bool = True,
-        angle_layer_hidden_dim: Union[List[int], int] = 0,
+        angle_layer_hidden_dim: Union[Sequence[int], int] = 0,
         conv_dropout: float = 0,
         read_out: str = "ave",
-        mlp_hidden_dims: Union[List[int], int] = [64, 64],
+        mlp_hidden_dims: Union[Sequence[int], int] = (64, 64),
         mlp_dropout: float = 0,
         mlp_first: bool = True,
         is_intensive: bool = True,
-        non_linearity: str = "silu",
+        non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "relu",
         atom_graph_cutoff: int = 5,
         bond_graph_cutoff: int = 3,
-        cutofff_coeff: float = 5,
         learnable_rbf: bool = True,
         **kwargs,
     ):
         """Initialize the CHGNet.
 
         Args:
-            atom_fea_dim (int): atom feature vector embedding dimension.
-                Default: 64
-            bond_fea_dim (int): bond feature vector embedding dimension.
-                Default: 64
-            bond_fea_dim (int): angle feature vector embedding dimension.
-                Default: 64
+            atom_fea_dim (int): atom feature vector embedding dimension. Default: 64
+            bond_fea_dim (int): bond feature vector embedding dimension. Default: 64
+            angle_fea_dim (int): angle feature vector embedding dimension. Default: 64
+            bond_fea_dim (int): angle feature vector embedding dimension. Default: 64
             composition_model (nn.Module, optional): attach a composition model to predict energy
                 or initialize a pretrained linear regression (AtomRef).
                 Default: None
@@ -66,7 +63,7 @@ class CHGNet(nn.Module):
             n_conv (int): number of interaction blocks.
                 Default: 4
                 Note: last interaction block contain only an atom_conv layer
-            atom_conv_hidden_dims (List or int): hidden dimensions of atom convolution layers.
+            atom_conv_hidden_dim (List or int): hidden dimensions of atom convolution layers.
                 Default: 64
             update_bond (bool): whether to use bond_conv_layer in bond graph to update bond embeddings
                 Default: True.
@@ -87,6 +84,8 @@ class CHGNet(nn.Module):
                 Default = 0.
             is_intensive (bool): whether the energy training label is intensive i.e. energy per atom.
                 Default = True
+            non_linearity ('silu' | 'relu' | 'tanh' | 'gelu'): The name of the activation
+                function to use in the gated MLP. Default: "silu".
             mlp_first (bool): whether to apply mlp fist then pooling.
                 Default = True
             atom_graph_cutoff (float): cutoff radius (A) in creating atom_graph,
@@ -97,7 +96,7 @@ class CHGNet(nn.Module):
                 Default: 3
             cutoff_coeff (float): cutoff strength used in graph smooth cutoff function.
                 Default: 5
-            learnable_rbf (bool): whether to set the frequencies in rbf and fourier basis functions learnable.
+            learnable_rbf (bool): whether to set the frequencies in rbf and Fourier basis functions learnable.
                 Default: True
             **kwargs: Additional keyword arguments
         """
@@ -266,7 +265,7 @@ class CHGNet(nn.Module):
 
     def forward(
         self,
-        graphs: List[Crystal_Graph],
+        graphs: Sequence[Crystal_Graph],
         task="e",
         return_atom_feas=False,
         return_crystal_feas=False,
@@ -287,10 +286,9 @@ class CHGNet(nn.Module):
         site_wise = "m" in task
 
         # Optionally, make composition model prediction
-        if self.composition_model is not None:
-            comp_energy = self.composition_model(graphs)
-        else:
-            comp_energy = 0
+        comp_energy = (
+            0 if self.composition_model is None else self.composition_model(graphs)
+        )
 
         # Make batched graph
         batched_graph = BatchedGraph.from_graphs(
@@ -454,7 +452,7 @@ class CHGNet(nn.Module):
 
     def predict_structure(
         self,
-        structure: Union[Structure, List[Structure]],
+        structure: Union[Structure, Sequence[Structure]],
         task: str = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
@@ -483,7 +481,7 @@ class CHGNet(nn.Module):
         """
         assert (
             self.graph_converter is not None
-        ), "self.graph_converter need to be initialized first!"
+        ), "self.graph_converter needs to be initialized first!"
         if type(structure) == Structure:
             graph = self.graph_converter(structure)
             return self.predict_graph(
@@ -507,7 +505,7 @@ class CHGNet(nn.Module):
 
     def predict_graph(
         self,
-        graph: Union[Crystal_Graph, List[Crystal_Graph]],
+        graph: Union[Crystal_Graph, Sequence[Crystal_Graph]],
         task: str = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
@@ -584,7 +582,7 @@ class CHGNet(nn.Module):
             raise Exception("input should either be a graph or list of graphs!")
 
     @staticmethod
-    def split(x: Tensor, n: Tensor) -> List[Tensor]:
+    def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
         """split a batched result Tensor into a list of Tensors."""
         print(x, n)
         start = 0
@@ -638,8 +636,8 @@ class BatchedGraph:
         batched_bond_graph: Tensor,
         atom_owners: Tensor,
         directed2undirected: Tensor,
-        atom_positions: List[Tensor],
-        strains: List[Tensor],
+        atom_positions: Sequence[Tensor],
+        strains: Sequence[Tensor],
         volumes: [Tensor],
     ):
         """Batched crystal graph.
@@ -683,7 +681,7 @@ class BatchedGraph:
     @classmethod
     def from_graphs(
         cls,
-        graphs: List[Crystal_Graph],
+        graphs: Sequence[Crystal_Graph],
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
         compute_stress: bool = False,
@@ -765,10 +763,9 @@ class BatchedGraph:
         atomic_numbers = torch.cat(atomic_numbers, dim=0)
         bond_bases_ag = torch.cat(bond_bases_ag, dim=0)
         bond_bases_bg = torch.cat(bond_bases_bg, dim=0)
-        if len(angle_bases) != 0:
-            angle_bases = torch.cat(angle_bases, dim=0)
-        else:
-            angle_bases = torch.tensor([])
+        angle_bases = (
+            torch.cat(angle_bases, dim=0) if len(angle_bases) != 0 else torch.tensor([])
+        )
         batched_atom_graph = torch.cat(batched_atom_graph, dim=0)
         if batched_bond_graph != []:
             batched_bond_graph = torch.cat(batched_bond_graph, dim=0)

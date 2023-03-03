@@ -17,7 +17,7 @@ class Node:
             node (Node): the neighboring node
             edge (int): for simplicity, just use an index to track this edge.
         """
-        if index not in self.neighbors.keys():
+        if index not in self.neighbors:
             self.neighbors[index] = [edge]
         else:
             self.neighbors[index].append(edge)
@@ -103,7 +103,7 @@ class Graph:
         )
 
         tmp = frozenset([center_index, neighbor_index])
-        if tmp not in self.undirected_edges.keys():
+        if tmp not in self.undirected_edges:
             directed_edge.info["undirected_edge_index"] = len(
                 self.undirected_edges_list
             )

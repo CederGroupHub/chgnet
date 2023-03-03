@@ -33,13 +33,13 @@ class AtomConv(nn.Module):
             hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
             dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
             activation (str, optional): The name of the activation function to use in the gated MLP.
-            Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
             norm (str, optional): The name of the normalization layer to use on the updated atom features.
-            Must be one of "batch", "layer", or None. Default: None.
+                Must be one of "batch", "layer", or None. Default: None.
             use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
-            Default: True.
+                Default: True.
             resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-            Default: True.
+                Default: True.
             **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
@@ -134,13 +134,13 @@ class BondConv(nn.Module):
             hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 64.
             dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
             activation (str, optional): The name of the activation function to use in the gated MLP.
-            Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
             norm (str, optional): The name of the normalization layer to use on the updated atom features.
-            Must be one of "batch", "layer", or None. Default: None.
+                Must be one of "batch", "layer", or None. Default: None.
             use_mlp_out (bool, optional): Whether to apply an MLP output layer to the updated atom features.
-            Default: True.
+                Default: True.
             resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-            Default: True.
+                Default: True.
             **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
@@ -238,11 +238,11 @@ class AngleUpdate(nn.Module):
             hidden_dim (int, optional): The dimensionality of the hidden layers in the gated MLP. Default: 0.
             dropout (float, optional): The dropout probability to apply to the gated MLP. Default: 0.
             activation (str, optional): The name of the activation function to use in the gated MLP.
-            Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
             norm (str, optional): The name of the normalization layer to use on the updated atom features.
-            Must be one of "batch", "layer", or None. Default: None.
+                Must be one of "batch", "layer", or None. Default: None.
             resnet (bool, optional): Whether to apply a residual connection to the updated atom features.
-            Default: True.
+                Default: True.
             **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()

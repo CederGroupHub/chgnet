@@ -47,7 +47,7 @@ def make_graphs(
     for i, (mp_id, graph_id) in enumerate(data.keys):
         dic = make_one_graph(mp_id, graph_id, data, graph_dir)
         if dic is not False:  # graph made successfully
-            if mp_id not in labels.keys():
+            if mp_id not in labels:
                 labels[mp_id] = {graph_id: dic}
             else:
                 labels[mp_id][graph_id] = dic
@@ -61,15 +61,15 @@ def make_graphs(
     make_partition(labels, graph_dir, train_ratio, val_ratio)
 
 
-def make_one_graph(mp_id, graph_id, data, graph_dir):
-    """convert a structure to a Crystal_Graph and save it."""
+def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
+    """Convert a structure to a Crystal_Graph and save it."""
     dic = data.data[mp_id].pop(graph_id)
     struc = Structure.from_dict(dic.pop("structure"))
     try:
         graph = data.graph_converter(struc, graph_id=graph_id, mp_id=mp_id)
         torch.save(graph, os.path.join(graph_dir, f"{graph_id}.pt"))
         return dic
-    except:
+    except Exception:
         return False
 
 
@@ -79,7 +79,7 @@ def make_partition(
     """Make a train val test partition."""
     random.seed(42)
     if partition_with_frame is False:
-        material_ids = list(data.keys())
+        material_ids = list(data)
         random.shuffle(material_ids)
         train_ids, val_ids, test_ids = [], [], []
         for i, mp_id in enumerate(material_ids):

@@ -63,19 +63,16 @@ class CHGNetCalculator(Calculator):
                 Defaults to 1/160.21.
             **kwargs: Passed to the Calculator parent class.
         """
-        # Call super class constructor
         super().__init__(**kwargs)
 
-        # Determine the device to use
-        if use_device is not None:
-            self.device = use_device
-        elif torch.cuda.is_available():
-            self.device = "cuda"
         # mps is disabled before stable version of pytorch on apple mps is released
+        if use_device == "mps":
+            raise NotImplementedError("mps is not supported yet")
         # elif torch.backends.mps.is_available():
         #     self.device = 'mps'
-        else:
-            self.device = "cpu"
+        # Determine the device to use
+        self.device = use_device or "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"CHGNet will run on {self.device}")
 
         # Move the model to the specified device
         if model is None:
@@ -186,7 +183,7 @@ class StructOptimizer:
         if isinstance(atoms, Structure):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
-        atoms.set_calculator(self.calculator)
+        atoms.calc = self.calculator  # assign model used to predict forces
 
         stream = sys.stdout if verbose else io.StringIO()
         with contextlib.redirect_stdout(stream):
