@@ -47,7 +47,7 @@ def make_graphs(
     for i, (mp_id, graph_id) in enumerate(data.keys):
         dic = make_one_graph(mp_id, graph_id, data, graph_dir)
         if dic is not False:  # graph made successfully
-            if mp_id not in labels.keys():
+            if mp_id not in labels:
                 labels[mp_id] = {graph_id: dic}
             else:
                 labels[mp_id][graph_id] = dic
@@ -79,7 +79,7 @@ def make_partition(
     """Make a train val test partition."""
     random.seed(42)
     if partition_with_frame is False:
-        material_ids = list(data.keys())
+        material_ids = list(data)
         random.shuffle(material_ids)
         train_ids, val_ids, test_ids = [], [], []
         for i, mp_id in enumerate(material_ids):

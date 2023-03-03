@@ -131,7 +131,7 @@ class CIFData(Dataset):
         """
         self.data_dir = cif_path
         self.data = utils.read_json(os.path.join(cif_path, labels))
-        self.cif_ids = list(self.data.keys())
+        self.cif_ids = list(self.data)
         random.shuffle(self.cif_ids)
         print(f"{cif_path}: {len(self.cif_ids)} structures imported")
         if graph_converter is not None:
@@ -245,7 +245,7 @@ class GraphData(Dataset):
             for graph_id, _ in dic.items():
                 self.keys.append((mp_id, graph_id))
         random.shuffle(self.keys)
-        print(f"{len(self.labels.keys())} mp_ids, {self.__len__()} frames imported")
+        print(f"{len(self.labels)} mp_ids, {len(self)} frames imported")
         if self.excluded_graph is not None:
             print(f"{len(self.excluded_graph)} graphs are pre-excluded")
 
@@ -341,7 +341,7 @@ class GraphData(Dataset):
         """
         train_labels, val_labels, test_labels = {}, {}, {}
         if train_key is None:
-            mp_ids = list(self.labels.keys())
+            mp_ids = list(self.labels)
             random.shuffle(mp_ids)
             n_train = int(train_ratio * len(mp_ids))
             n_val = int(val_ratio * len(mp_ids))
@@ -432,10 +432,11 @@ class StructureJsonData(Dataset):
         """Initialize the dataset by reading Json files.
 
         Args:
-            json_dir (str): json path or dir name that contain all the jsons
+            data (str | dict): json path or dir name that contain all the jsons
             graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
             targets (str): the training targets i.e. "ef", "efs", "efsm"
                 Default = "efsm"
+            **kwargs: other arguments
         """
         if isinstance(data, str):
             self.data = {}
@@ -457,7 +458,7 @@ class StructureJsonData(Dataset):
             for graph_id, _ in dic.items():
                 self.keys.append((mp_id, graph_id))
         random.shuffle(self.keys)
-        print(f"{len(self.data.keys())} mp_ids, {self.__len__()} structures imported")
+        print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
         self.graph_converter = graph_converter
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
@@ -551,7 +552,7 @@ class StructureJsonData(Dataset):
         """
         train_data, val_data, test_data = {}, {}, {}
         if train_key is None:
-            mp_ids = list(self.data.keys())
+            mp_ids = list(self.data)
             random.shuffle(mp_ids)
             n_train = int(train_ratio * len(mp_ids))
             n_val = int(val_ratio * len(mp_ids))

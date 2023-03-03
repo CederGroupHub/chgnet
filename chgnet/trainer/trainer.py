@@ -461,7 +461,7 @@ class Trainer:
     def _init_keys(self):
         return [
             key
-            for key in list(inspect.signature(Trainer.__init__).parameters.keys())
+            for key in list(inspect.signature(Trainer.__init__).parameters)
             if key not in (["self", "model", "kwargs"])
         ]
 
