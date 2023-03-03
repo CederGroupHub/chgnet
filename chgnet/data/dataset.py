@@ -128,7 +128,7 @@ class CIFData(Dataset):
                 a CrystalGraphConverter to convert the structures,
                 if None, it will be set to CHGNet default converter
             energy_str (str, optional): the key of energy in the labels.
-                Default = "ef_per_atom".
+                Default = "energy_per_atom".
             **kwargs: other arguments
         """
         self.data_dir = cif_path
@@ -143,7 +143,7 @@ class CIFData(Dataset):
                 atom_graph_cutoff=5, bond_graph_cutoff=3
             )
 
-        self.energy_str = kwargs.pop("energy_str", "ef_per_atom")
+        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
         self.failed_idx = []
         self.failed_graph_id = {}
@@ -627,7 +627,7 @@ def collate_graphs(batch_data: List):
             s (Tensor): stresses of the structures [3*batch_size, 3]
             m (Tensor): magmom of the structures [n_batch_atoms]
     """
-    graphs, energy = [], []
+    graphs = []
     all_targets = {key: [] for key in batch_data[0][1]}
     for graph, targets in batch_data:
         graphs.append(graph)
