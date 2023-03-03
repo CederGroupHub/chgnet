@@ -61,15 +61,15 @@ def make_graphs(
     make_partition(labels, graph_dir, train_ratio, val_ratio)
 
 
-def make_one_graph(mp_id, graph_id, data, graph_dir):
-    """convert a structure to a Crystal_Graph and save it."""
+def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
+    """Convert a structure to a Crystal_Graph and save it."""
     dic = data.data[mp_id].pop(graph_id)
     struc = Structure.from_dict(dic.pop("structure"))
     try:
         graph = data.graph_converter(struc, graph_id=graph_id, mp_id=mp_id)
         torch.save(graph, os.path.join(graph_dir, f"{graph_id}.pt"))
         return dic
-    except:
+    except Exception:
         return False
 
 

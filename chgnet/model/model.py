@@ -287,10 +287,9 @@ class CHGNet(nn.Module):
         site_wise = "m" in task
 
         # Optionally, make composition model prediction
-        if self.composition_model is not None:
-            comp_energy = self.composition_model(graphs)
-        else:
-            comp_energy = 0
+        comp_energy = (
+            0 if self.composition_model is None else self.composition_model(graphs)
+        )
 
         # Make batched graph
         batched_graph = BatchedGraph.from_graphs(
@@ -483,7 +482,7 @@ class CHGNet(nn.Module):
         """
         assert (
             self.graph_converter is not None
-        ), "self.graph_converter need to be initialized first!"
+        ), "self.graph_converter needs to be initialized first!"
         if type(structure) == Structure:
             graph = self.graph_converter(structure)
             return self.predict_graph(
@@ -765,10 +764,9 @@ class BatchedGraph:
         atomic_numbers = torch.cat(atomic_numbers, dim=0)
         bond_bases_ag = torch.cat(bond_bases_ag, dim=0)
         bond_bases_bg = torch.cat(bond_bases_bg, dim=0)
-        if len(angle_bases) != 0:
-            angle_bases = torch.cat(angle_bases, dim=0)
-        else:
-            angle_bases = torch.tensor([])
+        angle_bases = (
+            torch.cat(angle_bases, dim=0) if len(angle_bases) != 0 else torch.tensor([])
+        )
         batched_atom_graph = torch.cat(batched_atom_graph, dim=0)
         if batched_bond_graph != []:
             batched_bond_graph = torch.cat(batched_bond_graph, dim=0)

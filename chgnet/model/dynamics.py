@@ -186,7 +186,7 @@ class StructOptimizer:
         if isinstance(atoms, Structure):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
-        atoms.set_calculator(self.calculator)
+        atoms.calc = self.calculator  # assign model used to predict forces
 
         stream = sys.stdout if verbose else io.StringIO()
         with contextlib.redirect_stdout(stream):
