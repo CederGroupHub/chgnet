@@ -1,22 +1,23 @@
 import math
 import os
-import torch.nn as nn
-from torch import Tensor
-from chgnet.graph import CrystalGraphConverter, Crystal_Graph
-from chgnet.model.encoders import AtomEmbedding, BondEncoder, AngleEncoder
-from chgnet.model.layers import *
-from chgnet.model.functions import MLP, GatedMLP, find_normalization
-from chgnet.model.composition_model import Atom_Ref
-from pymatgen.core import Structure
 from typing import List, Union
+
+import torch.nn as nn
+from pymatgen.core import Structure
+from torch import Tensor
+
+from chgnet.graph import Crystal_Graph, CrystalGraphConverter
+from chgnet.model.composition_model import Atom_Ref
+from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
+from chgnet.model.functions import MLP, GatedMLP, find_normalization
+from chgnet.model.layers import *
 
 datatype = torch.float32
 
 
 class CHGNet(nn.Module):
-    """
-    Crystal Hamiltonian Graph neural Network
-    A model that takes in a crystal graph and output energy, force, magmom, stress
+    """Crystal Hamiltonian Graph neural Network
+    A model that takes in a crystal graph and output energy, force, magmom, stress.
     """
 
     def __init__(
@@ -46,8 +47,7 @@ class CHGNet(nn.Module):
         learnable_rbf: bool = True,
         **kwargs,
     ):
-        """
-        Initialize the CHGNet
+        """Initialize the CHGNet.
 
         Args:
             atom_fea_dim (int): atom feature vector embedding dimension.
@@ -109,7 +109,7 @@ class CHGNet(nn.Module):
         }
         self.model_args.update(kwargs)
 
-        super(CHGNet, self).__init__()
+        super().__init__()
         self.atom_fea_dim = atom_fea_dim
         self.bond_fea_dim = bond_fea_dim
         self.is_intensive = is_intensive
@@ -161,8 +161,7 @@ class CHGNet(nn.Module):
         conv_norm = kwargs.pop("conv_norm", None)
         gMLP_norm = kwargs.pop("gMLP_norm", None)
         atom_graph_layers = []
-        for i in range(n_conv):
-            use_mlp_out = False if i == (n_conv - 1) else True
+        for _i in range(n_conv):
             atom_graph_layers.append(
                 AtomConv(
                     atom_fea_dim=atom_fea_dim,
@@ -262,7 +261,7 @@ class CHGNet(nn.Module):
         print(
             "CHGNet initialized with",
             sum(p.numel() for p in self.parameters()),
-            f"Parameters",
+            "Parameters",
         )
 
     def forward(
@@ -272,8 +271,7 @@ class CHGNet(nn.Module):
         return_atom_feas=False,
         return_crystal_feas=False,
     ) -> dict:
-        """
-        Get prediction associated with input graphs
+        """Get prediction associated with input graphs
         Args:
             graphs (List): a list of Crystal_Graphs
             task (str): the prediction task
@@ -282,7 +280,7 @@ class CHGNet(nn.Module):
             return_atom_feas (bool): whether to return the atom features before last conv layer
             return_crystal_feas (bool): whether to return crystal feature
         Returns:
-            model output (dict)
+            model output (dict).
         """
         compute_force = "f" in task
         compute_stress = "s" in task
@@ -323,10 +321,9 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
     ) -> dict:
-        """
-        Get Energy, Force, Stress, Magmom associated with input graphs
+        """Get Energy, Force, Stress, Magmom associated with input graphs
         force = - d(Energy)/d(atom_positions)
-        stress = 1/V * d(Energy)/d(strain)
+        stress = 1/V * d(Energy)/d(strain).
 
         Args:
             g (BatchedGraph): batched graph
@@ -336,7 +333,7 @@ class CHGNet(nn.Module):
                 Default = False
             compute_stress (bool): whether to compute stress.
                 Default = False
-            return_atom_feas (bool): whether to return atom feautures
+            return_atom_feas (bool): whether to return atom features
                 Default = False
             return_crystal_feas (bool): whether to return crystal features,
                 only available if self.mlp_first is False
@@ -367,7 +364,6 @@ class CHGNet(nn.Module):
         for idx, (atom_layer, bond_layer, angle_layer) in enumerate(
             zip(self.atom_conv_layers[:-1], self.bond_conv_layers, self.angle_layers)
         ):
-
             # Atom Conv
             atom_feas = atom_layer(
                 atom_feas=atom_feas,
@@ -425,7 +421,7 @@ class CHGNet(nn.Module):
         else:  # ave or attn to create crystal_fea first
             crystal_feas = self.pooling(atom_feas, g.atom_owners)
             energy = self.mlp(crystal_feas).view(-1) * atoms_per_graph
-            if return_crystal_feas == True:
+            if return_crystal_feas is True:
                 prediction["crystal_fea"] = crystal_feas
 
         # Compute force
@@ -464,14 +460,13 @@ class CHGNet(nn.Module):
         return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict:
-        """
-        Predict from pymatgen.core.Structure
+        """Predict from pymatgen.core.Structure.
 
         Args:
             structure (Structure, List(Structure)): structure or a list of structures to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
-            return_atom_feas (bool): whether to return atom feautures.
+            return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
                 only available if self.mlp_first is False
@@ -487,7 +482,7 @@ class CHGNet(nn.Module):
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
         """
         assert (
-            self.graph_converter != None
+            self.graph_converter is not None
         ), "self.graph_converter need to be initialized first!"
         if type(structure) == Structure:
             graph = self.graph_converter(structure)
@@ -518,19 +513,17 @@ class CHGNet(nn.Module):
         return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict:
-        """
-
-        Args:
+        """Args:
             graph (Crystal_Graph): Crystal_Graph or a list of Crystal_Graphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
-            return_atom_feas (bool): whether to return atom feautures.
+            return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
                 only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100
+                Default = 100.
 
         Returns:
             prediction (dict): containing the fields:
@@ -592,9 +585,7 @@ class CHGNet(nn.Module):
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> List[Tensor]:
-        """
-        split a batched result Tensor into a list of Tensors
-        """
+        """split a batched result Tensor into a list of Tensors."""
         print(x, n)
         start = 0
         result = []
@@ -610,27 +601,21 @@ class CHGNet(nn.Module):
 
     @classmethod
     def from_dict(cls, dict, **kwargs):
-        """
-        build a CHGNet from a saved dictionary
-        """
+        """build a CHGNet from a saved dictionary."""
         chgnet = CHGNet(**dict["model_args"])
         chgnet.load_state_dict(dict["state_dict"], **kwargs)
         return chgnet
 
     @classmethod
     def from_file(cls, path, **kwargs):
-        """
-        build a CHGNet from a saved file
-        """
+        """build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
         chgnet = CHGNet.from_dict(state["model"], **kwargs)
         return chgnet
 
     @classmethod
     def load(cls, model_name="MPtrj-efsm"):
-        """
-        load pretrained CHGNet
-        """
+        """load pretrained CHGNet."""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if model_name == "MPtrj-efsm":
             return cls.from_file(
@@ -640,10 +625,8 @@ class CHGNet(nn.Module):
             raise Exception("model_name not supported")
 
 
-class BatchedGraph(object):
-    """
-    Batched crystal graph for parallel computing
-    """
+class BatchedGraph:
+    """Batched crystal graph for parallel computing."""
 
     def __init__(
         self,
@@ -659,8 +642,7 @@ class BatchedGraph(object):
         strains: List[Tensor],
         volumes: [Tensor],
     ):
-        """
-        Batched crystal graph
+        """Batched crystal graph.
 
         Args:
             atomic_numbers (Tensor): atomic numbers vector [num_batch_atoms]
@@ -706,8 +688,7 @@ class BatchedGraph(object):
         angle_basis_expansion: nn.Module,
         compute_stress: bool = False,
     ):
-        """
-        Featurize and assemble a list of graphs
+        """Featurize and assemble a list of graphs.
 
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs

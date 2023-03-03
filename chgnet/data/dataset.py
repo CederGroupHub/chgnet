@@ -1,24 +1,24 @@
+import functools
 import os
 import random
-import functools
-import torch
-import numpy as np
-from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
-from chgnet.graph import CrystalGraphConverter, Crystal_Graph
-from chgnet import utils
-from typing import List, Union
 import warnings
+from typing import List, Union
+
+import numpy as np
+import torch
+from pymatgen.core.structure import Structure
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.sampler import SubsetRandomSampler
+
+from chgnet import utils
+from chgnet.graph import Crystal_Graph, CrystalGraphConverter
 
 warnings.filterwarnings("ignore")
 datatype = torch.float32
 
 
 class StructureData(Dataset):
-    """
-    A simple torch Dataset of structures
-    """
+    """A simple torch Dataset of structures."""
 
     def __init__(
         self,
@@ -29,8 +29,7 @@ class StructureData(Dataset):
         magmoms: List = None,
         graph_converter: CrystalGraphConverter = None,
     ):
-        """
-        Initialize the dataset
+        """Initialize the dataset.
 
         Args:
             structures (list): a list of structures
@@ -64,8 +63,7 @@ class StructureData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx) -> (Crystal_Graph, dict):
-        """
-        get one item in the dataset
+        """get one item in the dataset.
 
         Returns:
             crystal_graph (Crystal_Graph): graph of the crystal structure
@@ -110,9 +108,7 @@ class StructureData(Dataset):
 
 
 class CIFData(Dataset):
-    """
-    A dataset from cifs
-    """
+    """A dataset from cifs."""
 
     def __init__(
         self,
@@ -122,10 +118,9 @@ class CIFData(Dataset):
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
     ):
-        """
-        Initialize the dataset from a directory containing cifs
+        """Initialize the dataset from a directory containing cifs.
 
-        Args
+        Args:
             cif_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
             targets (str): the training targets i.e. "ef", "efs", "efsm"
@@ -156,8 +151,7 @@ class CIFData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """
-        get one item in the dataset
+        """get one item in the dataset.
 
         Returns:
             crystal_graph (Crystal_Graph): graph of the crystal structure
@@ -166,10 +160,7 @@ class CIFData(Dataset):
         if idx not in self.failed_idx:
             try:
                 graph_id = self.cif_ids[idx]
-                if "material_id" in self.data[graph_id].keys():
-                    mp_id = self.data[graph_id]["material_id"]
-                else:
-                    mp_id = graph_id
+                mp_id = self.data[graph_id].get("material_id", graph_id)
                 structure = Structure.from_file(
                     os.path.join(self.data_dir, f"{graph_id}.cif")
                 )
@@ -213,10 +204,9 @@ class CIFData(Dataset):
 
 
 class GraphData(Dataset):
-    """
-    A dataset of graphs
+    """A dataset of graphs
     this is compatible with the graph.pt documents made by make_graphs.py
-    we recommend you to use the dataset to avoid graph conversion steps
+    we recommend you to use the dataset to avoid graph conversion steps.
     """
 
     def __init__(
@@ -227,10 +217,9 @@ class GraphData(Dataset):
         exclude: Union[str, list] = None,
         **kwargs,
     ):
-        """
-        Initialize the dataset from a directory containing saved crystal graphs
+        """Initialize the dataset from a directory containing saved crystal graphs.
 
-        Args
+        Args:
             graph_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
             targets (str): the training targets i.e. "ef", "efs", "efsm"
@@ -269,8 +258,7 @@ class GraphData(Dataset):
         return len(self.keys)
 
     def __getitem__(self, idx):
-        """
-        get one item in the dataset
+        """get one item in the dataset.
 
         Returns:
             crystal_graph (Crystal_Graph): graph of the crystal structure
@@ -328,10 +316,9 @@ class GraphData(Dataset):
         num_workers=0,
         pin_memory=True,
     ) -> (DataLoader, DataLoader, DataLoader):
-        """
-        partition the GraphData using materials id,
+        """partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training
@@ -431,9 +418,8 @@ class GraphData(Dataset):
 
 
 class StructureJsonData(Dataset):
-    """
-    read structure and targets from a json file
-    this function is used to load MPtrj dataset
+    """read structure and targets from a json file
+    this function is used to load MPtrj dataset.
     """
 
     def __init__(
@@ -443,10 +429,9 @@ class StructureJsonData(Dataset):
         targets: str = "efsm",
         **kwargs,
     ):
-        """
-        Initialize the dataset by reading Json files
+        """Initialize the dataset by reading Json files.
 
-        Args
+        Args:
             json_dir (str): json path or dir name that contain all the jsons
             graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
             targets (str): the training targets i.e. "ef", "efs", "efsm"
@@ -484,8 +469,7 @@ class StructureJsonData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """
-        get one item in the dataset
+        """get one item in the dataset.
 
         Returns:
             crystal_graph (Crystal_Graph): graph of the crystal structure
@@ -542,10 +526,9 @@ class StructureJsonData(Dataset):
         num_workers=0,
         pin_memory=True,
     ) -> (DataLoader, DataLoader, DataLoader):
-        """
-        partition the Dataset using materials id,
+        """partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training
@@ -629,8 +612,7 @@ class StructureJsonData(Dataset):
 
 
 def collate_graphs(batch_data: List):
-    """
-    Collate of list of (graph, target) into batch data,
+    """Collate of list of (graph, target) into batch data,.
 
     Args:
         batch_data (list): list of (graph, target(dict))
@@ -644,12 +626,12 @@ def collate_graphs(batch_data: List):
             m (Tensor): magmom of the structures [n_batch_atoms]
     """
     graphs, energy = [], []
-    all_targets = {key: [] for key in batch_data[0][1].keys()}
-    for (graph, targets) in batch_data:
+    all_targets = {key: [] for key in batch_data[0][1]}
+    for graph, targets in batch_data:
         graphs.append(graph)
         for target, value in targets.items():
             all_targets[target].append(value)
-    if "e" in all_targets.keys():
+    if "e" in all_targets:
         all_targets["e"] = torch.tensor(all_targets["e"], dtype=datatype)
     return graphs, all_targets
 
@@ -663,8 +645,7 @@ def get_train_val_test_loader(
     num_workers: int = 0,
     pin_memory: bool = True,
 ):
-    """
-    Randomly partition a dataset into train, val, test loaders
+    """Randomly partition a dataset into train, val, test loaders.
 
     Args:
         dataset (Dataset): The dataset to partition.
@@ -724,8 +705,7 @@ def get_train_val_test_loader(
 
 
 def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
-    """
-    Get a dataloader from a dataset
+    """Get a dataloader from a dataset.
 
     Args:
         dataset (Dataset): The dataset to partition.
@@ -740,7 +720,6 @@ def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
     Returns:
         data_loader
     """
-
     data_loader = DataLoader(
         dataset,
         batch_size=batch_size,

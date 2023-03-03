@@ -1,28 +1,27 @@
-import os.path
-import random
-import time
-import shutil
 import datetime
 import inspect
+import os.path
+import random
+import shutil
+import time
+
+import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import (
-    MultiStepLR,
-    ExponentialLR,
     CosineAnnealingLR,
     CosineAnnealingWarmRestarts,
+    ExponentialLR,
+    MultiStepLR,
 )
-import numpy as np
+from torch.utils.data import DataLoader
+
 from chgnet.model.model import CHGNet
-from chgnet.utils import AverageMeter, mae
-from chgnet.utils import mkdir, write_json
+from chgnet.utils import AverageMeter, mae, mkdir, write_json
 
 
-class Trainer(object):
-    """
-    A trainer to train CHGNet using energy, force, stress and magmom
-    """
+class Trainer:
+    """A trainer to train CHGNet using energy, force, stress and magmom."""
 
     def __init__(
         self,
@@ -44,8 +43,7 @@ class Trainer(object):
         use_device: str = None,
         **kwargs,
     ):
-        """
-        Initialize all hyper-parameters for trainer
+        """Initialize all hyper-parameters for trainer.
 
         Args:
             model (nn.Module): a CHGNet model
@@ -171,7 +169,7 @@ class Trainer(object):
         self.epochs = epochs
         self.starting_epoch = starting_epoch
 
-        if use_device != None:
+        if use_device is not None:
             self.device = use_device
         elif torch.cuda.is_available():
             self.device = "cuda"
@@ -195,8 +193,7 @@ class Trainer(object):
         save_dir: str = None,
         save_test_result: bool = False,
     ):
-        """
-        train the model using torch data_loaders
+        """train the model using torch data_loaders.
 
         Args:
             train_loader (DataLoader): train loader to update CHGNet weights
@@ -208,7 +205,7 @@ class Trainer(object):
         """
         assert self.model is not None, "Model need to be initialized"
         global best_checkpoint
-        if save_dir == None:
+        if save_dir is None:
             save_dir = datetime.date.today().strftime("%m-%d-%Y")
         mkdir(save_dir)
 
@@ -219,7 +216,7 @@ class Trainer(object):
         for epoch in range(self.starting_epoch, self.epochs):
             # train
             train_mae = self._train(train_loader, epoch)
-            if "e" in train_mae.keys() and train_mae["e"] != train_mae["e"]:
+            if "e" in train_mae and train_mae["e"] != train_mae["e"]:
                 print("Exit due to NaN")
                 break
 
@@ -229,7 +226,7 @@ class Trainer(object):
                 self.training_history[i]["train"].append(train_mae[i])
                 self.training_history[i]["val"].append(val_mae[i])
 
-            if "e" in val_mae.keys() and val_mae["e"] != val_mae["e"]:
+            if "e" in val_mae and val_mae["e"] != val_mae["e"]:
                 print("Exit due to NaN")
                 break
 
@@ -255,8 +252,7 @@ class Trainer(object):
                 self.training_history[i]["test"].append(test_mae[i])
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
-        """
-        Train all data for one epoch
+        """Train all data for one epoch.
 
         Args:
             train_loader (DataLoader): train loader to update CHGNet weights
@@ -317,11 +313,11 @@ class Trainer(object):
 
             if (idx + 1) % self.print_freq == 0 or idx == 0:
                 message = (
-                    "Epoch: [{0}][{1}/{2}]\t".format(
+                    "Epoch: [{}][{}/{}]\t".format(
                         current_epoch, idx + 1, len(train_loader)
                     )
-                    + "Time ({batch_time.avg:.3f})  ".format(batch_time=batch_time)
-                    + "Data ({data_time.avg:.3f})  ".format(data_time=data_time)
+                    + f"Time ({batch_time.avg:.3f})  "
+                    + f"Data ({data_time.avg:.3f})  "
                     + "Loss {loss.val:.4f} ({loss.avg:.4f})  ".format(loss=losses)
                     + "MAEs:  "
                 )
@@ -336,10 +332,9 @@ class Trainer(object):
         self,
         val_loader: DataLoader,
         is_test: bool = False,
-        test_result_save_path: str = None
+        test_result_save_path: str = None,
     ) -> dict:
-        """
-        Validation or test step
+        """Validation or test step.
 
         Args:
             val_loader (DataLoader): val loader to test accuracy after each epoch
@@ -407,7 +402,7 @@ class Trainer(object):
                             "prediction": prediction["s"][idx].cpu().detach().tolist(),
                         }
                     if "m" in self.targets:
-                        if targets["m"][idx] != None:
+                        if targets["m"][idx] is not None:
                             m_ground_truth = targets["m"][idx].cpu().detach().tolist()
                         else:
                             m_ground_truth = None
@@ -427,7 +422,7 @@ class Trainer(object):
 
             if (i + 1) % self.print_freq == 0:
                 message = (
-                    "Test: [{0}/{1}]\t".format(i + 1, len(val_loader))
+                    f"Test: [{i + 1}/{len(val_loader)}]\t"
                     + "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t".format(
                         batch_time=batch_time
                     )
@@ -456,10 +451,8 @@ class Trainer(object):
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
     def get_best_model(self):
-        """
-        Get best model recorded in the trainer
-        """
-        if self.best_model == None:
+        """Get best model recorded in the trainer."""
+        if self.best_model is None:
             raise Exception("the model needs to be trained first")
         print("Best model has val MAE = ", min(self.training_history["e"]["val"]))
         return self.best_model
@@ -473,9 +466,7 @@ class Trainer(object):
         ]
 
     def save(self, filename=None):
-        """
-        Save the model, graph_converter, etc.
-        """
+        """Save the model, graph_converter, etc."""
         state = {
             "model": self.model.as_dict(),
             "optimizer": self.optimizer.state_dict(),
@@ -488,8 +479,7 @@ class Trainer(object):
         torch.save(state, filename)
 
     def save_checkpoint(self, epoch: int, mae_error: dict, save_dir: str = None):
-        """
-        function to save CHGNet trained weights after each epoch
+        """function to save CHGNet trained weights after each epoch.
 
         Args:
             epoch (int): the epoch number
@@ -502,14 +492,8 @@ class Trainer(object):
 
         rounded_mae_e = round(mae_error["e"] * 1000)
         rounded_mae_f = round(mae_error["f"] * 1000)
-        if "s" in mae_error.keys():
-            rounded_mae_s = round(mae_error["s"] * 1000)
-        else:
-            rounded_mae_s = "NA"
-        if "m" in mae_error.keys():
-            rounded_mae_m = round(mae_error["m"] * 1000)
-        else:
-            rounded_mae_m = "NA"
+        rounded_mae_s = round(mae_error["s"] * 1000) if "s" in mae_error else "NA"
+        rounded_mae_m = round(mae_error["m"] * 1000) if "m" in mae_error else "NA"
         filename = os.path.join(
             save_dir,
             f"epoch{epoch}_e{rounded_mae_e}f{rounded_mae_f}"
@@ -546,16 +530,14 @@ class Trainer(object):
 
     @classmethod
     def load(cls, path: str):
-        """
-        load trainer state_dict
-        """
+        """load trainer state_dict."""
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(
             "Total Number of loaded Model Params = ",
             sum(p.numel() for p in model.parameters()),
         )
-        if "model" in state["trainer_args"].keys():
+        if "model" in state["trainer_args"]:
             del state["trainer_args"]["model"]
         trainer = Trainer(model=model, **state["trainer_args"])
         trainer.model.to(trainer.device)
@@ -582,9 +564,7 @@ class Trainer(object):
 
 
 class CombinedLoss(nn.Module):
-    """
-    A combined loss function of energy, force, stress and magmom
-    """
+    """A combined loss function of energy, force, stress and magmom."""
 
     def __init__(
         self,
@@ -597,8 +577,7 @@ class CombinedLoss(nn.Module):
         mag_loss_ratio: float = 0.1,
         **kwargs,
     ):
-        """
-        Initialize the combined loss
+        """Initialize the combined loss.
 
         Args:
             target_str: the training target label. Can be "e", "ef", "efs", "efsm" etc.
@@ -648,8 +627,7 @@ class CombinedLoss(nn.Module):
         targets: dict,
         prediction: dict,
     ) -> dict:
-        """
-        Compute the combined loss using CHGNet prediction and labels
+        """Compute the combined loss using CHGNet prediction and labels
         this function can automatically mask out magmom loss contribution of
         data points without magmom labels.
 
@@ -662,7 +640,7 @@ class CombinedLoss(nn.Module):
         """
         out = {"loss": 0}
         # Energy
-        if self.energy_loss_ratio != 0 and "e" in targets.keys():
+        if self.energy_loss_ratio != 0 and "e" in targets:
             if self.is_intensive:
                 out["loss"] += self.criterion(targets["e"], prediction["e"])
                 out["e_MAE"] = mae(targets["e"], prediction["e"])
@@ -675,7 +653,7 @@ class CombinedLoss(nn.Module):
                 out["e_MAE_size"] = prediction["e"].shape[0]
 
         # Force
-        if self.force_loss_ratio != 0 and "f" in targets.keys():
+        if self.force_loss_ratio != 0 and "f" in targets:
             forces_pred = torch.cat(prediction["f"], dim=0)
             forces_target = torch.cat(targets["f"], dim=0)
             out["loss"] += self.force_loss_ratio * self.criterion(
@@ -685,7 +663,7 @@ class CombinedLoss(nn.Module):
             out["f_MAE_size"] = forces_target.shape[0]
 
         # Stress
-        if self.stress_loss_ratio != 0 and "s" in targets.keys():
+        if self.stress_loss_ratio != 0 and "s" in targets:
             stress_pred = torch.cat(prediction["s"], dim=0)
             stress_target = torch.cat(targets["s"], dim=0)
             out["loss"] += self.stress_loss_ratio * self.criterion(
@@ -695,12 +673,12 @@ class CombinedLoss(nn.Module):
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag
-        if self.mag_loss_ratio != 0 and "m" in targets.keys():
+        if self.mag_loss_ratio != 0 and "m" in targets:
             mag_preds, mag_targets = [], []
             m_MAE_size = 0
             for mag_pred, mag_target in zip(prediction["m"], targets["m"]):
                 # exclude structures without magmom labels
-                if mag_target != None:
+                if mag_target is not None:
                     mag_preds.append(mag_pred)
                     mag_targets.append(mag_target)
                     m_MAE_size += mag_target.shape[0]

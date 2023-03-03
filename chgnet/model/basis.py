@@ -5,12 +5,10 @@ from torch import Tensor
 
 
 class Fourier(nn.Module):
-    """
-    Fourier Expansion for angle feautures
-    """
+    """Fourier Expansion for angle features."""
+
     def __init__(self, order: int = 5, learnable: bool = False):
-        """
-        Initialize the Fourier expansion
+        """Initialize the Fourier expansion.
 
         Args:
             order (int): the maximum order, refer to the N in eq 1 in CHGNet paper
@@ -36,14 +34,13 @@ class Fourier(nn.Module):
         result[:, 0] = 1 / torch.sqrt(torch.tensor([2]))
         tmp = torch.outer(x, self.frequencies)
         result[:, 1 : self.order + 1] = torch.sin(tmp)
-        result[:, self.order + 1:] = torch.cos(tmp)
+        result[:, self.order + 1 :] = torch.cos(tmp)
         return result / np.sqrt(np.pi)
 
 
 class RadialBessel(torch.nn.Module):
-    """
-    1D Bessel Basis
-    from: https://github.com/TUM-DAML/gemnet_pytorch/
+    """1D Bessel Basis
+    from: https://github.com/TUM-DAML/gemnet_pytorch/.
     """
 
     def __init__(
@@ -53,8 +50,7 @@ class RadialBessel(torch.nn.Module):
         learnable: bool = False,
         smooth_cutoff: int = 5,
     ):
-        """
-        Initialize the SmoothRBF function
+        """Initialize the SmoothRBF function.
 
         Args:
             num_radial (int): Controls maximum frequency
@@ -84,7 +80,7 @@ class RadialBessel(torch.nn.Module):
                 "frequencies",
                 np.pi * torch.arange(1, self.num_radial + 1, dtype=torch.float),
             )
-        if smooth_cutoff != None:
+        if smooth_cutoff is not None:
             self.smooth_cutoff = CutoffPolynomial(
                 cutoff=cutoff, cutoff_coeff=smooth_cutoff
             )
@@ -107,17 +103,15 @@ class RadialBessel(torch.nn.Module):
 
 
 class GaussianExpansion(nn.Module):
-    """
-    Expands the distance by Gaussian basis.
-    Unit: angstrom
+    """Expands the distance by Gaussian basis.
+    Unit: angstrom.
     """
 
     def __init__(
         self, min: float = 0, max: float = 5, step: float = 0.5, var: float = None
     ):
-        """
-        Gaussian Expansion
-        expand a scalar feature to a soft-one-hot feature vector
+        """Gaussian Expansion
+        expand a scalar feature to a soft-one-hot feature vector.
 
         Args:
             min (float): minimum Gaussian center value
@@ -125,7 +119,6 @@ class GaussianExpansion(nn.Module):
             step (float): Step size between the Gaussian centers
             var (float): variance in gaussian filter, default to step
         """
-
         super().__init__()
         assert min < max
         assert max - min > step
@@ -135,8 +128,7 @@ class GaussianExpansion(nn.Module):
         self.var = var
 
     def expand(self, features: Tensor) -> Tensor:
-        """
-        Apply Gaussian filter to a feature Tensor
+        """Apply Gaussian filter to a feature Tensor.
 
         Args:
             features (torch.Tensor): tensor of features [n]
@@ -151,20 +143,20 @@ class GaussianExpansion(nn.Module):
 
 
 class CutoffPolynomial(nn.Module):
-    """
-    Polynomial soft-cutoff function for atom graph
-    ref: https://github.com/TUM-DAML/gemnet_pytorch/blob/master/gemnet/model/layers/envelope.py
+    """Polynomial soft-cutoff function for atom graph
+    ref: https://github.com/TUM-DAML/gemnet_pytorch/blob/master/gemnet/model/layers/envelope.py.
     """
 
     def __init__(self, cutoff: float = 5, cutoff_coeff: float = 5):
-        """
+        """Initialize the polynomial cutoff function.
+
         Args:
             cutoff (float): cutoff radius (A) in atom graph construction
-                Default = 5
+            Default = 5
             cutoff_coeff (float): the strength of soft-Cutoff
-                0 will disable the cutoff, returning 1 at every r
-                for positive numbers > 0, the smaller cutoff_coeff is, the faster this function decays
-                Default = 5
+            0 will disable the cutoff, returning 1 at every r
+            for positive numbers > 0, the smaller cutoff_coeff is, the faster this function decays
+            Default = 5.
         """
         super().__init__()
         self.cutoff = cutoff
@@ -174,8 +166,7 @@ class CutoffPolynomial(nn.Module):
         self.c = -self.p * (self.p + 1) / 2
 
     def forward(self, r: Tensor) -> Tensor:
-        """
-        Polynomial cutoff function
+        """Polynomial cutoff function.
 
         Args:
             r (Tensor): radius distance tensor
