@@ -2,7 +2,7 @@ import functools
 import os
 import random
 import warnings
-from typing import List, Union
+from typing import List, Literal, Union
 
 import numpy as np
 import torch
@@ -114,7 +114,7 @@ class CIFData(Dataset):
         self,
         cif_path: str,
         labels: Union[str, dict] = "labels.json",
-        targets: str = "ef",
+        targets: Literal["ef", "efs", "efsm"] = "ef",
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
     ):
@@ -123,11 +123,13 @@ class CIFData(Dataset):
         Args:
             cif_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "ef"
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "ef"
             graph_converter (CrystalGraphConverter, optional):
                 a CrystalGraphConverter to convert the structures,
                 if None, it will be set to CHGNet default converter
+            energy_str (str, optional): the key of energy in the labels.
+                Default = "ef_per_atom".
+            **kwargs: other arguments
         """
         self.data_dir = cif_path
         self.data = utils.read_json(os.path.join(cif_path, labels))
@@ -426,7 +428,7 @@ class StructureJsonData(Dataset):
         self,
         data: Union[str, dict],
         graph_converter: CrystalGraphConverter,
-        targets: str = "efsm",
+        targets: Literal["ef", "efs", "efsm"] = "efsm",
         **kwargs,
     ):
         """Initialize the dataset by reading Json files.
@@ -434,8 +436,7 @@ class StructureJsonData(Dataset):
         Args:
             data (str | dict): json path or dir name that contain all the jsons
             graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "efsm"
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "efsm"
             **kwargs: other arguments
         """
         if isinstance(data, str):
