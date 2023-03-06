@@ -10,7 +10,13 @@ from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import Atom_Ref
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
-from chgnet.model.layers import *
+from chgnet.model.layers import (
+    AngleUpdate,
+    AtomConv,
+    BondConv,
+    GraphAttentionReadOut,
+    GraphPooling,
+)
 
 datatype = torch.float32
 
