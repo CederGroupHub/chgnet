@@ -188,7 +188,7 @@ class CrystalGraphConverter(nn.Module):
         mp_id=None,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
     ) -> CrystalGraph:
-        """convert a structure, return a Crystal_Graph.
+        """Convert a structure, return a CrystalGraph.
 
         Args:
             structure (pymatgen.core.Structure): structure to convert

@@ -382,7 +382,7 @@ class MolecularDynamics:
         self.timestep = timestep
 
     def run(self, steps: int):
-        """Thin wrapper of ase MD run
+        """Thin wrapper of ase MD run.
         Args:
             steps (int): number of MD steps
         Returns:
@@ -390,7 +390,7 @@ class MolecularDynamics:
         self.dyn.run(steps)
 
     def set_atoms(self, atoms: Atoms):
-        """Set new atoms to run MD
+        """Set new atoms to run MD.
         Args:
             atoms (Atoms): new atoms for running MD
         Returns:

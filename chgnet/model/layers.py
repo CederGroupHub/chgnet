@@ -333,6 +333,7 @@ class GraphAttentionReadOut(nn.Module):
         Args:
             atom_fea_dim (int): atom feature dimension
             num_head (int): number of attention heads used
+            hidden_dim (int): dimension of hidden layer
             average (bool): whether to average the features
         """
         super().__init__()

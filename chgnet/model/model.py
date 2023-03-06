@@ -4,6 +4,7 @@ from typing import Literal, Sequence, Union
 
 import torch.nn as nn
 from pymatgen.core import Structure
+import torch
 from torch import Tensor
 
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
@@ -589,7 +590,7 @@ class CHGNet(nn.Module):
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
-        """split a batched result Tensor into a list of Tensors."""
+        """Split a batched result Tensor into a list of Tensors."""
         print(x, n)
         start = 0
         result = []

@@ -28,7 +28,7 @@ class MeanNormalizer:
     """Normalize a Tensor and restore it later."""
 
     def __init__(self, tensor):
-        """tensor is taken as a sample to calculate the mean and std."""
+        """Tensor is taken as a sample to calculate the mean and std."""
         self.mean = torch.mean(tensor)
         self.std = torch.std(tensor)
 

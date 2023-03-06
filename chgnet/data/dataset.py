@@ -153,7 +153,7 @@ class CIFData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
             crystal_graph (CrystalGraph): graph of the crystal structure
@@ -260,7 +260,7 @@ class GraphData(Dataset):
         return len(self.keys)
 
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
             crystal_graph (CrystalGraph): graph of the crystal structure
@@ -471,7 +471,7 @@ class StructureJsonData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
             crystal_graph (CrystalGraph): graph of the crystal structure

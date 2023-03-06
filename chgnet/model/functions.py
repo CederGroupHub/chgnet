@@ -85,7 +85,7 @@ class MLP(nn.Module):
         """Performs a forward pass through the MLP.
 
         Args:
-            x (Tensor): a tensor of shape (batch_size, input_dim)
+            X (Tensor): a tensor of shape (batch_size, input_dim)
 
         Returns:
             Tensor: a tensor of shape (batch_size, output_dim)
@@ -158,6 +158,8 @@ class GatedMLP(nn.Module):
 
 
 class ScaledSiLU(torch.nn.Module):
+    """Scaled Sigmoid Linear Unit."""
+
     def __init__(self):
         super().__init__()
         self.scale_factor = 1 / 0.6

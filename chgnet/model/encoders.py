@@ -107,6 +107,8 @@ class AngleEncoder(nn.Module):
         Args:
             num_angular (int): number of angular basis to use
             (Note: num_angular can only be an odd number)
+            learnable (bool): whether to set the frequencies of the Fourier expansion
+            as learnable parameters. Default = False
         """
         super().__init__()
         assert (num_angular - 1) % 2 == 0, "angle_feature_dim can only be odd integer!"
