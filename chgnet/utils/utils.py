@@ -87,8 +87,7 @@ def mkdir(path):
 
 
 def read_json(fjson):
-    """
-    Args:
+    """Args:
         fjson (str) - file name of json to read.
 
     Returns:
@@ -99,8 +98,7 @@ def read_json(fjson):
 
 
 def write_json(d, fjson):
-    """
-    Args:
+    """Args:
         d (dict) - dictionary to write
         fjson (str) - file name of json to write.
 
@@ -118,10 +116,9 @@ def solve_charge_by_mag(
         "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
     },
 ):
-    """
-    Args:
-        structure: input pymatgen structure
-        ox_ranges: user defined range to convert magmoms into formal valence.
+    """Args:
+    structure: input pymatgen structure
+    ox_ranges: user defined range to convert magmoms into formal valence.
     """
     ox_list = []
     solved_ox = True
