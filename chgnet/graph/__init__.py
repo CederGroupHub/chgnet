@@ -1,4 +1,4 @@
-from .crystal_graph import Crystal_Graph, CrystalGraphConverter
+from .crystalgraph import CrystalGraph, CrystalGraphConverter
 from .graph import Graph, Node
 
-__all__ = ["Crystal_Graph", "CrystalGraphConverter", "Graph", "Node"]
+__all__ = ["CrystalGraph", "CrystalGraphConverter", "Graph", "Node"]

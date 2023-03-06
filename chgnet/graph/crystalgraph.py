@@ -12,7 +12,7 @@ from .graph import Graph, Node
 datatype = torch.float32
 
 
-class Crystal_Graph:
+class CrystalGraph:
     """A data class for crystal graph."""
 
     def __init__(
@@ -81,7 +81,7 @@ class Crystal_Graph:
         ), f"Error: {graph_id} number of directed index != 2 * number of undirected index!"
 
     def to(self, device="cpu"):
-        return Crystal_Graph(
+        return CrystalGraph(
             atomic_number=self.atomic_number.to(device),
             atom_frac_coord=self.atom_frac_coord.to(device),
             atom_graph=self.atom_graph.to(device),
@@ -131,7 +131,7 @@ class Crystal_Graph:
 
     @classmethod
     def from_dict(cls, dic):
-        return Crystal_Graph(**dic)
+        return CrystalGraph(**dic)
 
     def __str__(self):
         """Details of the graph."""
@@ -187,7 +187,7 @@ class CrystalGraphConverter(nn.Module):
         graph_id=None,
         mp_id=None,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
-    ) -> Crystal_Graph:
+    ) -> CrystalGraph:
         """convert a structure, return a Crystal_Graph.
 
         Args:
@@ -252,7 +252,7 @@ class CrystalGraphConverter(nn.Module):
             # Discard this structure if it has isolated atom in the graph
             raise ValueError(msg)
 
-        return Crystal_Graph(
+        return CrystalGraph(
             atomic_number=atomic_number,
             atom_frac_coord=atom_frac_coord,
             atom_graph=atom_graph,

@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from chgnet import utils
-from chgnet.graph import Crystal_Graph, CrystalGraphConverter
+from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 warnings.filterwarnings("ignore")
 datatype = torch.float32
@@ -62,7 +62,7 @@ class StructureData(Dataset):
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx) -> (Crystal_Graph, dict):
+    def __getitem__(self, idx) -> (CrystalGraph, dict):
         """get one item in the dataset.
 
         Returns:
@@ -275,7 +275,7 @@ class GraphData(Dataset):
                 return self.__getitem__(idx)
             try:
                 graph_path = os.path.join(self.graph_path, f"{graph_id}.pt")
-                crystal_graph = Crystal_Graph.from_file(graph_path)
+                crystal_graph = CrystalGraph.from_file(graph_path)
                 targets = {}
                 for i in self.targets:
                     if i == "e":
