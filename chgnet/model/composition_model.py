@@ -85,7 +85,7 @@ class Atom_Ref(nn.Module):
         """get the energy of a list of Crystal_Graphs.
 
         Args:
-            graphs (List(Crystal_Graph)): a list of Crystal Graph to compute
+            graphs (List(CrystalGraph)): a list of Crystal Graph to compute
 
         Returns:
             energy (tensor)

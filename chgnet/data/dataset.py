@@ -66,7 +66,7 @@ class StructureData(Dataset):
         """get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): list of targets. i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
@@ -156,7 +156,7 @@ class CIFData(Dataset):
         """get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): list of targets. i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
@@ -263,7 +263,7 @@ class GraphData(Dataset):
         """get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
@@ -474,7 +474,7 @@ class StructureJsonData(Dataset):
         """get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
