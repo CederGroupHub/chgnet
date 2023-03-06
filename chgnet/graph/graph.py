@@ -58,18 +58,22 @@ class DirectedEdge:
         return UndirectedEdge(self.nodes, index, info)
 
     def __eq__(self, other):
-        if self.nodes == other.nodes:
+        if (
+            self.nodes == other.nodes
+            and (self.info["image"] == other.info["image"]).all()
+        ):
             # print(self.nodes, other.nodes)
             # print(self.info['image'], other.info['image'])
-            if (self.info["image"] == other.info["image"]).all():
-                print(
-                    "!!!!!! the two directed edges are equal "
-                    "but this operation is not supposed to happen"
-                )
-                return True
-        if self.nodes == other.nodes[::-1]:
-            if (self.info["image"] == -1 * other.info["image"]).all():
-                return True
+            print(
+                "!!!!!! the two directed edges are equal "
+                "but this operation is not supposed to happen"
+            )
+            return True
+        if (
+            self.nodes == other.nodes[::-1]
+            and (self.info["image"] == -1 * other.info["image"]).all()
+        ):
+            return True
         return False
 
     def __str__(self):
