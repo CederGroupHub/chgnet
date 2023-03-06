@@ -22,7 +22,6 @@ CHGNet is interfaced to `pymatgen` and `ase`, to install:
 
 To install:
 ```bash
-pip install -r requirements.txt
 pip install .
 ```
 
