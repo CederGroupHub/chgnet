@@ -72,13 +72,13 @@ class CHGNetCalculator(Calculator):
         #     self.device = 'mps'
         # Determine the device to use
         self.device = use_device or "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"CHGNet will run on {self.device}")
 
         # Move the model to the specified device
         if model is None:
             model = CHGNet.load()
         self.model = model.to(self.device)
         self.stress_weight = stress_weight
+        print(f"CHGNet will run on {self.device}")
 
     def calculate(
         self,

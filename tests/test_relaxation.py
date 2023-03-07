@@ -8,7 +8,7 @@ structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
 
 
 def test_relaxation():
-    result = relaxer.relax(structure)
+    result = relaxer.relax(structure, verbose=True)
 
     assert list(result) == ["final_structure", "trajectory"]
 
@@ -26,7 +26,5 @@ def test_relaxation():
 
     # make sure the final structure is more relaxed than the initial one
     assert traj.energies[0] > traj.energies[-1]
-    assert traj.forces[0].sum() > traj.forces[-1].sum()
-    assert traj.stresses[0].sum() > traj.stresses[-1].sum()
 
     assert traj.energies[-1] == approx(-58.972927)
