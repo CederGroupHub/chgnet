@@ -23,7 +23,7 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from chgnet.model import CHGNet
+from chgnet.model.model import CHGNet
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet
