@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -24,7 +26,7 @@ class AtomConv(nn.Module):
         norm: str = None,
         use_mlp_out: bool = True,
         resnet: bool = True,
-        **kwargs
+        **kwargs,
     ):
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
@@ -138,7 +140,7 @@ class BondConv(nn.Module):
         norm: str = None,
         use_mlp_out: bool = True,
         resnet=True,
-        **kwargs
+        **kwargs,
     ):
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
@@ -256,7 +258,7 @@ class AngleUpdate(nn.Module):
         activation: str = "silu",
         norm: str = None,
         resnet: bool = True,
-        **kwargs
+        **kwargs,
     ):
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.

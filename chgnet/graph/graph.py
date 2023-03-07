@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from chgnet import utils
 
@@ -26,7 +26,7 @@ class Node:
 class UndirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: List, index: int = None, info: dict = None):
+    def __init__(self, nodes: list, index: int = None, info: dict = None):
         self.nodes = nodes
         self.index = index
         self.info = info
@@ -46,7 +46,7 @@ class UndirectedEdge:
 class DirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: List, index: int, info: dict = None):
+    def __init__(self, nodes: list, index: int, info: dict = None):
         self.nodes = nodes
         self.index = index
         self.info = info

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import functools
 import os
 import random
 import warnings
-from typing import List, Literal, Union
+from typing import Literal
 
 import numpy as np
 import torch
@@ -22,11 +24,11 @@ class StructureData(Dataset):
 
     def __init__(
         self,
-        structures: List,
-        energies: List,
-        forces: List,
-        stresses: List = None,
-        magmoms: List = None,
+        structures: list,
+        energies: list,
+        forces: list,
+        stresses: list = None,
+        magmoms: list = None,
         graph_converter: CrystalGraphConverter = None,
     ):
         """Initialize the dataset.
@@ -113,7 +115,7 @@ class CIFData(Dataset):
     def __init__(
         self,
         cif_path: str,
-        labels: Union[str, dict] = "labels.json",
+        labels: str | dict = "labels.json",
         targets: Literal["ef", "efs", "efsm"] = "ef",
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
@@ -214,9 +216,9 @@ class GraphData(Dataset):
     def __init__(
         self,
         graph_path: str,
-        labels: Union[str, dict] = "labels.json",
+        labels: str | dict = "labels.json",
         targets: str = "efsm",
-        exclude: Union[str, list] = None,
+        exclude: str | list = None,
         **kwargs,
     ):
         """Initialize the dataset from a directory containing saved crystal graphs.
@@ -311,9 +313,9 @@ class GraphData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
-        train_key: List[str] = None,
-        val_key: List[str] = None,
-        test_key: List[str] = None,
+        train_key: list[str] = None,
+        val_key: list[str] = None,
+        test_key: list[str] = None,
         batch_size=32,
         num_workers=0,
         pin_memory=True,
@@ -426,7 +428,7 @@ class StructureJsonData(Dataset):
 
     def __init__(
         self,
-        data: Union[str, dict],
+        data: str | dict,
         graph_converter: CrystalGraphConverter,
         targets: Literal["ef", "efs", "efsm"] = "efsm",
         **kwargs,
@@ -521,9 +523,9 @@ class StructureJsonData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
-        train_key: List[str] = None,
-        val_key: List[str] = None,
-        test_key: List[str] = None,
+        train_key: list[str] = None,
+        val_key: list[str] = None,
+        test_key: list[str] = None,
         batch_size=32,
         num_workers=0,
         pin_memory=True,
@@ -613,7 +615,7 @@ class StructureJsonData(Dataset):
         return train_loader, val_loader, test_loader
 
 
-def collate_graphs(batch_data: List):
+def collate_graphs(batch_data: list):
     """Collate of list of (graph, target) into batch data,.
 
     Args:

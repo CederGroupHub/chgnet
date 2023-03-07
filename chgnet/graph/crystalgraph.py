@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import Literal
@@ -7,7 +9,7 @@ import torch.nn as nn
 from pymatgen.core.structure import Structure
 from torch import Tensor
 
-from chgnet.graph import Graph, Node
+from chgnet.graph.graph import Graph, Node
 
 datatype = torch.float32
 

@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import io
 import pickle
 import sys
-from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -22,7 +23,7 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from chgnet.model import CHGNet
+from chgnet.model.model import CHGNet
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet
@@ -46,9 +47,9 @@ class CHGNetCalculator(Calculator):
 
     def __init__(
         self,
-        model: Optional[CHGNet] = None,
-        use_device: Optional[str] = None,
-        stress_weight: Optional[float] = 1 / 160.21766208,
+        model: CHGNet | None = None,
+        use_device: str | None = None,
+        stress_weight: float | None = 1 / 160.21766208,
         **kwargs,
     ):
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
@@ -81,9 +82,9 @@ class CHGNetCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Optional[Atoms] = None,
-        desired_properties: Optional[list] = None,
-        changed_properties: Optional[list] = None,
+        atoms: Atoms | None = None,
+        desired_properties: list | None = None,
+        changed_properties: list | None = None,
     ):
         """Calculate various properties of the atoms using CHGNet.
 
@@ -127,7 +128,7 @@ class StructOptimizer:
     def __init__(
         self,
         model: CHGNet = None,
-        optimizer_class: Optional[Union[Optimizer, str]] = "FIRE",
+        optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str = None,
         stress_weight: float = 1 / 160.21766208,
     ) -> None:
@@ -158,12 +159,12 @@ class StructOptimizer:
 
     def relax(
         self,
-        atoms: Union[Structure, Atoms],
-        fmax: Optional[float] = 0.1,
-        steps: Optional[int] = 500,
-        relax_cell: Optional[bool] = True,
-        save_path: Optional[str] = None,
-        trajectory_save_interval: Optional[int] = 1,
+        atoms: Structure | Atoms,
+        fmax: float | None = 0.1,
+        steps: int | None = 500,
+        relax_cell: bool | None = True,
+        save_path: str | None = None,
+        trajectory_save_interval: int | None = 1,
         verbose: bool = True,
         **kwargs,
     ):
@@ -287,17 +288,17 @@ class MolecularDynamics:
 
     def __init__(
         self,
-        atoms: Union[Atoms, Structure],
+        atoms: Atoms | Structure,
         model: CHGNet = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 2.0,
         pressure: float = 1.01325 * units.bar,
-        taut: Optional[float] = None,
-        taup: Optional[float] = None,
-        compressibility_au: Optional[float] = None,
-        trajectory: Optional[Union[str, Trajectory]] = None,
-        logfile: Optional[str] = None,
+        taut: float | None = None,
+        taup: float | None = None,
+        compressibility_au: float | None = None,
+        trajectory: str | Trajectory | None = None,
+        logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
         use_device: str = None,

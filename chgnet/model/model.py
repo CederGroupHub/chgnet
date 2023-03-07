@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import math
 import os
-from typing import Literal, Sequence, Union
+from typing import Literal, Sequence
 
 import torch
 import torch.nn as nn
@@ -36,14 +38,14 @@ class CHGNet(nn.Module):
         num_radial: int = 9,
         num_angular: int = 9,
         n_conv: int = 4,
-        atom_conv_hidden_dim: Union[Sequence[int], int] = 64,
+        atom_conv_hidden_dim: Sequence[int] | int = 64,
         update_bond: bool = True,
-        bond_conv_hidden_dim: Union[Sequence[int], int] = 64,
+        bond_conv_hidden_dim: Sequence[int] | int = 64,
         update_angle: bool = True,
-        angle_layer_hidden_dim: Union[Sequence[int], int] = 0,
+        angle_layer_hidden_dim: Sequence[int] | int = 0,
         conv_dropout: float = 0,
         read_out: str = "ave",
-        mlp_hidden_dims: Union[Sequence[int], int] = (64, 64),
+        mlp_hidden_dims: Sequence[int] | int = (64, 64),
         mlp_dropout: float = 0,
         mlp_first: bool = True,
         is_intensive: bool = True,
@@ -474,7 +476,7 @@ class CHGNet(nn.Module):
 
     def predict_structure(
         self,
-        structure: Union[Structure, Sequence[Structure]],
+        structure: Structure | Sequence[Structure],
         task: str = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
@@ -528,7 +530,7 @@ class CHGNet(nn.Module):
 
     def predict_graph(
         self,
-        graph: Union[CrystalGraph, Sequence[CrystalGraph]],
+        graph: CrystalGraph | Sequence[CrystalGraph],
         task: str = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
@@ -617,7 +619,7 @@ class CHGNet(nn.Module):
         return result
 
     def as_dict(self):
-        """Return the CHGNet weights and args in a dictionary"""
+        """Return the CHGNet weights and args in a dictionary."""
         out = {"state_dict": self.state_dict(), "model_args": self.model_args}
         return out
 
