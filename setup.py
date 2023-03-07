@@ -3,7 +3,7 @@
 """
 import os
 
-from setuptools import find_namespace_packages, setup
+from setuptools import find_packages, setup
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         author=["Bowen Deng"],
         author_email=["bowendeng@berkeley.edu"],
         license="MIT",
-        packages=find_namespace_packages(),
+        packages=find_packages(),
         package_data={"chgnet": ["chgnet/pretrained/*"]},
         include_package_data=True,
         include_dirs=["pretrained"],
