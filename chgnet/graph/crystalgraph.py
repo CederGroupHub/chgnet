@@ -7,7 +7,7 @@ import torch.nn as nn
 from pymatgen.core.structure import Structure
 from torch import Tensor
 
-from .graph import Graph, Node
+from chgnet.graph import Graph, Node
 
 datatype = torch.float32
 
