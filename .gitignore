@@ -54,7 +54,8 @@ docs/_build/
 *.xml
 *.csv
 *.pt
+*.p
 .DS_Store
 .idea
 .ipynb_checkpoints
-test/
+

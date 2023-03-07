@@ -2,9 +2,9 @@ import math
 import os
 from typing import Literal, Sequence, Union
 
+import torch
 import torch.nn as nn
 from pymatgen.core import Structure
-import torch
 from torch import Tensor
 
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
