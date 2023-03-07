@@ -5,9 +5,8 @@ import os
 from typing import Literal, Sequence
 
 import torch
-import torch.nn as nn
 from pymatgen.core import Structure
-from torch import Tensor
+from torch import Tensor, nn
 
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import Atom_Ref
@@ -54,7 +53,7 @@ class CHGNet(nn.Module):
         bond_graph_cutoff: int = 3,
         learnable_rbf: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the CHGNet.
 
         Args:
@@ -714,7 +713,7 @@ class BatchedGraph:
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
         compute_stress: bool = False,
-    ):
+    ) -> BatchedGraph:
         """Featurize and assemble a list of graphs.
 
         Args:

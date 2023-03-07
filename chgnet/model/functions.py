@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
-from torch import Tensor
+from torch import Tensor, nn
 
 
 def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Tensor:
-    """aggregate rows in data by specifying the owners.
+    """Aggregate rows in data by specifying the owners.
 
     Args:
         data (Tensor): data tensor to aggregate [n_row, feature_dim]

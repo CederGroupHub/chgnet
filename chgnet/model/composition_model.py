@@ -4,9 +4,8 @@ import collections
 
 import numpy as np
 import torch
-import torch.nn as nn
 from pymatgen.core import Structure
-from torch import Tensor
+from torch import Tensor, nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.model.functions import GatedMLP, find_activation

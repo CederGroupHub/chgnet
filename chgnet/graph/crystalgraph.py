@@ -5,9 +5,8 @@ import sys
 from typing import Literal
 
 import torch
-import torch.nn as nn
 from pymatgen.core.structure import Structure
-from torch import Tensor
+from torch import Tensor, nn
 
 from chgnet.graph.graph import Graph, Node
 
