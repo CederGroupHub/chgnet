@@ -56,55 +56,67 @@ class CHGNet(nn.Module):
         """Initialize the CHGNet.
 
         Args:
-            atom_fea_dim (int): atom feature vector embedding dimension. Default: 64
-            bond_fea_dim (int): bond feature vector embedding dimension. Default: 64
-            angle_fea_dim (int): angle feature vector embedding dimension. Default: 64
-            bond_fea_dim (int): angle feature vector embedding dimension. Default: 64
-            composition_model (nn.Module, optional): attach a composition model to predict energy
-                or initialize a pretrained linear regression (AtomRef).
-                Default: None
+            atom_fea_dim (int): atom feature vector embedding dimension.
+                Default = 64
+            bond_fea_dim (int): bond feature vector embedding dimension.
+                Default = 64
+            angle_fea_dim (int): angle feature vector embedding dimension.
+                Default = 64
+            bond_fea_dim (int): angle feature vector embedding dimension.
+                Default = 64
+            composition_model (nn.Module, optional): attach a composition model to
+                predict energy or initialize a pretrained linear regression (AtomRef).
+                Default = None
             num_radial (int): number of radial basis used in bond basis expansion.
-                Default: 9
+                Default = 9
             num_angular (int): number of angular basis used in angle basis expansion.
-                Default: 9
+                Default = 9
             n_conv (int): number of interaction blocks.
-                Default: 4
+                Default = 4
                 Note: last interaction block contain only an atom_conv layer
-            atom_conv_hidden_dim (List or int): hidden dimensions of atom convolution layers.
-                Default: 64
-            update_bond (bool): whether to use bond_conv_layer in bond graph to update bond embeddings
-                Default: True.
-            bond_conv_hidden_dim (List or int): hidden dimensions of bond convolution layers.
-                Default: 64
-            update_angle (bool): whether to use angle_update_layer to update angle embeddings.
-                Default: True
+            atom_conv_hidden_dim (List or int): hidden dimensions of
+                atom convolution layers.
+                Default = 64
+            update_bond (bool): whether to use bond_conv_layer in bond graph to
+                update bond embeddings
+                Default = True.
+            bond_conv_hidden_dim (List or int): hidden dimensions of
+                bond convolution layers.
+                Default = 64
+            update_angle (bool): whether to use angle_update_layer to
+                update angle embeddings.
+                Default = True
             angle_layer_hidden_dim (List or int): hidden dimensions of angle layers.
-                Default: 0
+                Default = 0
             conv_dropout (float): dropout rate in all conv_layers.
-                Default: 0
-            read_out (str): method for pooling layer, 'ave' for standard average pooling,
-                'attn' for multi-head attention.
-                Default: "ave"
-            mlp_hidden_dims (int or list): readout multilayer perceptron hidden dimensions.
+                Default = 0
+            read_out (str): method for pooling layer, 'ave' for standard
+                average pooling, 'attn' for multi-head attention.
+                Default = "ave"
+            mlp_hidden_dims (int or list): readout multilayer perceptron
+                hidden dimensions.
                 Default = [64, 64]
             mlp_dropout (float): dropout rate in readout MLP.
                 Default = 0.
-            is_intensive (bool): whether the energy training label is intensive i.e. energy per atom.
+            is_intensive (bool): whether the energy training label is intensive
+                i.e. energy per atom.
                 Default = True
-            non_linearity ('silu' | 'relu' | 'tanh' | 'gelu'): The name of the activation
-                function to use in the gated MLP. Default: "silu".
+            non_linearity ('silu' | 'relu' | 'tanh' | 'gelu'): The name of the
+                activation function to use in the gated MLP.
+                Default = "silu".
             mlp_first (bool): whether to apply mlp fist then pooling.
                 Default = True
             atom_graph_cutoff (float): cutoff radius (A) in creating atom_graph,
                 this need to be consistent with the value in training dataloader
-                Default: 5
+                Default = 5
             bond_graph_cutoff (float): cutoff radius (A) in creating bond_graph,
                 this need to be consistent with value in training dataloader
-                Default: 3
+                Default = 3
             cutoff_coeff (float): cutoff strength used in graph smooth cutoff function.
-                Default: 5
-            learnable_rbf (bool): whether to set the frequencies in rbf and Fourier basis functions learnable.
-                Default: True
+                Default = 5
+            learnable_rbf (bool): whether to set the frequencies in rbf and Fourier
+                basis functions learnable.
+                Default = True
             **kwargs: Additional keyword arguments
         """
         # Store model args for reconstruction
@@ -273,18 +285,21 @@ class CHGNet(nn.Module):
     def forward(
         self,
         graphs: Sequence[CrystalGraph],
-        task="e",
-        return_atom_feas=False,
-        return_crystal_feas=False,
+        task: str = "e",
+        return_atom_feas: bool = False,
+        return_crystal_feas: bool = False,
     ) -> dict:
         """Get prediction associated with input graphs
         Args:
             graphs (List): a list of Crystal_Graphs
             task (str): the prediction task
                         eg: 'e', 'em', 'ef', 'efs', 'efsm'
-                        default is 'e'
-            return_atom_feas (bool): whether to return the atom features before last conv layer
+                Default = 'e'
+            return_atom_feas (bool): whether to return the atom features before last
+                conv layer
+                Default = False
             return_crystal_feas (bool): whether to return crystal feature
+                Default = False
         Returns:
             model output (dict).
         """
@@ -468,7 +483,8 @@ class CHGNet(nn.Module):
         """Predict from pymatgen.core.Structure.
 
         Args:
-            structure (Structure, List(Structure)): structure or a list of structures to predict.
+            structure (Structure, List(Structure)): structure or a list of structures
+                to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_atom_feas (bool): whether to return atom features.
@@ -601,26 +617,27 @@ class CHGNet(nn.Module):
         return result
 
     def as_dict(self):
+        """Return the CHGNet weights and args in a dictionary"""
         out = {"state_dict": self.state_dict(), "model_args": self.model_args}
         return out
 
     @classmethod
     def from_dict(cls, dict, **kwargs):
-        """build a CHGNet from a saved dictionary."""
+        """Build a CHGNet from a saved dictionary."""
         chgnet = CHGNet(**dict["model_args"])
         chgnet.load_state_dict(dict["state_dict"], **kwargs)
         return chgnet
 
     @classmethod
     def from_file(cls, path, **kwargs):
-        """build a CHGNet from a saved file."""
+        """Build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
         chgnet = CHGNet.from_dict(state["model"], **kwargs)
         return chgnet
 
     @classmethod
     def load(cls, model_name="MPtrj-efsm"):
-        """load pretrained CHGNet."""
+        """Load pretrained CHGNet."""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if model_name == "MPtrj-efsm":
             return cls.from_file(
@@ -650,12 +667,14 @@ class BatchedGraph:
         """Batched crystal graph.
 
         Args:
-            atomic_numbers (Tensor): atomic numbers vector [num_batch_atoms]
+            atomic_numbers (Tensor): atomic numbers vector
+                [num_batch_atoms]
             bond_bases_ag (Tensor): bond bases vector for atom_graph
                 [num_batch_bonds, num_radial]
             bond_bases_bg (Tensor): bond bases vector for atom_graph
                 [num_batch_bonds, num_radial]
-            angle_bases (Tensor): angle bases vector [num_batch_angles, num_angular]
+            angle_bases (Tensor): angle bases vector
+                [num_batch_angles, num_angular]
             batched_atom_graph (Tensor) : batched atom graph adjacency list
                 [num_batch_bonds, 2]
             batched_bond_graph (Tensor) : bond graph adjacency list
@@ -666,7 +685,8 @@ class BatchedGraph:
             directed2undirected (Tensor): the utility tensor used to quickly
                 map directed edges to undirected edges in graph
                 [num_directed]
-            atom_positions (List[Tensor]): cartesian coordinates of the atoms from structures
+            atom_positions (List[Tensor]): cartesian coordinates of the atoms
+                from structures
                 [num_batch_atoms]
             strains (List[Tensor]): a list of strains that's initialized to be zeros
                 [batch_size]
@@ -705,7 +725,7 @@ class BatchedGraph:
             assembled batch_graph that is ready for batched forward pass in CHGNet
         """
         atomic_numbers, atom_positions = [], []
-        lattice_feas, strains, volumes = [], [], []
+        strains, volumes = [], []
         bond_bases_ag, bond_bases_bg, angle_bases = [], [], []
         batched_atom_graph, batched_bond_graph = [], []
         directed2undirected = []

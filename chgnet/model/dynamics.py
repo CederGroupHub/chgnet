@@ -56,11 +56,10 @@ class CHGNetCalculator(Calculator):
         Args:
             model (CHGNet): instance of a chgnet model
             use_device (str, optional): The device to be used for predictions,
-            either "cpu", "cuda", or "mps".
-            If not specified, the default device is automatically
-            selected based on the available options.
+                either "cpu", "cuda", or "mps". If not specified, the default device is
+                automatically selected based on the available options.
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
-                Defaults to 1/160.21.
+                Default = 1/160.21.
             **kwargs: Passed to the Calculator parent class.
         """
         super().__init__(**kwargs)
@@ -90,8 +89,10 @@ class CHGNetCalculator(Calculator):
 
         Args:
             atoms (Optional[Atoms]): The atoms object to calculate properties for.
-            desired_properties (Optional[list]): The properties to calculate. Default is all properties.
-            changed_properties (Optional[list]): The changes made to the system. Default is all changes.
+            desired_properties (Optional[list]): The properties to calculate.
+                Default is all properties.
+            changed_properties (Optional[list]): The changes made to the system.
+                Default is all changes.
 
         Returns:
             None
@@ -134,12 +135,13 @@ class StructOptimizer:
 
         Args:
             model (CHGNet): instance of a chgnet model
-            optimizer_class (Optimizer,str): choose optimizer from ASE, default = FIRE
+            optimizer_class (Optimizer,str): choose optimizer from ASE.
+                Default = FIRE
             use_device (str, optional): The device to be used for predictions,
-            either "cpu", "cuda", or "mps".
-            If not specified, the default device is automatically
-            selected based on the available options.
+                either "cpu", "cuda", or "mps". If not specified, the default device is
+                automatically selected based on the available options.
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
+                Default = 1/160.21.
         """
         if isinstance(optimizer_class, str):
             if optimizer_class in OPTIMIZERS:
@@ -169,12 +171,18 @@ class StructOptimizer:
 
         Args:
             atoms (Union[Structure, Atoms]): A Structure or Atoms object to relax.
-            fmax (Optional[float]): The maximum force tolerance for relaxation. Default is 0.1.
-            steps (Optional[int]): The maximum number of steps for relaxation. Default is 500.
-            relax_cell (Optional[bool]): Whether to relax the cell as well. Default is True.
-            save_path (Optional[str]): The path to save the trajectory. Default is None.
-            trajectory_save_interval (Optional[int]): The interval to save the trajectory. Default is 1.
-            verbose (bool): Whether to print the output of the ASE optimizer. Default is True.
+            fmax (Optional[float]): The maximum force tolerance for relaxation.
+                Default = 0.1
+            steps (Optional[int]): The maximum number of steps for relaxation.
+                Default = 500
+            relax_cell (Optional[bool]): Whether to relax the cell as well.
+                Default = True
+            save_path (Optional[str]): The path to save the trajectory.
+                Default = None
+            trajectory_save_interval (Optional[int]): Trajectory save interval.
+                Default = 1
+            verbose (bool): Whether to print the output of the ASE optimizer.
+                Default = True
             **kwargs: Additional parameters for the optimizer.
 
         Returns:
@@ -283,7 +291,7 @@ class MolecularDynamics:
         model: CHGNet = None,
         ensemble: str = "nvt",
         temperature: int = 300,
-        timestep: float = 1.0,
+        timestep: float = 2.0,
         pressure: float = 1.01325 * units.bar,
         taut: Optional[float] = None,
         taup: Optional[float] = None,
@@ -292,7 +300,7 @@ class MolecularDynamics:
         logfile: Optional[str] = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
-        use_device: str = "cpu",
+        use_device: str = None,
     ):
         """Initialize the MD class.
 
@@ -300,17 +308,30 @@ class MolecularDynamics:
             atoms (Atoms): atoms to run the MD
             model (CHGNet): model
             ensemble (str): choose from 'nvt' or 'npt'
+                Default = "nvt"
             temperature (float): temperature for MD simulation, in K
+                Default = 300
             timestep (float): time step in fs
+                Default = 2
             pressure (float): pressure in eV/A^3
+                Default = 1.01325 * units.bar
             taut (float): time constant for Berendsen temperature coupling
+                Default = None
             taup (float): time constant for pressure coupling
-            compressibility_au (float): compressibility of the material in A^3/eV, needed for npt
+                Default = None
+            compressibility_au (float): compressibility of the material in A^3/eV,
+                this value is needed for npt ensemble
+                Default = None
             trajectory (str or Trajectory): Attach trajectory object
+                Default = None
             logfile (str): open this file for recording MD outputs
+                Default = None
             loginterval (int): write to log file every interval steps
+                Default = 1
             append_trajectory (bool): Whether to append to prev trajectory
-            use_device (str): the device for.
+                Default = False
+            use_device (str): the device for the MD run
+                Default = None
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
