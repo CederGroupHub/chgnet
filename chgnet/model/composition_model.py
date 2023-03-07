@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import collections
-from typing import List
 
 import numpy as np
 import torch
@@ -46,11 +47,11 @@ class Composition_model(nn.Module):
         composition_feas = composition_feas + self.gated_mlp(composition_feas)
         return self.fc2(composition_feas).view(-1)
 
-    def forward(self, graphs: List[CrystalGraph]):
+    def forward(self, graphs: list[CrystalGraph]):
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
-    def _assemble_graphs(self, graphs: List[CrystalGraph]):
+    def _assemble_graphs(self, graphs: list[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs
@@ -81,7 +82,7 @@ class Atom_Ref(nn.Module):
         self.fc = nn.Linear(max_num_elements, 1, bias=False)
         self.fitted = False
 
-    def forward(self, graphs: List[CrystalGraph]):
+    def forward(self, graphs: list[CrystalGraph]):
         """get the energy of a list of Crystal_Graphs.
 
         Args:
@@ -139,7 +140,7 @@ class Atom_Ref(nn.Module):
         self.fc.load_state_dict(state_dict)
         self.fitted = True
 
-    def _assemble_graphs(self, graphs: List[CrystalGraph]):
+    def _assemble_graphs(self, graphs: list[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs

@@ -1,5 +1,7 @@
 """The pytorch implementation for CHGNet neural network potential."""
 
+from __future__ import annotations
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:

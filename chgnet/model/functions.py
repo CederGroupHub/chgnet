@@ -1,4 +1,4 @@
-from typing import List, Union
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -46,7 +46,7 @@ class MLP(nn.Module):
         self,
         input_dim: int = None,
         output_dim: int = 1,
-        hidden_dim: Union[List[int], int] = [64, 64],
+        hidden_dim: list[int] | int = [64, 64],
         dropout=0,
         activation="silu",
     ):
@@ -102,7 +102,7 @@ class GatedMLP(nn.Module):
         self,
         input_dim: int = None,
         output_dim: int = None,
-        hidden_dim: Union[int, List[int]] = None,
+        hidden_dim: int | list[int] = None,
         dropout=0,
         activation="silu",
         norm="batch",

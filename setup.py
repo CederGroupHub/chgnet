@@ -1,6 +1,8 @@
 """Created on Feb 22 2023
 @author: Bowen Deng.
 """
+from __future__ import annotations
+
 import os
 
 from setuptools import find_packages, setup
