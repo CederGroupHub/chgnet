@@ -112,7 +112,7 @@ class AngleEncoder(nn.Module):
             as learnable parameters. Default = False
         """
         super().__init__()
-        assert (num_angular - 1) % 2 == 0, "angle_feature_dim can only be odd integer!"
+        assert num_angular % 2 == 1, "angle_feature_dim can only be odd integer!"
         circular_harmonics_order = int((num_angular - 1) / 2)
         self.fourier_expansion = Fourier(
             order=circular_harmonics_order, learnable=learnable
