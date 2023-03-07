@@ -1,2 +1,8 @@
 """The pytorch implementation for CHGNet neural network potential."""
-__version__ = "0.0.1"
+
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version(__name__)  # read from setup.py
+except PackageNotFoundError:
+    __version__ = "unknown"

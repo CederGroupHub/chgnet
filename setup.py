@@ -2,26 +2,16 @@
 @author: Bowen Deng.
 """
 import os
-import re
 
 from setuptools import find_namespace_packages, setup
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
-with open("chgnet/__init__.py", encoding="utf-8") as fd:
-    try:
-        lines = ""
-        for item in fd.readlines():
-            item = item
-            lines += item + "\n"
-    except Exception as exc:
-        raise Exception(f"Caught exception {exc}")
-version = re.search('__version__ = "(.*)"', lines).group(1)
 
 if __name__ == "__main__":
     setup(
         name="chgnet",
-        version=version,
+        version="0.0.1",
         description="Pretrained Neural Network Potential for Charge-informed Molecular Dynamics",
         long_description=open(os.path.join(module_dir, "README.md")).read(),
         url="https://github.com/BowenD-UCB/chgnet",
