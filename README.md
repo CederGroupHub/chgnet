@@ -8,11 +8,11 @@
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
 ![chgnet](./chgnet-logo.png)
-**C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project, 
+**C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
 
-CHGNet highlights its ability to study electron interactions and charge distribution 
-in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with 
+CHGNet highlights its ability to study electron interactions and charge distribution
+in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
 # Installation:
@@ -29,7 +29,7 @@ pip install .
 
 # Usage:
 ## Direct Inference (Static Calculation):
-Pretrained `CHGNet` is able to predict the energy (eV/atom), force(eV/A), stress (GPa) 
+Pretrained `CHGNet` is able to predict the energy (eV/atom), force(eV/A), stress (GPa)
 and magmom (muB) of a given structure.
 ```python
 from chgnet.model.model import CHGNet
@@ -83,7 +83,7 @@ struc_with_chg = solve_charge_by_mag(structure)
 print(struc_with_chg)
 ```
 ## Structure Optimization
-`CHGNet` is able to perform fast structure optimization and 
+`CHGNet` is able to perform fast structure optimization and
 provide the site-wise magnetic moments. This make it ideal for pre-relaxation and
 `MAGMOM` initialization in spin-polarized DFT.
 ```python
@@ -129,12 +129,12 @@ trainer = Trainer(
 
 trainer.train(train_loader, val_loader, test_loader)
 ```
-#### Note: 
+#### Note:
 1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`
-2. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in 
+2. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in
 `data/dataset.py`. So `VASP` stress can be directly fed to `StructureData`
 3. To save time from graph conversion step for each training, we recommend you use `GraphData` defined in
-`data/dataset.py`, which reads graph directly from saved directory. To create a saved graphs, 
+`data/dataset.py`, which reads graph directly from saved directory. To create a saved graphs,
 see `examples/make_graphs.py`.
 4. Apple’s Metal Performance Shaders `MPS` is currently disabled before stable version of `pytorch` for
 `MPS` is released.
@@ -145,7 +145,7 @@ https://doi.org/10.48550/arXiv.2302.14231
 Please cite the following:
 ```text
 @article{deng2023chgnet,
-title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling}, 
+title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling},
 author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
 year={2023},
 eprint={2302.14231},
@@ -155,6 +155,5 @@ primaryClass={cond-mat.mtrl-sci}
 ```
 
 # Development & Bugs
-`CHGNet` is under active development, if you encounter any bugs in installation and usage, 
+`CHGNet` is under active development, if you encounter any bugs in installation and usage,
 please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contribute!
-

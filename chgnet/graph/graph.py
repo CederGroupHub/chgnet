@@ -12,7 +12,7 @@ class Node:
         self.neighbors = {}
 
     def add_neighbor(self, index, edge):
-        """draw an edge between self and node
+        """Draw an edge between self and node
         Args:
             node (Node): the neighboring node
             edge (int): for simplicity, just use an index to track this edge.
@@ -88,7 +88,7 @@ class Graph:
         self.undirected_edges_list = []
 
     def add_edge(self, center_index, neighbor_index, image, distance):
-        """add an directed edge to the graph
+        """Add an directed edge to the graph
         Args:
             center_index: center node index
             neighbor_index: neighbor node index
@@ -252,6 +252,7 @@ class Graph:
         return out
 
     def as_dict(self):
+        """Return dictionary serialization of a Graph."""
         return {
             "nodes": self.nodes,
             "directed_edges": self.directed_edges,
@@ -261,6 +262,7 @@ class Graph:
         }
 
     def to(self, filename="graph.json"):
+        """Save graph dictionary to file."""
         utils.write_json(self.as_dict(), filename)
         return
 

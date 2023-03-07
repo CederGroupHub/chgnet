@@ -65,6 +65,7 @@ class Trainer:
                 Default = 'MSE'
             epochs (int): number of epochs for training
                 Default = 50
+            starting_epoch (int): The epoch number to start training at.
             learning_rate (float): initial learning rate
                 Default = 1e-3
             print_freq (int): frequency to print training output
@@ -193,7 +194,7 @@ class Trainer:
         save_dir: str = None,
         save_test_result: bool = False,
     ):
-        """train the model using torch data_loaders.
+        """Train the model using torch data_loaders.
 
         Args:
             train_loader (DataLoader): train loader to update CHGNet weights
@@ -479,7 +480,7 @@ class Trainer:
         torch.save(state, filename)
 
     def save_checkpoint(self, epoch: int, mae_error: dict, save_dir: str = None):
-        """function to save CHGNet trained weights after each epoch.
+        """Function to save CHGNet trained weights after each epoch.
 
         Args:
             epoch (int): the epoch number
@@ -530,7 +531,7 @@ class Trainer:
 
     @classmethod
     def load(cls, path: str):
-        """load trainer state_dict."""
+        """Load trainer state_dict."""
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(
@@ -549,6 +550,7 @@ class Trainer:
 
     @staticmethod
     def move_to(obj, device):
+        """Move object to device."""
         if torch.is_tensor(obj):
             return obj.to(device)
         elif isinstance(obj, list):

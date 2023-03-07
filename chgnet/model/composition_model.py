@@ -7,7 +7,7 @@ import torch.nn as nn
 from pymatgen.core import Structure
 from torch import Tensor
 
-from chgnet.graph.crystal_graph import Crystal_Graph
+from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.model.functions import GatedMLP, find_activation
 
 
@@ -46,11 +46,11 @@ class Composition_model(nn.Module):
         composition_feas = composition_feas + self.gated_mlp(composition_feas)
         return self.fc2(composition_feas).view(-1)
 
-    def forward(self, graphs: List[Crystal_Graph]):
+    def forward(self, graphs: List[CrystalGraph]):
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
-    def _assemble_graphs(self, graphs: List[Crystal_Graph]):
+    def _assemble_graphs(self, graphs: List[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs
@@ -81,11 +81,11 @@ class Atom_Ref(nn.Module):
         self.fc = nn.Linear(max_num_elements, 1, bias=False)
         self.fitted = False
 
-    def forward(self, graphs: List[Crystal_Graph]):
+    def forward(self, graphs: List[CrystalGraph]):
         """get the energy of a list of Crystal_Graphs.
 
         Args:
-            graphs (List(Crystal_Graph)): a list of Crystal Graph to compute
+            graphs (List(CrystalGraph)): a list of Crystal Graph to compute
 
         Returns:
             energy (tensor)
@@ -139,7 +139,7 @@ class Atom_Ref(nn.Module):
         self.fc.load_state_dict(state_dict)
         self.fitted = True
 
-    def _assemble_graphs(self, graphs: List[Crystal_Graph]):
+    def _assemble_graphs(self, graphs: List[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (List[Tensor]): a list of Crystal_Graphs

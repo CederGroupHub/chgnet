@@ -13,7 +13,7 @@ class Fourier(nn.Module):
         Args:
             order (int): the maximum order, refer to the N in eq 1 in CHGNet paper
                 Default = 5
-            learnable (bool): whether to set the frequencies learnanle
+            learnable (bool): whether to set the frequencies as learnable parameters
                 Default = False
         """
         super().__init__()

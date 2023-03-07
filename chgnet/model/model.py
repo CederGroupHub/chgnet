@@ -4,13 +4,20 @@ from typing import Literal, Sequence, Union
 
 import torch.nn as nn
 from pymatgen.core import Structure
+import torch
 from torch import Tensor
 
-from chgnet.graph import Crystal_Graph, CrystalGraphConverter
+from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import Atom_Ref
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
-from chgnet.model.layers import *
+from chgnet.model.layers import (
+    AngleUpdate,
+    AtomConv,
+    BondConv,
+    GraphAttentionReadOut,
+    GraphPooling,
+)
 
 datatype = torch.float32
 
@@ -265,7 +272,7 @@ class CHGNet(nn.Module):
 
     def forward(
         self,
-        graphs: Sequence[Crystal_Graph],
+        graphs: Sequence[CrystalGraph],
         task="e",
         return_atom_feas=False,
         return_crystal_feas=False,
@@ -505,14 +512,14 @@ class CHGNet(nn.Module):
 
     def predict_graph(
         self,
-        graph: Union[Crystal_Graph, Sequence[Crystal_Graph]],
+        graph: Union[CrystalGraph, Sequence[CrystalGraph]],
         task: str = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict:
         """Args:
-            graph (Crystal_Graph): Crystal_Graph or a list of Crystal_Graphs to predict.
+            graph (CrystalGraph): Crystal_Graph or a list of Crystal_Graphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_atom_feas (bool): whether to return atom features.
@@ -531,7 +538,7 @@ class CHGNet(nn.Module):
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
 
         """
-        if type(graph) == Crystal_Graph:
+        if type(graph) == CrystalGraph:
             self.eval()
             prediction = self.forward(
                 [graph],
@@ -583,7 +590,7 @@ class CHGNet(nn.Module):
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
-        """split a batched result Tensor into a list of Tensors."""
+        """Split a batched result Tensor into a list of Tensors."""
         print(x, n)
         start = 0
         result = []
@@ -681,7 +688,7 @@ class BatchedGraph:
     @classmethod
     def from_graphs(
         cls,
-        graphs: Sequence[Crystal_Graph],
+        graphs: Sequence[CrystalGraph],
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
         compute_stress: bool = False,

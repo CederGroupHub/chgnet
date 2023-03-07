@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from chgnet import utils
-from chgnet.graph import Crystal_Graph, CrystalGraphConverter
+from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 warnings.filterwarnings("ignore")
 datatype = torch.float32
@@ -62,11 +62,11 @@ class StructureData(Dataset):
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx) -> (Crystal_Graph, dict):
+    def __getitem__(self, idx) -> (CrystalGraph, dict):
         """get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): list of targets. i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
@@ -153,10 +153,10 @@ class CIFData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): list of targets. i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
@@ -260,10 +260,10 @@ class GraphData(Dataset):
         return len(self.keys)
 
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
@@ -275,7 +275,7 @@ class GraphData(Dataset):
                 return self.__getitem__(idx)
             try:
                 graph_path = os.path.join(self.graph_path, f"{graph_id}.pt")
-                crystal_graph = Crystal_Graph.from_file(graph_path)
+                crystal_graph = CrystalGraph.from_file(graph_path)
                 targets = {}
                 for i in self.targets:
                     if i == "e":
@@ -471,10 +471,10 @@ class StructureJsonData(Dataset):
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
-        """get one item in the dataset.
+        """Get one item in the dataset.
 
         Returns:
-            crystal_graph (Crystal_Graph): graph of the crystal structure
+            crystal_graph (CrystalGraph): graph of the crystal structure
             targets (dict): dictionary of targets. i.e. energy, force, stress, magmom
         """
         if idx not in self.failed_idx:
