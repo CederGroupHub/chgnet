@@ -1,4 +1,6 @@
 # CHGNet
+
+[![Tests](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml)
 ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/CederGroupHub/chgnet?logo=Github)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/CederGroupHub/chgnet?logo=Github)
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
@@ -22,7 +24,6 @@ CHGNet is interfaced to `pymatgen` and `ase`, to install:
 
 To install:
 ```bash
-pip install -r requirements.txt
 pip install .
 ```
 

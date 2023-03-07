@@ -240,6 +240,10 @@ class TrajectoryObserver:
         self.atom_positions.append(self.atoms.get_positions())
         self.cells.append(self.atoms.get_cell()[:])
 
+    def __len__(self) -> int:
+        """The number of steps in the trajectory."""
+        return len(self.energies)
+
     def compute_energy(self) -> float:
         """Calculate the energy, here we just use the potential energy.
 
