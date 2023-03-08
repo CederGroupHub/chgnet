@@ -15,6 +15,7 @@ def test_relaxation():
     assert list(result) == ["final_structure", "trajectory"]
 
     traj = result["trajectory"]
+    # make sure trajectory has expected attributes
     assert list(traj.__dict__) == [
         "atoms",
         "energies",
@@ -26,7 +27,7 @@ def test_relaxation():
     ]
     assert len(traj) == 4
 
-    # make sure the final structure is more relaxed than the initial one
+    # make sure final structure is more relaxed than initial one
     assert traj.energies[0] > traj.energies[-1]
 
     assert traj.energies[-1] == approx(-58.972927)

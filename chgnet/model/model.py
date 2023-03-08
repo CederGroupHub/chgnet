@@ -5,9 +5,8 @@ import os
 from typing import Literal, Sequence
 
 import torch
-import torch.nn as nn
 from pymatgen.core import Structure
-from torch import Tensor
+from torch import Tensor, nn
 
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import Atom_Ref
@@ -34,7 +33,7 @@ class CHGNet(nn.Module):
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
-        composition_model: nn.Module = None,
+        composition_model: str | nn.Module = None,
         num_radial: int = 9,
         num_angular: int = 9,
         n_conv: int = 4,
@@ -54,7 +53,7 @@ class CHGNet(nn.Module):
         bond_graph_cutoff: int = 3,
         learnable_rbf: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the CHGNet.
 
         Args:
@@ -481,7 +480,7 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
-    ) -> dict:
+    ) -> dict[str, Tensor]:
         """Predict from pymatgen.core.Structure.
 
         Args:
@@ -535,7 +534,7 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
-    ) -> dict:
+    ) -> dict[str, Tensor]:
         """Args:
             graph (CrystalGraph): Crystal_Graph or a list of Crystal_Graphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
@@ -554,7 +553,6 @@ class CHGNet(nn.Module):
                 f (Tensor) : force on atoms [num_batch_atoms, 3]
                 s (Tensor) : stress of structure [3 * batch_size, 3]
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
-
         """
         if type(graph) == CrystalGraph:
             self.eval()
@@ -576,7 +574,7 @@ class CHGNet(nn.Module):
             return out
         elif type(graph) == list:
             self.eval()
-            predictions = [{} for _ in range(len(graph))]
+            predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graph))]
             n_steps = math.ceil(len(graph) / batch_size)
             for n in range(n_steps):
                 prediction = self.forward(
@@ -714,7 +712,7 @@ class BatchedGraph:
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
         compute_stress: bool = False,
-    ):
+    ) -> BatchedGraph:
         """Featurize and assemble a list of graphs.
 
         Args:

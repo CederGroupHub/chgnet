@@ -4,9 +4,8 @@ import collections
 
 import numpy as np
 import torch
-import torch.nn as nn
 from pymatgen.core import Structure
-from torch import Tensor
+from torch import Tensor, nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.model.functions import GatedMLP, find_activation
@@ -75,7 +74,7 @@ class Atom_Ref(nn.Module):
     from: https://github.com/materialsvirtuallab/m3gnet/.
     """
 
-    def __init__(self, is_intensive: bool = True, max_num_elements: int = 94):
+    def __init__(self, is_intensive: bool = True, max_num_elements: int = 94) -> None:
         super().__init__()
         self.is_intensive = is_intensive
         self.max_num_elements = max_num_elements
@@ -83,7 +82,7 @@ class Atom_Ref(nn.Module):
         self.fitted = False
 
     def forward(self, graphs: list[CrystalGraph]):
-        """get the energy of a list of Crystal_Graphs.
+        """Get the energy of a list of Crystal_Graphs.
 
         Args:
             graphs (List(CrystalGraph)): a list of Crystal Graph to compute
@@ -96,7 +95,8 @@ class Atom_Ref(nn.Module):
         return self._get_energy(composition_feas)
 
     def _get_energy(self, composition_feas: Tensor) -> Tensor:
-        """Predict the energy given composition encoding
+        """Predict the energy given composition encoding.
+
         Args:
             composition_feas: batched atom feature matrix [batch_size, total_num_elements].
 
@@ -159,16 +159,16 @@ class Atom_Ref(nn.Module):
         return torch.stack(composition_feas, dim=0).float()
 
     def initialize_from(self, dataset: str):
+        """Initialize pre-fitted weights from a dataset."""
         if dataset in ["MPtrj", "MPtrj_e"]:
             self.initialize_from_MPtrj()
         elif dataset in ["MPF"]:
             self.initialize_from_MPF()
         else:
-            print(dataset)
-            raise NotImplementedError
+            raise NotImplementedError(f"{dataset=} not supported yet")
 
     def initialize_from_MPtrj(self):
-        """initialize pre-fitted weights from MPtrj dataset."""
+        """Initialize pre-fitted weights from MPtrj dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [

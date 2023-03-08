@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
-from torch import Tensor
+from torch import Tensor, nn
 
 
 def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Tensor:
@@ -46,7 +45,7 @@ class MLP(nn.Module):
         self,
         input_dim: int = None,
         output_dim: int = 1,
-        hidden_dim: list[int] | int = [64, 64],
+        hidden_dim: list[int] | int = (64, 64),
         dropout=0,
         activation="silu",
     ):
@@ -171,29 +170,25 @@ class ScaledSiLU(torch.nn.Module):
 
 def find_activation(name: str):
     """Return an activation function using name."""
-    if name in ["relu"]:
-        return nn.ReLU()
-    elif name in ["silu", "SILU"]:
-        return nn.SiLU()
-    elif name in ["scaledSILU", "ScaledSILU"]:
-        return ScaledSiLU()
-    elif name in ["gelu", "GELU"]:
-        return nn.GELU
-    elif name in ["softplus"]:
-        return nn.Softplus()
-    elif name in ["sigmoid"]:
-        return nn.Sigmoid()
-    elif name in ["tanh"]:
-        return nn.Tanh()
-    else:
+    try:
+        return {
+            "relu": nn.ReLU,
+            "silu": nn.SiLU,
+            "scaledsilu": ScaledSiLU,
+            "gelu": nn.GELU,
+            "softplus": nn.Softplus,
+            "sigmoid": nn.Sigmoid,
+            "tanh": nn.Tanh,
+        }[name.lower()]()
+    except KeyError:
         raise NotImplementedError
 
 
 def find_normalization(name: str, dim: int = None):
     """Return an normalization function using name."""
-    if name == "batch":
-        return nn.BatchNorm1d(dim)
-    elif name == "layer":
-        return nn.LayerNorm(dim)
-    else:
+    if name is None:
         return None
+    return {
+        "batch": nn.BatchNorm1d(dim),
+        "layer": nn.LayerNorm(dim),
+    }.get(name.lower(), None)
