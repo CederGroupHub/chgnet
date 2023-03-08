@@ -161,4 +161,4 @@ primaryClass={cond-mat.mtrl-sci}
 
 # Development & Bugs
 `CHGNet` is under active development, if you encounter any bugs in installation and usage,
-please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contribute!
+please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!
