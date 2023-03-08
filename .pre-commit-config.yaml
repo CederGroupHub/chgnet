@@ -18,14 +18,6 @@ repos:
     hooks:
       - id: black-jupyter
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-    - id: isort
-      name: isort (python)
-      args:
-      - --profile=black
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
