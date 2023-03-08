@@ -61,11 +61,15 @@ class StructureData(Dataset):
         self.failed_graph_id = {}
 
     def __len__(self):
+        """Get the number of structures in this dataset."""
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx) -> (CrystalGraph, dict):
-        """get one item in the dataset.
+    def __getitem__(self, idx) -> tuple[CrystalGraph, dict]:
+        """Get one graph for a structure in this dataset.
+
+        Args:
+            idx (int): Index of the structure
 
         Returns:
             crystal_graph (CrystalGraph): graph of the crystal structure
@@ -319,7 +323,7 @@ class GraphData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ) -> (DataLoader, DataLoader, DataLoader):
+    ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
@@ -422,8 +426,8 @@ class GraphData(Dataset):
 
 
 class StructureJsonData(Dataset):
-    """read structure and targets from a json file
-    this function is used to load MPtrj dataset.
+    """Read structure and targets from a JSON file.
+    This function is used to load MPtrj dataset.
     """
 
     def __init__(
@@ -469,6 +473,7 @@ class StructureJsonData(Dataset):
         self.failed_graph_id = {}
 
     def __len__(self):
+        """Get the number of structures with targets in the dataset."""
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
@@ -509,7 +514,7 @@ class StructureJsonData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 structure = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
                 self.failed_graph_id[graph_id] = structure.composition.formula
                 self.failed_idx.append(idx)
@@ -529,7 +534,7 @@ class StructureJsonData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ) -> (DataLoader, DataLoader, DataLoader):
+    ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.

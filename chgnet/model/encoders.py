@@ -69,7 +69,7 @@ class BondEncoder(nn.Module):
         undirected2directed: Tensor,
         image: Tensor,
         lattice: Tensor,
-    ) -> (Tensor, Tensor, Tensor):
+    ) -> tuple[Tensor, Tensor, Tensor]:
         """Compute the pairwise distance between 2 3d coordinates.
 
         Args:
