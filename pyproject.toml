@@ -1,3 +1,35 @@
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chgnet"
+version = "0.0.1"
+description = "Pretrained Neural Network Potential for Charge-informed Molecular Dynamics"
+authors = [
+    {name = "Bowen Deng", email = "bowendeng@berkeley.edu"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = [
+        "numpy~=1.21.6",
+        "torch~=1.11.0",
+        "pymatgen~=2022.4.19",
+        "ase==3.22.0",
+    ]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+
+[project.urls]
+Source = "https://github.com/CederGroupHub/chgnet"
+
+[tool.setuptools.packages.find]
+where = ["chgnet"]
+
+[tool.setuptools.package-data]
+chgnet = ["chgnet/pretrained/*"]
+
 [tool.ruff]
 target-version = "py38"
 select = [
