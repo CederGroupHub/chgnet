@@ -15,7 +15,9 @@ random.seed(100)
 
 
 # This runnable script shows an example to convert a Structure json dataset to graphs
-# and save them. So the you don't have to do graph conversion in each training
+# and save them.
+# So the graph conversion step can be avoided in the future training.
+# This is extremely useful if you plan to do hyper-parameter sweeping i.e. learning rate
 
 
 def main():
