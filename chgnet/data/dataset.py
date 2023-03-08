@@ -320,7 +320,7 @@ class GraphData(Dataset):
         num_workers=0,
         pin_memory=True,
     ) -> (DataLoader, DataLoader, DataLoader):
-        """partition the GraphData using materials id,
+        """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
 
@@ -530,7 +530,7 @@ class StructureJsonData(Dataset):
         num_workers=0,
         pin_memory=True,
     ) -> (DataLoader, DataLoader, DataLoader):
-        """partition the Dataset using materials id,
+        """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
 
