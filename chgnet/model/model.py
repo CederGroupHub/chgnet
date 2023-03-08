@@ -663,7 +663,7 @@ class BatchedGraph:
         atom_positions: Sequence[Tensor],
         strains: Sequence[Tensor],
         volumes: [Tensor],
-    ):
+    ) -> None:
         """Batched crystal graph.
 
         Args:

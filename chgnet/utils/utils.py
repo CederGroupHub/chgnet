@@ -9,7 +9,7 @@ import torch
 class AverageMeter:
     """Computes and stores the average and current value."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
     def reset(self):
@@ -29,7 +29,7 @@ class AverageMeter:
 class MeanNormalizer:
     """Normalize a Tensor and restore it later."""
 
-    def __init__(self, tensor):
+    def __init__(self, tensor) -> None:
         """Tensor is taken as a sample to calculate the mean and std."""
         self.mean = torch.mean(tensor)
         self.std = torch.std(tensor)
@@ -51,7 +51,7 @@ class MeanNormalizer:
 class BaseNormalizer:
     """Base normalizer to normalize target scalar."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.mean = 1
         self.std = 1
 

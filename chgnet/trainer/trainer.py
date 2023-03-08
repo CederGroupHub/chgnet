@@ -44,7 +44,7 @@ class Trainer:
         data_seed: int = None,
         use_device: str = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize all hyper-parameters for trainer.
 
         Args:
@@ -580,7 +580,7 @@ class CombinedLoss(nn.Module):
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the combined loss.
 
         Args:

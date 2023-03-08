@@ -48,7 +48,7 @@ class MLP(nn.Module):
         hidden_dim: list[int] | int = (64, 64),
         dropout=0,
         activation="silu",
-    ):
+    ) -> None:
         """Initialize the MLP.
 
         Args:
@@ -105,7 +105,7 @@ class GatedMLP(nn.Module):
         dropout=0,
         activation="silu",
         norm="batch",
-    ):
+    ) -> None:
         """Args:
         input_dim (int): the input dimension
         output_dim (int): the output dimension
@@ -159,7 +159,7 @@ class GatedMLP(nn.Module):
 class ScaledSiLU(torch.nn.Module):
     """Scaled Sigmoid Linear Unit."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.scale_factor = 1 / 0.6
         self._activation = torch.nn.SiLU()

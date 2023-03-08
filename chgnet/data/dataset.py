@@ -30,7 +30,7 @@ class StructureData(Dataset):
         stresses: list = None,
         magmoms: list = None,
         graph_converter: CrystalGraphConverter = None,
-    ):
+    ) -> None:
         """Initialize the dataset.
 
         Args:
@@ -123,7 +123,7 @@ class CIFData(Dataset):
         targets: Literal["ef", "efs", "efsm"] = "ef",
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset from a directory containing cifs.
 
         Args:
@@ -224,7 +224,7 @@ class GraphData(Dataset):
         targets: str = "efsm",
         exclude: str | list = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
 
         Args:
@@ -436,7 +436,7 @@ class StructureJsonData(Dataset):
         graph_converter: CrystalGraphConverter,
         targets: Literal["ef", "efs", "efsm"] = "efsm",
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset by reading Json files.
 
         Args:

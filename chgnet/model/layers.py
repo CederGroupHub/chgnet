@@ -26,7 +26,7 @@ class AtomConv(nn.Module):
         use_mlp_out: bool = True,
         resnet: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
         bond_fea_dim (int): The dimensionality of the input bond features.
@@ -140,7 +140,7 @@ class BondConv(nn.Module):
         use_mlp_out: bool = True,
         resnet=True,
         **kwargs,
-    ):
+    ) -> None:
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
         bond_fea_dim (int): The dimensionality of the input bond features.
@@ -258,7 +258,7 @@ class AngleUpdate(nn.Module):
         norm: str = None,
         resnet: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
         bond_fea_dim (int): The dimensionality of the input bond features.
@@ -341,7 +341,7 @@ class AngleUpdate(nn.Module):
 class GraphPooling(nn.Module):
     """Pooling the sub-graphs in the batched graph."""
 
-    def __init__(self, average: bool = False):
+    def __init__(self, average: bool = False) -> None:
         """Args:
         average (bool): whether to average the features.
         """
@@ -370,7 +370,7 @@ class GraphAttentionReadOut(nn.Module):
 
     def __init__(
         self, atom_fea_dim: int, num_head: int = 3, hidden_dim: int = 32, average=False
-    ):
+    ) -> None:
         """Initialize the layer.
 
         Args:

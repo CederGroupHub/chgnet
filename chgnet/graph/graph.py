@@ -6,7 +6,7 @@ from chgnet import utils
 class Node:
     """a node in a graph."""
 
-    def __init__(self, index: int, info: dict = None):
+    def __init__(self, index: int, info: dict = None) -> None:
         self.index = index
         self.info = info
         self.neighbors = {}
@@ -26,7 +26,7 @@ class Node:
 class UndirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: list, index: int = None, info: dict = None):
+    def __init__(self, nodes: list, index: int = None, info: dict = None) -> None:
         self.nodes = nodes
         self.index = index
         self.info = info
@@ -46,7 +46,7 @@ class UndirectedEdge:
 class DirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: list, index: int, info: dict = None):
+    def __init__(self, nodes: list, index: int, info: dict = None) -> None:
         self.nodes = nodes
         self.index = index
         self.info = info
@@ -84,7 +84,7 @@ class DirectedEdge:
 
 
 class Graph:
-    def __init__(self, nodes: list):
+    def __init__(self, nodes: list) -> None:
         self.nodes = nodes
         self.directed_edges = {}
         self.directed_edges_list = []

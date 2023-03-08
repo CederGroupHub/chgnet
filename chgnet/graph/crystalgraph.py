@@ -31,7 +31,7 @@ class CrystalGraph:
         graph_id: str = None,
         mp_id: str = None,
         composition: str = None,
-    ):
+    ) -> None:
         """Initialize the crystal graph.
         Attention! This data class is not intended to be created manually.
                    Crystal Graph should be returned by a CrystalGraphConverter
@@ -159,7 +159,7 @@ class CrystalGraphConverter(nn.Module):
         atom_graph_cutoff: float = 5,
         bond_graph_cutoff: float = 3,
         verbose: bool = False,
-    ):
+    ) -> None:
         """Initialize the Crystal Graph Converter.
 
         Args:
