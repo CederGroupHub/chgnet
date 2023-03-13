@@ -279,9 +279,7 @@ class CHGNet(nn.Module):
             )
 
         print(
-            "CHGNet initialized with",
-            sum(p.numel() for p in self.parameters()),
-            "Parameters",
+            f"CHGNet initialized with {sum(p.numel() for p in self.parameters()):,} parameters"
         )
 
     def forward(
@@ -663,7 +661,7 @@ class BatchedGraph:
         directed2undirected: Tensor,
         atom_positions: Sequence[Tensor],
         strains: Sequence[Tensor],
-        volumes: [Tensor],
+        volumes: Sequence[Tensor],
     ) -> None:
         """Batched crystal graph.
 

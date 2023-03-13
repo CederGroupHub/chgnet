@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Sequence
+
 import torch
 from torch import Tensor, nn
 
@@ -10,8 +12,7 @@ def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Ten
     Args:
         data (Tensor): data tensor to aggregate [n_row, feature_dim]
         owners (Tensor): specify the owner of each row [n_row, 1]
-        average (bool): if True, average the rows,
-                        if False, sum the rows
+        average (bool): if True, average the rows, if False, sum the rows.
             Default = True
         num_owner (int, optional): the number of owners, this is needed if the
             max idx of owner is not presented in owners tensor
@@ -20,21 +21,21 @@ def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Ten
     Returns:
         output (Tensor): [num_owner, feature_dim]
     """
-    bincount = torch.bincount(owners)
-    bincount = bincount.where(bincount != 0, bincount.new_ones(1))
+    bin_count = torch.bincount(owners)
+    bin_count = bin_count.where(bin_count != 0, bin_count.new_ones(1))
 
     # If there exist 5 owners, but only the first 4 appear in the owners tensor,
     # we would like the output to have shape [5, fea_dim] with the last row = 0
     # So, we need to optionally add the fifth owner as a row with zero in the output
-    if (num_owner is not None) and (bincount.shape[0] != num_owner):
-        difference = num_owner - bincount.shape[0]
-        bincount = torch.cat([bincount, bincount.new_ones(difference)])
+    if (num_owner is not None) and (bin_count.shape[0] != num_owner):
+        difference = num_owner - bin_count.shape[0]
+        bin_count = torch.cat([bin_count, bin_count.new_ones(difference)])
 
     # make sure this operation is done on the same device of data and owners
-    output = data.new_zeros([bincount.shape[0], data.shape[1]])
+    output = data.new_zeros([bin_count.shape[0], data.shape[1]])
     output = output.index_add_(0, owners, data)
     if average:
-        output = (output.T / bincount).T
+        output = (output.T / bin_count).T
     return output
 
 
@@ -45,7 +46,7 @@ class MLP(nn.Module):
         self,
         input_dim: int = None,
         output_dim: int = 1,
-        hidden_dim: list[int] | int = (64, 64),
+        hidden_dim: int | Sequence[int] = (64, 64),
         dropout=0,
         activation="silu",
     ) -> None:

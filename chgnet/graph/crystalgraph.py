@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Literal
+from typing import Any, Literal
 
 import torch
 from pymatgen.core.structure import Structure
@@ -59,7 +59,8 @@ class CrystalGraph:
             mp_id (str) or None: Materials Project id of this structure
                 Default = None
             composition: the chemical composition of the compound, used just for better tracking
-                Default = None
+                Default = None.
+
         Returns:
             Crystal Graph.
         """
@@ -81,7 +82,7 @@ class CrystalGraph:
             directed2undirected
         ), f"Error: {graph_id} number of directed index != 2 * number of undirected index!"
 
-    def to(self, device="cpu"):
+    def to(self, device="cpu") -> CrystalGraph:
         return CrystalGraph(
             atomic_number=self.atomic_number.to(device),
             atom_frac_coord=self.atom_frac_coord.to(device),
@@ -98,7 +99,7 @@ class CrystalGraph:
             composition=self.composition,
         )
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return {
             "atomic_number": self.atomic_number,
             "atom_frac_coord": self.atom_frac_coord,
@@ -115,7 +116,7 @@ class CrystalGraph:
             "composition": self.composition,
         }
 
-    def save(self, fname=None, save_dir="./"):
+    def save(self, fname: str = None, save_dir: str = "./") -> str:
         if fname is not None:
             save_name = os.path.join(save_dir, fname)
         elif self.graph_id is not None:
@@ -126,15 +127,15 @@ class CrystalGraph:
         return save_name
 
     @classmethod
-    def from_file(cls, file_name):
+    def from_file(cls, file_name) -> CrystalGraph:
         graph = torch.load(file_name)
         return graph
 
     @classmethod
-    def from_dict(cls, dic):
+    def from_dict(cls, dic) -> CrystalGraph:
         return CrystalGraph(**dic)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Details of the graph."""
         return (
             f"Crystal Graph {self.composition} \n"
@@ -145,7 +146,7 @@ class CrystalGraph:
             f"bond_graph={len(self.bond_graph)})"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -269,7 +270,9 @@ class CrystalGraphConverter(nn.Module):
             bond_graph_cutoff=self.bond_graph_cutoff,
         )
 
-    def get_neighbors(self, structure: Structure):
+    def get_neighbors(
+        self, structure: Structure
+    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         """Get neighbor information from pymatgen utility function.
 
         Args:
@@ -283,7 +286,7 @@ class CrystalGraphConverter(nn.Module):
         )
         return center_index, neighbor_index, image, distance
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, float]:
         """Save the args of the graph converter."""
         return {
             "atom_graph_cutoff": self.atom_graph_cutoff,
@@ -291,6 +294,6 @@ class CrystalGraphConverter(nn.Module):
         }
 
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, dict) -> CrystalGraphConverter:
         """Create converter from dictionary."""
         return CrystalGraphConverter(**dict)
