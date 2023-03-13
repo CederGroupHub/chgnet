@@ -6,18 +6,16 @@ build-backend = "setuptools.build_meta"
 name = "chgnet"
 version = "0.0.1"
 description = "Pretrained Neural Network Potential for Charge-informed Molecular Dynamics"
-authors = [
-    {name = "Bowen Deng", email = "bowendeng@berkeley.edu"}
-]
+authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.8"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 dependencies = [
-        "numpy~=1.21.6",
-        "torch~=1.11.0",
-        "pymatgen~=2022.4.19",
-        "ase==3.22.0",
-    ]
+    "numpy~=1.21.6",
+    "torch~=1.11.0",
+    "pymatgen~=2022.4.19",
+    "ase==3.22.0",
+]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
@@ -50,11 +48,12 @@ select = [
     "YTT", # flake8-2020
 ]
 ignore = [
-    "D100",   # Missing docstring in public module
-    "D104",   # Missing docstring in public package
-    "D205",   # 1 blank line required between summary line and description
-    "SIM105", # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
-    "SIM115", # Use context handler for opening files
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D205",    # 1 blank line required between summary line and description
+    "PLW2901", # Outer for loop variable overwritten by inner assignment target
+    "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
+    "SIM115",  # Use context handler for opening files
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
