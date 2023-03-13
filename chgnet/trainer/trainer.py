@@ -18,6 +18,7 @@ from torch.optim.lr_scheduler import (
 )
 from torch.utils.data import DataLoader
 
+from chgnet import TrainTask
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, mae, mkdir, write_json
 
@@ -28,7 +29,7 @@ class Trainer:
     def __init__(
         self,
         model: nn.Module = None,
-        targets: str = "ef",
+        targets: TrainTask = "ef",
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
@@ -49,8 +50,7 @@ class Trainer:
 
         Args:
             model (nn.Module): a CHGNet model
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "ef"
+            targets ("ef" | "efs" | "efsm"): The training targets. Default = "ef"
             energy_loss_ratio (float): energy loss ratio in loss function
                 Default = 1
             force_loss_ratio (float): force loss ratio in loss function

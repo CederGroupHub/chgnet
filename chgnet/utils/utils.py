@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+from typing import TYPE_CHECKING
 
 import torch
+
+if TYPE_CHECKING:
+    from pymatgen.core import Structure
 
 
 class AverageMeter:
@@ -112,18 +116,27 @@ def write_json(d, fjson):
 
 
 def solve_charge_by_mag(
-    structure,
-    default_ox={"Li": 1, "O": -2},
-    ox_ranges={
-        "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
-    },
+    structure: Structure,
+    default_ox: dict[str, float] = None,
+    ox_ranges: dict[str, dict[tuple[float, float], int]] = None,
 ):
-    """Args:
-    structure: input pymatgen structure
-    ox_ranges: user defined range to convert magmoms into formal valence.
+    """Solve oxidation states by magmom.
+
+    Args:
+        structure: input pymatgen structure
+        default_ox (dict[str, float]): default oxidation state for elements.
+            Default = {"Li": 1, "O": -2}
+        ox_ranges (dict[str, dict[tuple[float, float], int]]): user defined range to
+            convert magmoms into formal valence. Default = {
+                "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
+            }
     """
     ox_list = []
     solved_ox = True
+    default_ox = default_ox or {"Li": 1, "O": -2}
+    ox_ranges = ox_ranges or {
+        "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
+    }
 
     if "final_magmom" in structure.site_properties:
         mag_key = "final_magmom"

@@ -164,11 +164,11 @@ class ScaledSiLU(torch.nn.Module):
         self.scale_factor = 1 / 0.6
         self._activation = torch.nn.SiLU()
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         return self._activation(x) * self.scale_factor
 
 
-def find_activation(name: str):
+def find_activation(name: str) -> nn.Module:
     """Return an activation function using name."""
     try:
         return {
@@ -184,7 +184,7 @@ def find_activation(name: str):
         raise NotImplementedError
 
 
-def find_normalization(name: str, dim: int = None):
+def find_normalization(name: str, dim: int = None) -> nn.Module | None:
     """Return an normalization function using name."""
     if name is None:
         return None

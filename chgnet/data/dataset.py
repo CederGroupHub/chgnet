@@ -4,7 +4,6 @@ import functools
 import os
 import random
 import warnings
-from typing import Literal
 
 import numpy as np
 import torch
@@ -12,7 +11,7 @@ from pymatgen.core.structure import Structure
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from chgnet import utils
+from chgnet import PredTask, TrainTask, utils
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 warnings.filterwarnings("ignore")
@@ -102,7 +101,7 @@ class StructureData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 struc = Structure.from_dict(self.structures[graph_id])
                 self.failed_graph_id[graph_id] = struc.composition.formula
                 self.failed_idx.append(idx)
@@ -120,7 +119,7 @@ class CIFData(Dataset):
         self,
         cif_path: str,
         labels: str | dict = "labels.json",
-        targets: Literal["ef", "efs", "efsm"] = "ef",
+        targets: TrainTask = "ef",
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
     ) -> None:
@@ -221,7 +220,7 @@ class GraphData(Dataset):
         self,
         graph_path: str,
         labels: str | dict = "labels.json",
-        targets: str = "efsm",
+        targets: PredTask = "efsm",
         exclude: str | list = None,
         **kwargs,
     ) -> None:
@@ -230,8 +229,7 @@ class GraphData(Dataset):
         Args:
             graph_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "efsm"
+            targets ("ef" | "efs" | "efsm"): The training targets. Default = "efsm"
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -434,7 +432,7 @@ class StructureJsonData(Dataset):
         self,
         data: str | dict,
         graph_converter: CrystalGraphConverter,
-        targets: Literal["ef", "efs", "efsm"] = "efsm",
+        targets: TrainTask = "efsm",
         **kwargs,
     ) -> None:
         """Initialize the dataset by reading Json files.

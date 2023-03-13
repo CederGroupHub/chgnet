@@ -8,6 +8,7 @@ import torch
 from pymatgen.core import Structure
 from torch import Tensor, nn
 
+from chgnet import PredTask
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import Atom_Ref
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
@@ -286,7 +287,7 @@ class CHGNet(nn.Module):
     def forward(
         self,
         graphs: Sequence[CrystalGraph],
-        task: str = "e",
+        task: PredTask = "e",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
     ) -> dict:
@@ -476,7 +477,7 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Structure | Sequence[Structure],
-        task: str = "efsm",
+        task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
@@ -530,7 +531,7 @@ class CHGNet(nn.Module):
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
-        task: str = "efsm",
+        task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
