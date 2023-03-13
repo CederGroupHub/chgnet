@@ -20,14 +20,6 @@ random.seed(100)
 # This is extremely useful if you plan to do hyper-parameter sweeping i.e. learning rate
 
 
-def main():
-    data_path = ""
-    graph_dir = ""
-    converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
-    data = StructureJsonData(data_path, graph_converter=converter)
-    make_graphs(data, graph_dir)
-
-
 def make_graphs(
     data: StructureJsonData,
     graph_dir: str,
@@ -79,7 +71,7 @@ def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
 
 def make_partition(
     data, graph_dir, train_ratio=0.8, val_ratio=0.1, partition_with_frame=False
-):
+) -> None:
     """Make a train val test partition."""
     random.seed(42)
     if partition_with_frame is False:
@@ -102,4 +94,9 @@ def make_partition(
 
 
 if __name__ == "__main__":
-    main()
+    data_path = ""
+    graph_dir = ""
+
+    converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
+    data = StructureJsonData(data_path, graph_converter=converter)
+    make_graphs(data, graph_dir)

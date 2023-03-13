@@ -20,7 +20,7 @@ class Composition_model(nn.Module):
         activation: str = "silu",
         is_intensive: bool = True,
         max_num_elements: int = 94,
-    ):
+    ) -> None:
         super().__init__()
         self.is_intensive = is_intensive
         self.max_num_elements = max_num_elements

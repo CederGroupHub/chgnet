@@ -4,7 +4,6 @@ import functools
 import os
 import random
 import warnings
-from typing import Literal
 
 import numpy as np
 import torch
@@ -12,7 +11,7 @@ from pymatgen.core.structure import Structure
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from chgnet import utils
+from chgnet import PredTask, TrainTask, utils
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 warnings.filterwarnings("ignore")
@@ -30,7 +29,7 @@ class StructureData(Dataset):
         stresses: list = None,
         magmoms: list = None,
         graph_converter: CrystalGraphConverter = None,
-    ):
+    ) -> None:
         """Initialize the dataset.
 
         Args:
@@ -61,11 +60,15 @@ class StructureData(Dataset):
         self.failed_graph_id = {}
 
     def __len__(self):
+        """Get the number of structures in this dataset."""
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx) -> (CrystalGraph, dict):
-        """get one item in the dataset.
+    def __getitem__(self, idx) -> tuple[CrystalGraph, dict]:
+        """Get one graph for a structure in this dataset.
+
+        Args:
+            idx (int): Index of the structure
 
         Returns:
             crystal_graph (CrystalGraph): graph of the crystal structure
@@ -98,7 +101,7 @@ class StructureData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 struc = Structure.from_dict(self.structures[graph_id])
                 self.failed_graph_id[graph_id] = struc.composition.formula
                 self.failed_idx.append(idx)
@@ -116,10 +119,10 @@ class CIFData(Dataset):
         self,
         cif_path: str,
         labels: str | dict = "labels.json",
-        targets: Literal["ef", "efs", "efsm"] = "ef",
+        targets: TrainTask = "ef",
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset from a directory containing cifs.
 
         Args:
@@ -217,17 +220,16 @@ class GraphData(Dataset):
         self,
         graph_path: str,
         labels: str | dict = "labels.json",
-        targets: str = "efsm",
+        targets: PredTask = "efsm",
         exclude: str | list = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
 
         Args:
             graph_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "efsm"
+            targets ("ef" | "efs" | "efsm"): The training targets. Default = "efsm"
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -319,7 +321,7 @@ class GraphData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ) -> (DataLoader, DataLoader, DataLoader):
+    ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
@@ -422,17 +424,17 @@ class GraphData(Dataset):
 
 
 class StructureJsonData(Dataset):
-    """read structure and targets from a json file
-    this function is used to load MPtrj dataset.
+    """Read structure and targets from a JSON file.
+    This function is used to load MPtrj dataset.
     """
 
     def __init__(
         self,
         data: str | dict,
         graph_converter: CrystalGraphConverter,
-        targets: Literal["ef", "efs", "efsm"] = "efsm",
+        targets: TrainTask = "efsm",
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the dataset by reading Json files.
 
         Args:
@@ -469,6 +471,7 @@ class StructureJsonData(Dataset):
         self.failed_graph_id = {}
 
     def __len__(self):
+        """Get the number of structures with targets in the dataset."""
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
@@ -509,7 +512,7 @@ class StructureJsonData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 structure = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
                 self.failed_graph_id[graph_id] = structure.composition.formula
                 self.failed_idx.append(idx)
@@ -529,7 +532,7 @@ class StructureJsonData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
-    ) -> (DataLoader, DataLoader, DataLoader):
+    ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
         or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.

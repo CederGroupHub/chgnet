@@ -51,7 +51,7 @@ class CHGNetCalculator(Calculator):
         use_device: str | None = None,
         stress_weight: float | None = 1 / 160.21766208,
         **kwargs,
-    ):
+    ) -> None:
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
 
         Args:
@@ -226,7 +226,7 @@ class TrajectoryObserver:
     intermediate structures.
     """
 
-    def __init__(self, atoms: Atoms):
+    def __init__(self, atoms: Atoms) -> None:
         """Create a TrajectoryObserver from an Atoms object.
 
         Args:
@@ -302,7 +302,7 @@ class MolecularDynamics:
         loginterval: int = 1,
         append_trajectory: bool = False,
         use_device: str = None,
-    ):
+    ) -> None:
         """Initialize the MD class.
 
         Args:

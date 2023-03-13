@@ -9,7 +9,7 @@ import time
 
 import numpy as np
 import torch
-from torch import nn
+from torch import Tensor, nn
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
     CosineAnnealingWarmRestarts,
@@ -18,6 +18,7 @@ from torch.optim.lr_scheduler import (
 )
 from torch.utils.data import DataLoader
 
+from chgnet import TrainTask
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, mae, mkdir, write_json
 
@@ -28,7 +29,7 @@ class Trainer:
     def __init__(
         self,
         model: nn.Module = None,
-        targets: str = "ef",
+        targets: TrainTask = "ef",
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
@@ -44,13 +45,12 @@ class Trainer:
         data_seed: int = None,
         use_device: str = None,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize all hyper-parameters for trainer.
 
         Args:
             model (nn.Module): a CHGNet model
-            targets (str): the training targets i.e. "ef", "efs", "efsm"
-                Default = "ef"
+            targets ("ef" | "efs" | "efsm"): The training targets. Default = "ef"
             energy_loss_ratio (float): energy loss ratio in loss function
                 Default = 1
             force_loss_ratio (float): force loss ratio in loss function
@@ -127,12 +127,7 @@ class Trainer:
             scheduler_params = kwargs.pop(
                 "scheduler_params",
                 {
-                    "milestones": [
-                        int(4 * epochs),
-                        int(6 * epochs),
-                        int(8 * epochs),
-                        int(9 * epochs),
-                    ],
+                    "milestones": [4 * epochs, 6 * epochs, 8 * epochs, 9 * epochs],
                     "gamma": 0.3,
                 },
             )
@@ -184,7 +179,7 @@ class Trainer:
 
         self.print_freq = print_freq
         self.training_history = {
-            i: {"train": [], "val": [], "test": []} for i in self.targets
+            key: {"train": [], "val": [], "test": []} for key in self.targets
         }
         self.best_model = None
 
@@ -225,9 +220,9 @@ class Trainer:
 
             # val
             val_mae = self._validate(val_loader)
-            for i in self.targets:
-                self.training_history[i]["train"].append(train_mae[i])
-                self.training_history[i]["val"].append(val_mae[i])
+            for key in self.targets:
+                self.training_history[key]["train"].append(train_mae[key])
+                self.training_history[key]["val"].append(val_mae[key])
 
             if "e" in val_mae and val_mae["e"] != val_mae["e"]:
                 print("Exit due to NaN")
@@ -251,8 +246,8 @@ class Trainer:
                 test_mae = self._validate(
                     test_loader, is_test=True, test_result_save_path=None
                 )
-            for i in self.targets:
-                self.training_history[i]["test"].append(test_mae[i])
+            for key in self.targets:
+                self.training_history[key]["test"].append(test_mae[key])
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
         """Train all data for one epoch.
@@ -291,10 +286,10 @@ class Trainer:
             combined_loss = self.criterion(targets, prediction)
 
             losses.update(combined_loss["loss"].data.cpu().item(), len(graphs))
-            for k in self.targets:
-                mae_errors[k].update(
-                    combined_loss[f"{k}_MAE"].cpu().item(),
-                    combined_loss[f"{k}_MAE_size"],
+            for key in self.targets:
+                mae_errors[key].update(
+                    combined_loss[f"{key}_MAE"].cpu().item(),
+                    combined_loss[f"{key}_MAE_size"],
                 )
 
             # compute gradient and do SGD step
@@ -316,20 +311,16 @@ class Trainer:
 
             if (idx + 1) % self.print_freq == 0 or idx == 0:
                 message = (
-                    "Epoch: [{}][{}/{}]\t".format(
-                        current_epoch, idx + 1, len(train_loader)
-                    )
-                    + f"Time ({batch_time.avg:.3f})  "
-                    + f"Data ({data_time.avg:.3f})  "
-                    + "Loss {loss.val:.4f} ({loss.avg:.4f})  ".format(loss=losses)
-                    + "MAEs:  "
+                    f"Epoch: [{current_epoch}][{idx + 1}/{len(train_loader)}]\t"
+                    f"Time ({batch_time.avg:.3f})  Data ({data_time.avg:.3f})  "
+                    f"Loss {losses.val:.4f} ({losses.avg:.4f})  MAEs:  "
                 )
-                for k in self.targets:
-                    message += "{k} {mae_error.val:.3f} ({mae_error.avg:.3f})  ".format(
-                        k=k, mae_error=mae_errors[k]
+                for key in self.targets:
+                    message += (
+                        f"{key} {mae_errors[key].val:.3f} ({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
-        return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
+        return {key: round(mae_error.avg, 6) for key, mae_error in mae_errors.items()}
 
     def _validate(
         self,
@@ -532,13 +523,12 @@ class Trainer:
             )
 
     @classmethod
-    def load(cls, path: str):
+    def load(cls, path: str) -> Trainer:
         """Load trainer state_dict."""
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(
-            "Total Number of loaded Model Params = ",
-            sum(p.numel() for p in model.parameters()),
+            f"Total Number of loaded Model Params = {sum(p.numel() for p in model.parameters()):,}"
         )
         if "model" in state["trainer_args"]:
             del state["trainer_args"]["model"]
@@ -551,15 +541,15 @@ class Trainer:
         return trainer
 
     @staticmethod
-    def move_to(obj, device):
+    def move_to(obj, device) -> Tensor | list[Tensor]:
         """Move object to device."""
         if torch.is_tensor(obj):
             return obj.to(device)
         elif isinstance(obj, list):
             out = []
-            for i in obj:
-                if i is not None:
-                    out.append(i.to(device))
+            for tensor in obj:
+                if tensor is not None:
+                    out.append(tensor.to(device))
                 else:
                     out.append(None)
             return out
@@ -580,7 +570,7 @@ class CombinedLoss(nn.Module):
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
         **kwargs,
-    ):
+    ) -> None:
         """Initialize the combined loss.
 
         Args:

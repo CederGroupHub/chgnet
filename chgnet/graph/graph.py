@@ -6,7 +6,7 @@ from chgnet import utils
 class Node:
     """a node in a graph."""
 
-    def __init__(self, index: int, info: dict = None):
+    def __init__(self, index: int, info: dict = None) -> None:
         self.index = index
         self.info = info
         self.neighbors = {}
@@ -26,7 +26,7 @@ class Node:
 class UndirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: list, index: int = None, info: dict = None):
+    def __init__(self, nodes: list, index: int = None, info: dict = None) -> None:
         self.nodes = nodes
         self.index = index
         self.info = info
@@ -46,7 +46,7 @@ class UndirectedEdge:
 class DirectedEdge:
     """An edge in a graph."""
 
-    def __init__(self, nodes: list, index: int, info: dict = None):
+    def __init__(self, nodes: list, index: int, info: dict = None) -> None:
         self.nodes = nodes
         self.index = index
         self.info = info
@@ -84,7 +84,7 @@ class DirectedEdge:
 
 
 class Graph:
-    def __init__(self, nodes: list):
+    def __init__(self, nodes: list) -> None:
         self.nodes = nodes
         self.directed_edges = {}
         self.directed_edges_list = []
@@ -125,23 +125,25 @@ class Graph:
             # it's the other directed edge of the same undirected edge or it's another
             # totally different undirected edge that has different image and distance
             for undirected_edge in self.undirected_edges[tmp]:
-                if abs(undirected_edge.info["distance"] - distance) < 1e-6:
-                    if len(undirected_edge.info["directed_edge_index"]) == 1:
-                        e = self.directed_edges_list[
-                            undirected_edge.info["directed_edge_index"][0]
+                if (
+                    abs(undirected_edge.info["distance"] - distance) < 1e-6
+                    and len(undirected_edge.info["directed_edge_index"]) == 1
+                ):
+                    e = self.directed_edges_list[
+                        undirected_edge.info["directed_edge_index"][0]
+                    ]
+                    if e == directed_edge:
+                        directed_edge.info["undirected_edge_index"] = e.info[
+                            "undirected_edge_index"
                         ]
-                        if e == directed_edge:
-                            directed_edge.info["undirected_edge_index"] = e.info[
-                                "undirected_edge_index"
-                            ]
-                            self.nodes[center_index].add_neighbor(
-                                neighbor_index, directed_edge
-                            )
-                            self.directed_edges_list.append(directed_edge)
-                            undirected_edge.info["directed_edge_index"].append(
-                                directed_edge_index
-                            )
-                            return
+                        self.nodes[center_index].add_neighbor(
+                            neighbor_index, directed_edge
+                        )
+                        self.directed_edges_list.append(directed_edge)
+                        undirected_edge.info["directed_edge_index"].append(
+                            directed_edge_index
+                        )
+                        return
 
             # no undirected_edge matches to this directed edge
             directed_edge.info["undirected_edge_index"] = len(

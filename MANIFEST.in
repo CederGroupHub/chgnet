@@ -1,3 +1,0 @@
-include *.py requirements*.txt
-recursive-include chgnet *.py *.json
-recursive-include chgnet/pretrained *

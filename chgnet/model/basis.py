@@ -8,7 +8,7 @@ from torch import Tensor, nn
 class Fourier(nn.Module):
     """Fourier Expansion for angle features."""
 
-    def __init__(self, order: int = 5, learnable: bool = False):
+    def __init__(self, order: int = 5, learnable: bool = False) -> None:
         """Initialize the Fourier expansion.
 
         Args:
@@ -50,7 +50,7 @@ class RadialBessel(torch.nn.Module):
         cutoff: float = 5,
         learnable: bool = False,
         smooth_cutoff: int = 5,
-    ):
+    ) -> None:
         """Initialize the SmoothRBF function.
 
         Args:
@@ -110,7 +110,7 @@ class GaussianExpansion(nn.Module):
 
     def __init__(
         self, min: float = 0, max: float = 5, step: float = 0.5, var: float = None
-    ):
+    ) -> None:
         """Gaussian Expansion
         expand a scalar feature to a soft-one-hot feature vector.
 
@@ -148,7 +148,7 @@ class CutoffPolynomial(nn.Module):
     ref: https://github.com/TUM-DAML/gemnet_pytorch/blob/master/gemnet/model/layers/envelope.py.
     """
 
-    def __init__(self, cutoff: float = 5, cutoff_coeff: float = 5):
+    def __init__(self, cutoff: float = 5, cutoff_coeff: float = 5) -> None:
         """Initialize the polynomial cutoff function.
 
         Args:
