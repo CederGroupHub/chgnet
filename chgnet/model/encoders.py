@@ -9,7 +9,7 @@ from chgnet.model.basis import Fourier, RadialBessel
 class AtomEmbedding(nn.Module):
     """Encode an atom by its atomic number using a learnable embedding layer."""
 
-    def __init__(self, atom_feature_dim: int, max_num_elements: int = 94):
+    def __init__(self, atom_feature_dim: int, max_num_elements: int = 94) -> None:
         """Initialize the Atom featurizer
         Args:
             atom_feature_dim (int): dimension of atomic embedding.
@@ -38,7 +38,7 @@ class BondEncoder(nn.Module):
         num_radial: int = 9,
         cutoff_coeff: int = 5,
         learnable: bool = False,
-    ):
+    ) -> None:
         """Initialize the bond encoder.
 
         Args:
@@ -69,7 +69,7 @@ class BondEncoder(nn.Module):
         undirected2directed: Tensor,
         image: Tensor,
         lattice: Tensor,
-    ) -> (Tensor, Tensor, Tensor):
+    ) -> tuple[Tensor, Tensor, Tensor]:
         """Compute the pairwise distance between 2 3d coordinates.
 
         Args:
@@ -102,7 +102,7 @@ class BondEncoder(nn.Module):
 class AngleEncoder(nn.Module):
     """Encode an angle given the two bond vectors using Fourier Expansion."""
 
-    def __init__(self, num_angular: int = 9, learnable: bool = True):
+    def __init__(self, num_angular: int = 9, learnable: bool = True) -> None:
         """Initialize the angle encoder.
 
         Args:

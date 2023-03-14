@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
+from typing import Literal
 
 try:
     __version__ = version(__name__)  # read from setup.py
 except PackageNotFoundError:
     __version__ = "unknown"
+
+TrainTask = Literal["ef", "efs", "efsm"]
+PredTask = Literal["e", "ef", "em", "efs", "efsm"]
