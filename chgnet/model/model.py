@@ -10,7 +10,7 @@ from torch import Tensor, nn
 
 from chgnet import PredTask
 from chgnet.graph import CrystalGraph, CrystalGraphConverter, BatchedGraph
-from chgnet.model.composition_model import Atom_Ref
+from chgnet.model.composition_model import AtomRef
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
 from chgnet.model.layers import (
@@ -139,7 +139,7 @@ class CHGNet(nn.Module):
         if isinstance(composition_model, nn.Module):
             self.composition_model = composition_model
         else:
-            self.composition_model = Atom_Ref(is_intensive=is_intensive)
+            self.composition_model = AtomRef(is_intensive=is_intensive)
             self.composition_model.initialize_from(composition_model)
         if self.composition_model is not None:
             # fixed composition_model weights

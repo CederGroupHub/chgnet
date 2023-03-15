@@ -69,7 +69,7 @@ class Composition_model(nn.Module):
         return torch.stack(composition_feas, dim=0)
 
 
-class Atom_Ref(nn.Module):
+class AtomRef(nn.Module):
     """A linear regression for elemental energy
     from: https://github.com/materialsvirtuallab/m3gnet/.
     """
