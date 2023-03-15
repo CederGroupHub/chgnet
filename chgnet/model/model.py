@@ -803,7 +803,7 @@ class BatchedGraph:
         directed2undirected = torch.cat(directed2undirected, dim=0)
         volumes = torch.tensor(volumes, dtype=datatype, device=atomic_numbers.device)
 
-        return BatchedGraph(
+        return cls(
             atomic_numbers=atomic_numbers,
             bond_bases_ag=bond_bases_ag,
             bond_bases_bg=bond_bases_bg,
