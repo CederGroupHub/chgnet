@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os
 from typing import Literal, Sequence
+from dataclasses import dataclass
 
 import torch
 from pymatgen.core import Structure
@@ -645,64 +646,49 @@ class CHGNet(nn.Module):
         else:
             raise Exception("model_name not supported")
 
-
+@dataclass
 class BatchedGraph:
-    """Batched crystal graph for parallel computing."""
+    """Batched crystal graph for parallel computing.
 
-    def __init__(
-        self,
-        atomic_numbers: Tensor,
-        bond_bases_ag: Tensor,
-        bond_bases_bg: Tensor,
-        angle_bases: Tensor,
-        batched_atom_graph: Tensor,
-        batched_bond_graph: Tensor,
-        atom_owners: Tensor,
-        directed2undirected: Tensor,
-        atom_positions: Sequence[Tensor],
-        strains: Sequence[Tensor],
-        volumes: Sequence[Tensor],
-    ) -> None:
-        """Batched crystal graph.
+    Attributes:
+        atomic_numbers (Tensor): atomic numbers vector
+            [num_batch_atoms]
+        bond_bases_ag (Tensor): bond bases vector for atom_graph
+            [num_batch_bonds, num_radial]
+        bond_bases_bg (Tensor): bond bases vector for atom_graph
+            [num_batch_bonds, num_radial]
+        angle_bases (Tensor): angle bases vector
+            [num_batch_angles, num_angular]
+        batched_atom_graph (Tensor) : batched atom graph adjacency list
+            [num_batch_bonds, 2]
+        batched_bond_graph (Tensor) : bond graph adjacency list
+            [num_batch_angles, 2]
+        atom_owners (Tensor): graph indices for each atom, used aggregate batched
+            graph back to single graph
+            [num_batch_atoms]
+        directed2undirected (Tensor): the utility tensor used to quickly
+            map directed edges to undirected edges in graph
+            [num_directed]
+        atom_positions (List[Tensor]): cartesian coordinates of the atoms
+            from structures
+            [num_batch_atoms]
+        strains (List[Tensor]): a list of strains that's initialized to be zeros
+            [batch_size]
+        volumes (Tensor): the volume of each structure in the batch
+            [batch_size]
+    """
 
-        Args:
-            atomic_numbers (Tensor): atomic numbers vector
-                [num_batch_atoms]
-            bond_bases_ag (Tensor): bond bases vector for atom_graph
-                [num_batch_bonds, num_radial]
-            bond_bases_bg (Tensor): bond bases vector for atom_graph
-                [num_batch_bonds, num_radial]
-            angle_bases (Tensor): angle bases vector
-                [num_batch_angles, num_angular]
-            batched_atom_graph (Tensor) : batched atom graph adjacency list
-                [num_batch_bonds, 2]
-            batched_bond_graph (Tensor) : bond graph adjacency list
-                [num_batch_angles, 2]
-            atom_owners (Tensor): graph indices for each atom, used aggregate batched
-                graph back to single graph
-                [num_batch_atoms]
-            directed2undirected (Tensor): the utility tensor used to quickly
-                map directed edges to undirected edges in graph
-                [num_directed]
-            atom_positions (List[Tensor]): cartesian coordinates of the atoms
-                from structures
-                [num_batch_atoms]
-            strains (List[Tensor]): a list of strains that's initialized to be zeros
-                [batch_size]
-            volumes (Tensor): the volume of each structure in the batch
-                [batch_size]
-        """
-        self.atomic_numbers = atomic_numbers
-        self.bond_bases_ag = bond_bases_ag
-        self.bond_bases_bg = bond_bases_bg
-        self.angle_bases = angle_bases
-        self.batched_atom_graph = batched_atom_graph
-        self.batched_bond_graph = batched_bond_graph
-        self.atom_owners = atom_owners
-        self.directed2undirected = directed2undirected
-        self.atom_positions = atom_positions
-        self.strains = strains
-        self.volumes = volumes
+    atomic_numbers: Tensor
+    bond_bases_ag: Tensor
+    bond_bases_bg: Tensor
+    angle_bases: Tensor
+    batched_atom_graph: Tensor
+    batched_bond_graph: Tensor
+    atom_owners: Tensor
+    directed2undirected: Tensor
+    atom_positions: Sequence[Tensor]
+    strains: Sequence[Tensor]
+    volumes: Sequence[Tensor]
 
     @classmethod
     def from_graphs(
