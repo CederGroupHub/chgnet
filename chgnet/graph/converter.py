@@ -4,11 +4,10 @@ import sys
 from typing import Literal
 
 import torch
-from torch import nn, Tensor
-
 from pymatgen.core import Structure
+from torch import Tensor, nn
 
-from chgnet.graph import CrystalGraph
+from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
 
 datatype = torch.float32

@@ -303,5 +303,3 @@ class BatchedGraph:
             strains=strains,
             volumes=volumes,
         )
-
-

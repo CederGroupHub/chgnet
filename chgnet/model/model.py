@@ -9,7 +9,7 @@ from pymatgen.core import Structure
 from torch import Tensor, nn
 
 from chgnet import PredTask
-from chgnet.graph import CrystalGraph, CrystalGraphConverter, BatchedGraph
+from chgnet.graph import BatchedGraph, CrystalGraph, CrystalGraphConverter
 from chgnet.model.composition_model import AtomRef
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
