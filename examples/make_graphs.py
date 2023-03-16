@@ -6,7 +6,7 @@ import random
 import torch
 from pymatgen.core.structure import Structure
 
-import chgnet.utils as utils
+from chgnet import utils
 from chgnet.data.dataset import StructureJsonData
 from chgnet.graph import CrystalGraphConverter
 
@@ -87,7 +87,7 @@ def make_partition(
                 test_ids.append(mp_id)
         partition = {"train_ids": train_ids, "val_ids": val_ids, "test_ids": test_ids}
     else:
-        return NotImplementedError
+        raise NotImplementedError("Partition with frame is not implemented yet.")
 
     utils.write_json(partition, os.path.join(graph_dir, "TrainValTest_partition.json"))
     print("Done")

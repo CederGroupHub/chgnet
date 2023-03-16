@@ -189,9 +189,10 @@ class Graph:
         the fourth column specifies 2nd undirected edge index,
         the fifth column specifies 2snd directed edge index,.
         """
-        assert len(self.directed_edges_list) == 2 * len(
-            self.undirected_edges_list
-        ), f"Error: number of directed edge{len(self.directed_edges_list)} != 2 * number of undirected edge{len(self.directed_edges_list)}!"
+        assert len(self.directed_edges_list) == 2 * len(self.undirected_edges_list), (
+            f"Error: number of directed edge{len(self.directed_edges_list)} != 2 * "
+            f"number of undirected edge{len(self.directed_edges_list)}!"
+        )
         line_graph = []
         undirected2directed = []
         for u_edge in self.undirected_edges_list:
@@ -201,7 +202,7 @@ class Graph:
             center1, center2 = list(u_edge.nodes)
             try:
                 directed_edge1, directed_edge2 = u_edge.info["directed_edge_index"]
-            except:
+            except ValueError:
                 print("Did not find 2 Directed_edges !!!")
                 print(u_edge)
                 print(

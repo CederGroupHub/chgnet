@@ -193,10 +193,10 @@ class CIFData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 try:
                     graph_id = self.cif_ids[idx]
-                except:
+                except IndexError:
                     print(idx, len(self.cif_ids))
                 structure = Structure.from_file(
                     os.path.join(self.data_dir, f"{graph_id}.cif")
@@ -302,7 +302,7 @@ class GraphData(Dataset):
                 return crystal_graph, targets
 
             # Omit failed structures. Return another random selected structure
-            except:
+            except Exception:
                 self.failed_graph_id.append(graph_id)
                 self.failed_idx.append(idx)
                 idx = random.randint(0, len(self) - 1)
@@ -357,7 +357,7 @@ class GraphData(Dataset):
         for mp_id in train_key:
             try:
                 train_labels[mp_id] = self.labels.pop(mp_id)
-            except:
+            except KeyError:
                 continue
         train_dataset = GraphData(
             graph_path=self.graph_path,
@@ -379,7 +379,7 @@ class GraphData(Dataset):
         for mp_id in val_key:
             try:
                 val_labels[mp_id] = self.labels.pop(mp_id)
-            except:
+            except KeyError:
                 continue
         val_dataset = GraphData(
             graph_path=self.graph_path,
@@ -402,7 +402,7 @@ class GraphData(Dataset):
             for mp_id in test_key:
                 try:
                     test_labels[mp_id] = self.labels.pop(mp_id)
-                except:
+                except KeyError:
                     continue
             test_dataset = GraphData(
                 graph_path=self.graph_path,

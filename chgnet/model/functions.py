@@ -181,8 +181,8 @@ def find_activation(name: str) -> nn.Module:
             "sigmoid": nn.Sigmoid,
             "tanh": nn.Tanh,
         }[name.lower()]()
-    except KeyError:
-        raise NotImplementedError
+    except KeyError as exc:
+        raise NotImplementedError from exc
 
 
 def find_normalization(name: str, dim: int = None) -> nn.Module | None:
