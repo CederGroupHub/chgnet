@@ -27,7 +27,7 @@ CHGNet is interfaced to `pymatgen` and `ase`, to install:
 To install:
 
 ```bash
-pip install .
+pip install -e .
 ```
 
 ## Usage
@@ -165,14 +165,14 @@ link to our paper:
 
 Please cite the following:
 
-```text
+```bib
 @article{deng2023chgnet,
-title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling},
-author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
-year={2023},
-eprint={2302.14231},
-archivePrefix={arXiv},
-primaryClass={cond-mat.mtrl-sci}
+    title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling},
+    author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
+    year={2023},
+    eprint={2302.14231},
+    archivePrefix={arXiv},
+    primaryClass={cond-mat.mtrl-sci}
 }
 ```
 
