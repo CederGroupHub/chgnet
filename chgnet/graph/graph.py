@@ -97,7 +97,7 @@ class Graph:
         self.undirected_edges = {}
         self.undirected_edges_list = []
 
-    def add_edge(self, center_index, neighbor_index, image, distance):
+    def add_edge(self, center_index, neighbor_index, image, distance) -> None:
         """Add an directed edge to the graph
         Args:
             center_index: center node index
@@ -125,7 +125,6 @@ class Graph:
             self.undirected_edges_list.append(undirected_edge)
             self.nodes[center_index].add_neighbor(neighbor_index, directed_edge)
             self.directed_edges_list.append(directed_edge)
-            return
         else:
             # this pair of nodes has been added before, we need to see if this time,
             # it's the other directed edge of the same undirected edge or it's another
@@ -163,7 +162,6 @@ class Graph:
             self.undirected_edges_list.append(undirected_edge)
             self.nodes[center_index].add_neighbor(neighbor_index, directed_edge)
             self.directed_edges_list.append(directed_edge)
-            return
 
     def adjacency_list(self):
         """Return:

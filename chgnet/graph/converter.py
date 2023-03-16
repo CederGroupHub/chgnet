@@ -82,8 +82,8 @@ class CrystalGraphConverter(nn.Module):
 
         # Make Graph
         graph = Graph([Node(index=i) for i in range(n_atoms)])
-        for i, j, im, d in zip(center_index, neighbor_index, image, distance):
-            graph.add_edge(center_index=i, neighbor_index=j, image=im, distance=d)
+        for ii, jj, img, dist in zip(center_index, neighbor_index, image, distance):
+            graph.add_edge(center_index=ii, neighbor_index=jj, image=img, distance=dist)
 
         # Atom Graph
         atom_graph, directed2undirected = graph.adjacency_list()
