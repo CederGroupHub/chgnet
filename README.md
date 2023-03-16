@@ -15,7 +15,7 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
-# Installation
+## Installation
 
 CHGNet is interfaced to `pymatgen` and `ase`, to install:
 
@@ -30,7 +30,7 @@ To install:
 pip install .
 ```
 
-# Usage
+## Usage
 
 ## Direct Inference (Static Calculation)
 
@@ -84,11 +84,11 @@ from chgnet.utils.utils import solve_charge_by_mag
 traj = Trajectory("md_out.traj")
 mag = traj[-1].get_magnetic_moments()
 
-# get the non-charge-decorated structure
+## get the non-charge-decorated structure
 structure = AseAtomsAdaptor.get_structure(traj[-1])
 print(structure)
 
-# get the charge-decorated structure
+## get the charge-decorated structure
 struc_with_chg = solve_charge_by_mag(structure)
 print(struc_with_chg)
 ```
@@ -142,7 +142,7 @@ trainer = Trainer(
 trainer.train(train_loader, val_loader, test_loader)
 ```
 
-#### Note
+### Note
 
 1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`.
 2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102).
@@ -158,7 +158,7 @@ see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/mai
 6. Apple’s Metal Performance Shaders `MPS` is currently disabled before stable version of `pytorch` for
 `MPS` is released.
 
-# Reference
+## Reference
 
 link to our paper:
 <https://doi.org/10.48550/arXiv.2302.14231>
@@ -176,7 +176,7 @@ primaryClass={cond-mat.mtrl-sci}
 }
 ```
 
-# Development & Bugs
+## Development & Bugs
 
 `CHGNet` is under active development, if you encounter any bugs in installation and usage,
 please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!
