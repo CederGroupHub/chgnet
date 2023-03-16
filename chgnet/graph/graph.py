@@ -4,12 +4,18 @@ from chgnet import utils
 
 
 class Node:
-    """a node in a graph."""
+    """A node in a graph."""
 
     def __init__(self, index: int, info: dict = None) -> None:
+        """Initialize a Node.
+
+        Args:
+            index (int): the index of this node
+            info (dict, optional): any additional information about this node.
+        """
         self.index = index
         self.info = info
-        self.neighbors = {}
+        self.neighbors: dict[int, list[DirectedEdge | UndirectedEdge]] = {}
 
     def add_neighbor(self, index, edge):
         """Draw an edge between self and node
@@ -84,7 +90,7 @@ class DirectedEdge:
 
 
 class Graph:
-    def __init__(self, nodes: list) -> None:
+    def __init__(self, nodes: list[Node]) -> None:
         self.nodes = nodes
         self.directed_edges = {}
         self.directed_edges_list = []
@@ -190,8 +196,8 @@ class Graph:
         the fifth column specifies 2snd directed edge index,.
         """
         assert len(self.directed_edges_list) == 2 * len(self.undirected_edges_list), (
-            f"Error: number of directed edge{len(self.directed_edges_list)} != 2 * "
-            f"number of undirected edge{len(self.directed_edges_list)}!"
+            f"Error: number of directed edges={len(self.directed_edges_list)} != 2 * "
+            f"number of undirected edges={len(self.directed_edges_list)}!"
         )
         line_graph = []
         undirected2directed = []
@@ -273,11 +279,9 @@ class Graph:
         utils.write_json(self.as_dict(), filename)
         return
 
-    def __str__(self):
-        return (
-            f"Graph(num_nodes={len(self.nodes)}, num_directed_edges={len(self.directed_edges_list)}, "
-            f"num_undirected_edges={len(self.undirected_edges_list)})"
-        )
-
-    def __repr__(self):
-        return str(self)
+    def __repr__(self) -> str:
+        """Return string representation of the Graph."""
+        num_nodes = len(self.nodes)
+        num_directed_edges = len(self.directed_edges_list)
+        num_undirected_edges = len(self.undirected_edges_list)
+        return f"Graph({num_nodes=}, {num_directed_edges=}, {num_undirected_edges=})"

@@ -128,7 +128,8 @@ class CIFData(Dataset):
         Args:
             cif_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "ef"
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces,
+                s=stress, m=magmons. Default = "ef"
             graph_converter (CrystalGraphConverter, optional):
                 a CrystalGraphConverter to convert the structures,
                 if None, it will be set to CHGNet default converter
@@ -141,19 +142,17 @@ class CIFData(Dataset):
         self.cif_ids = list(self.data)
         random.shuffle(self.cif_ids)
         print(f"{cif_path}: {len(self.cif_ids)} structures imported")
-        if graph_converter is not None:
-            self.graph_converter = graph_converter
-        else:
-            self.graph_converter = CrystalGraphConverter(
-                atom_graph_cutoff=5, bond_graph_cutoff=3
-            )
+        self.graph_converter = graph_converter or CrystalGraphConverter(
+            atom_graph_cutoff=5, bond_graph_cutoff=3
+        )
 
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
-        self.failed_idx = []
-        self.failed_graph_id = {}
+        self.failed_idx: list[str] = []
+        self.failed_graph_id: dict[str, str] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Get the number of structures in this dataset."""
         return len(self.cif_ids)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures

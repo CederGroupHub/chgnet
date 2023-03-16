@@ -75,13 +75,15 @@ class BondEncoder(nn.Module):
         Args:
             center (Tensor): 3d cartesian coordinates of center atoms [n_bond, 3]
             neighbor (Tensor): 3d cartesian coordinates of neighbor atoms [n_bond, 3]
-            image (Tensor): the periodic image specifying the location of neighboring atom [n_bond, 3]
+            image (Tensor): the periodic image specifying the location of neighboring
+                atom [n_bond, 3]
             lattice (Tensor): the lattice of this structure [3, 3]
 
         Returns:
             bond_basis_ag (Tensor): the bond basis in AtomGraph [n_bond, num_radial]
             bond_basis_ag (Tensor): the bond basis in BondGraph [n_bond, num_radial]
-            bond_vectors (Tensor): normalized bond vectors, for tracking the bond directions [n_bond, 3]
+            bond_vectors (Tensor): normalized bond vectors, for tracking the bond
+                directions [n_bond, 3]
         """
         neighbor = neighbor + image @ lattice
         bond_vectors = center - neighbor

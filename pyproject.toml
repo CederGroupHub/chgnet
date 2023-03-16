@@ -32,6 +32,7 @@ find = { include = ["chgnet*"], exclude = ["tests*"] }
 
 [tool.ruff]
 target-version = "py38"
+line-length = 95
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
