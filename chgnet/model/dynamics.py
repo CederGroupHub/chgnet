@@ -89,10 +89,10 @@ class CHGNetCalculator(Calculator):
         """Calculate various properties of the atoms using CHGNet.
 
         Args:
-            atoms (Optional[Atoms]): The atoms object to calculate properties for.
-            desired_properties (Optional[list]): The properties to calculate.
+            atoms (Atoms | None): The atoms object to calculate properties for.
+            desired_properties (list | None): The properties to calculate.
                 Default is all properties.
-            changed_properties (Optional[list]): The changes made to the system.
+            changed_properties (list | None): The changes made to the system.
                 Default is all changes.
 
         Returns:
@@ -152,7 +152,7 @@ class StructOptimizer:
                     f"Optimizer instance not found. Select one from {list(OPTIMIZERS)}"
                 )
 
-        self.optimizer_class = optimizer_class
+        self.optimizer_class: Optimizer = optimizer_class
         self.calculator = CHGNetCalculator(
             model=model, stress_weight=stress_weight, use_device=use_device
         )
@@ -171,16 +171,16 @@ class StructOptimizer:
         """Relax the Structure/Atoms until maximum force is smaller than fmax.
 
         Args:
-            atoms (Union[Structure, Atoms]): A Structure or Atoms object to relax.
-            fmax (Optional[float]): The maximum force tolerance for relaxation.
+            atoms (Structure | Atoms): A Structure or Atoms object to relax.
+            fmax (float | None): The maximum force tolerance for relaxation.
                 Default = 0.1
-            steps (Optional[int]): The maximum number of steps for relaxation.
+            steps (int | None): The maximum number of steps for relaxation.
                 Default = 500
-            relax_cell (Optional[bool]): Whether to relax the cell as well.
+            relax_cell (bool | None): Whether to relax the cell as well.
                 Default = True
-            save_path (Optional[str]): The path to save the trajectory.
+            save_path (str | None): The path to save the trajectory.
                 Default = None
-            trajectory_save_interval (Optional[int]): Trajectory save interval.
+            trajectory_save_interval (int | None): Trajectory save interval.
                 Default = 1
             verbose (bool): Whether to print the output of the ASE optimizer.
                 Default = True
@@ -209,16 +209,11 @@ class StructOptimizer:
 
         if isinstance(atoms, ExpCellFilter):
             atoms = atoms.atoms
-        struc = AseAtomsAdaptor.get_structure(atoms)
-        for k in struc.site_properties:
-            struc.remove_site_property(property_name=k)
-        struc.add_site_property(
-            "magmom", [float(i) for i in atoms.get_magnetic_moments()]
-        )
-        return {
-            "final_structure": struc,
-            "trajectory": obs,
-        }
+        struct = AseAtomsAdaptor.get_structure(atoms)
+        for k in struct.site_properties:
+            struct.remove_site_property(property_name=k)
+        struct.add_site_property("magmom", list(atoms.get_magnetic_moments()))
+        return {"final_structure": struct, "trajectory": obs}
 
 
 class TrajectoryObserver:

@@ -671,10 +671,10 @@ class BatchedGraph:
         directed2undirected (Tensor): the utility tensor used to quickly
             map directed edges to undirected edges in graph
             [num_directed]
-        atom_positions (List[Tensor]): cartesian coordinates of the atoms
+        atom_positions (list[Tensor]): cartesian coordinates of the atoms
             from structures
             [num_batch_atoms]
-        strains (List[Tensor]): a list of strains that's initialized to be zeros
+        strains (list[Tensor]): a list of strains that's initialized to be zeros
             [batch_size]
         volumes (Tensor): the volume of each structure in the batch
             [batch_size]
@@ -703,7 +703,7 @@ class BatchedGraph:
         """Featurize and assemble a list of graphs.
 
         Args:
-            graphs (List[Tensor]): a list of Crystal_Graphs
+            graphs (list[Tensor]): a list of Crystal_Graphs
             bond_basis_expansion (nn.Module): bond basis expansion layer in CHGNet
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
             compute_stress (bool): whether to compute stress

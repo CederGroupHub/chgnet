@@ -35,7 +35,8 @@ class Composition_model(nn.Module):
         self.fc2 = nn.Linear(atom_fea_dim, 1)
 
     def _get_energy(self, composition_feas: Tensor) -> Tensor:
-        """Predict the energy given composition encoding
+        """Predict the energy given composition encoding.
+
         Args:
             composition_feas: batched atom feature matrix [batch_size, total_num_elements].
 
@@ -46,14 +47,16 @@ class Composition_model(nn.Module):
         composition_feas = composition_feas + self.gated_mlp(composition_feas)
         return self.fc2(composition_feas).view(-1)
 
-    def forward(self, graphs: list[CrystalGraph]):
+    def forward(self, graphs: list[CrystalGraph]) -> Tensor:
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
     def _assemble_graphs(self, graphs: list[CrystalGraph]):
-        """Assemble a list of graphs into one-hot composition encodings
+        """Assemble a list of graphs into one-hot composition encodings.
+
         Args:
-            graphs (List[Tensor]): a list of Crystal_Graphs
+            graphs (list[CrystalGraph]): a list of Crystal_Graphs
+
         Returns:
             assembled batch_graph that contains all information for model.
         """
@@ -143,7 +146,7 @@ class AtomRef(nn.Module):
     def _assemble_graphs(self, graphs: list[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
-            graphs (List[Tensor]): a list of Crystal_Graphs
+            graphs (list[Tensor]): a list of Crystal_Graphs
         Returns:
             assembled batch_graph that contains all information for model.
         """

@@ -55,7 +55,7 @@ class MLP(nn.Module):
         Args:
             input_dim (int): the input dimension
             output_dim (int): the output dimension
-            hidden_dim (Union[List[int], int]): a list of integers or a single integer
+            hidden_dim (list[int] | int]): a list of integers or a single integer
                 representing the number of hidden units in each layer of the MLP.
                 Default = [64, 64]
             dropout (float): the dropout rate before each linear layer. Default: 0
@@ -112,7 +112,7 @@ class GatedMLP(nn.Module):
         """Args:
         input_dim (int): the input dimension
         output_dim (int): the output dimension
-        hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+        hidden_dim (list[int] | int]): a list of integers or a single integer representing
         the number of hidden units in each layer of the MLP. Default = None
         dropout (float): the dropout rate before each linear layer. Default: 0
         activation (str, optional): The name of the activation function to use in the gated MLP.
