@@ -40,14 +40,6 @@ def test_undirected2directed(graph: Graph) -> None:
     assert undirected2directed[1] == 1
 
 
-# def test_line_graph_adjacency_list(graph: Graph) -> None:
-#     line_graph, undirected2directed = graph.line_graph_adjacency_list(cutoff=2.0)
-#     assert len(line_graph) == 2
-#     assert len(undirected2directed) == 2
-#     assert line_graph[0] == [0, 0, 0, 1, 1]
-#     assert line_graph[1] == [1, 1, 2, 2, 2]
-
-
 def test_as_dict(graph: Graph) -> None:
     graph_dict = graph.as_dict()
     assert len(graph_dict["nodes"]) == 3
