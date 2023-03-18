@@ -23,8 +23,6 @@ from chgnet.model.layers import (
     GraphPooling,
 )
 
-datatype = torch.float32
-
 
 class CHGNet(nn.Module):
     """Crystal Hamiltonian Graph neural Network
