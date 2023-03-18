@@ -15,22 +15,28 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
-# Installation:
+## Installation
+
 CHGNet is interfaced to `pymatgen` and `ase`, to install:
+
 - numpy~=1.21.6
 - torch~=1.11.0
 - pymatgen~=2022.4.19
 - ase==3.22.0
 
 To install:
+
 ```bash
-pip install .
+pip install -e .
 ```
 
-# Usage:
-## Direct Inference (Static Calculation):
+## Usage
+
+## Direct Inference (Static Calculation)
+
 Pretrained `CHGNet` is able to predict the energy (eV/atom), force(eV/A), stress (GPa)
 and magmom (muB) of a given structure.
+
 ```python
 from chgnet.model.model import CHGNet
 from pymatgen.core import Structure
@@ -42,8 +48,10 @@ print("CHGNet predicted energy=", prediction['e'])
 print("CHGNet predicted magmom=", prediction['m'])
 ```
 
-## Molecular Dynamics:
+## Molecular Dynamics
+
 Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through `ASE` environment
+
 ```python
 from chgnet.model.model import CHGNet
 from chgnet.model.dynamics import MolecularDynamics
@@ -66,7 +74,9 @@ md = MolecularDynamics(
 )
 md.run(50) # run a 0.1 ps MD simulation
 ```
+
 Visualize the magnetic moments after the MD run
+
 ```python
 from ase.io.trajectory import Trajectory
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -74,18 +84,21 @@ from chgnet.utils.utils import solve_charge_by_mag
 traj = Trajectory("md_out.traj")
 mag = traj[-1].get_magnetic_moments()
 
-# get the non-charge-decorated structure
+## get the non-charge-decorated structure
 structure = AseAtomsAdaptor.get_structure(traj[-1])
 print(structure)
 
-# get the charge-decorated structure
+## get the charge-decorated structure
 struc_with_chg = solve_charge_by_mag(structure)
 print(struc_with_chg)
 ```
+
 ## Structure Optimization
+
 `CHGNet` is able to perform fast structure optimization and
 provide the site-wise magnetic moments. This make it ideal for pre-relaxation and
 `MAGMOM` initialization in spin-polarized DFT.
+
 ```python
 from chgnet.model import StructOptimizer
 relaxer = StructOptimizer()
@@ -93,9 +106,8 @@ result = relaxer.relax(structure)
 print('CHGNet relaxed structure', result['final_structure'])
 ```
 
+## Model Training / Fine-tune
 
-
-## Model Training / Fine-tune:
 Fine-tuning will help achieve better accuracy if high-precision study
 is desired. To train/tune a `CHGNet`, you need to define your data in a
 pytorch `Dataset` object. The example datasets are provided in `data/dataset.py`
@@ -129,7 +141,9 @@ trainer = Trainer(
 
 trainer.train(train_loader, val_loader, test_loader)
 ```
-#### Note:
+
+### Note
+
 1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`.
 2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102).
 The parameter for VASP is described in [`MPRelaxSet`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879).
@@ -143,22 +157,26 @@ compatibility to your energy labels so that they're consistent with the pretrain
 see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/main/examples/make_graphs.py).
 6. Apple’s Metal Performance Shaders `MPS` is currently disabled before stable version of `pytorch` for
 `MPS` is released.
-# Reference:
+
+## Reference
+
 link to our paper:
-https://doi.org/10.48550/arXiv.2302.14231
+<https://doi.org/10.48550/arXiv.2302.14231>
 
 Please cite the following:
-```text
+
+```bib
 @article{deng2023chgnet,
-title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling},
-author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
-year={2023},
-eprint={2302.14231},
-archivePrefix={arXiv},
-primaryClass={cond-mat.mtrl-sci}
+    title={CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling},
+    author={Bowen Deng and Peichen Zhong and KyuJung Jun and Kevin Han and Christopher J. Bartel and Gerbrand Ceder},
+    year={2023},
+    eprint={2302.14231},
+    archivePrefix={arXiv},
+    primaryClass={cond-mat.mtrl-sci}
 }
 ```
 
-# Development & Bugs
+## Development & Bugs
+
 `CHGNet` is under active development, if you encounter any bugs in installation and usage,
 please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!

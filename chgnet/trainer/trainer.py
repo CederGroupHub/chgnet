@@ -201,7 +201,8 @@ class Trainer:
                 Default = None
             save_test_result (bool): whether to save the test set prediction in a json file
         """
-        assert self.model is not None, "Model need to be initialized"
+        if self.model is None:
+            raise ValueError("Model needs to be initialized")
         global best_checkpoint
         if save_dir is None:
             save_dir = datetime.date.today().strftime("%m-%d-%Y")

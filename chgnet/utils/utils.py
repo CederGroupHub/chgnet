@@ -138,10 +138,9 @@ def solve_charge_by_mag(
         "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
     }
 
-    if "final_magmom" in structure.site_properties:
-        mag_key = "final_magmom"
-    else:
-        mag_key = "magmom"
+    mag_key = (
+        "final_magmom" if "final_magmom" in structure.site_properties else "magmom"
+    )
 
     mag = structure.site_properties[mag_key]
 

@@ -128,7 +128,8 @@ class CIFData(Dataset):
         Args:
             cif_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "ef"
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces,
+                s=stress, m=magmons. Default = "ef"
             graph_converter (CrystalGraphConverter, optional):
                 a CrystalGraphConverter to convert the structures,
                 if None, it will be set to CHGNet default converter
@@ -141,19 +142,17 @@ class CIFData(Dataset):
         self.cif_ids = list(self.data)
         random.shuffle(self.cif_ids)
         print(f"{cif_path}: {len(self.cif_ids)} structures imported")
-        if graph_converter is not None:
-            self.graph_converter = graph_converter
-        else:
-            self.graph_converter = CrystalGraphConverter(
-                atom_graph_cutoff=5, bond_graph_cutoff=3
-            )
+        self.graph_converter = graph_converter or CrystalGraphConverter(
+            atom_graph_cutoff=5, bond_graph_cutoff=3
+        )
 
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
-        self.failed_idx = []
-        self.failed_graph_id = {}
+        self.failed_idx: list[str] = []
+        self.failed_graph_id: dict[str, str] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Get the number of structures in this dataset."""
         return len(self.cif_ids)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
@@ -193,10 +192,10 @@ class CIFData(Dataset):
                 return crystal_graph, targets
 
             # Omit structures with isolated atoms. Return another random selected structure
-            except:
+            except Exception:
                 try:
                     graph_id = self.cif_ids[idx]
-                except:
+                except IndexError:
                     print(idx, len(self.cif_ids))
                 structure = Structure.from_file(
                     os.path.join(self.data_dir, f"{graph_id}.cif")
@@ -302,7 +301,7 @@ class GraphData(Dataset):
                 return crystal_graph, targets
 
             # Omit failed structures. Return another random selected structure
-            except:
+            except Exception:
                 self.failed_graph_id.append(graph_id)
                 self.failed_idx.append(idx)
                 idx = random.randint(0, len(self) - 1)
@@ -357,7 +356,7 @@ class GraphData(Dataset):
         for mp_id in train_key:
             try:
                 train_labels[mp_id] = self.labels.pop(mp_id)
-            except:
+            except KeyError:
                 continue
         train_dataset = GraphData(
             graph_path=self.graph_path,
@@ -379,7 +378,7 @@ class GraphData(Dataset):
         for mp_id in val_key:
             try:
                 val_labels[mp_id] = self.labels.pop(mp_id)
-            except:
+            except KeyError:
                 continue
         val_dataset = GraphData(
             graph_path=self.graph_path,
@@ -402,7 +401,7 @@ class GraphData(Dataset):
             for mp_id in test_key:
                 try:
                     test_labels[mp_id] = self.labels.pop(mp_id)
-                except:
+                except KeyError:
                     continue
             test_dataset = GraphData(
                 graph_path=self.graph_path,

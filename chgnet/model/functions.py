@@ -55,11 +55,13 @@ class MLP(nn.Module):
         Args:
             input_dim (int): the input dimension
             output_dim (int): the output dimension
-            hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
-            the number of hidden units in each layer of the MLP. Default = [64, 64]
+            hidden_dim (list[int] | int]): a list of integers or a single integer
+                representing the number of hidden units in each layer of the MLP.
+                Default = [64, 64]
             dropout (float): the dropout rate before each linear layer. Default: 0
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            activation (str, optional): The name of the activation function to use
+                in the gated MLP. Must be one of "relu", "silu", "tanh", or "gelu".
+                Default: "silu".
         """
         super().__init__()
         if hidden_dim is None or hidden_dim == 0:
@@ -110,7 +112,7 @@ class GatedMLP(nn.Module):
         """Args:
         input_dim (int): the input dimension
         output_dim (int): the output dimension
-        hidden_dim (Union[List[int], int]): a list of integers or a single integer representing
+        hidden_dim (list[int] | int]): a list of integers or a single integer representing
         the number of hidden units in each layer of the MLP. Default = None
         dropout (float): the dropout rate before each linear layer. Default: 0
         activation (str, optional): The name of the activation function to use in the gated MLP.
@@ -181,8 +183,8 @@ def find_activation(name: str) -> nn.Module:
             "sigmoid": nn.Sigmoid,
             "tanh": nn.Tanh,
         }[name.lower()]()
-    except KeyError:
-        raise NotImplementedError
+    except KeyError as exc:
+        raise NotImplementedError from exc
 
 
 def find_normalization(name: str, dim: int = None) -> nn.Module | None:
