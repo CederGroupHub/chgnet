@@ -30,7 +30,8 @@ class Fourier(nn.Module):
                 "frequencies", torch.arange(1, order + 1, dtype=torch.float)
             )
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
+        """Apply Fourier expansion to a feature Tensor."""
         result = x.new_zeros(x.shape[0], 1 + 2 * self.order)
         result[:, 0] = 1 / torch.sqrt(torch.tensor([2]))
         tmp = torch.outer(x, self.frequencies)
@@ -58,7 +59,7 @@ class RadialBessel(torch.nn.Module):
                 Default = 9
             cutoff (float):  Cutoff distance in Angstrom.
                 Default = 5
-            learnable (bool): whether to set the frequencies learnanle
+            learnable (bool): whether to set the frequencies learnable
                 Default = False
             smooth_cutoff (int): smooth cutoff strength
                 Default = 5
@@ -88,12 +89,14 @@ class RadialBessel(torch.nn.Module):
         else:
             self.smooth_cutoff = None
 
-    def forward(self, d, return_smooth_factor=False):
-        d = d[:, None]  # (nEdges,1)
-        d_scaled = d * self.inv_cutoff
-        out = self.norm_const * torch.sin(self.frequencies * d_scaled) / d
+    def forward(
+        self, dist: Tensor, return_smooth_factor: bool = False
+    ) -> Tensor | tuple[Tensor, Tensor]:
+        dist = dist[:, None]  # shape = (nEdges, 1)
+        d_scaled = dist * self.inv_cutoff
+        out = self.norm_const * torch.sin(self.frequencies * d_scaled) / dist
         if self.smooth_cutoff is not None:
-            smooth_factor = self.smooth_cutoff(d)
+            smooth_factor = self.smooth_cutoff(dist)
             out = smooth_factor * out
             if return_smooth_factor:
                 return out, smooth_factor
