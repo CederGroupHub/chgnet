@@ -1,14 +1,10 @@
-ci:
-  autoupdate_schedule: quarterly
-  skip: [ruff]
-
 default_stages: [commit]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.255
+    rev: v0.0.257
     hooks:
       - id: ruff
         args: [--fix]
@@ -34,7 +30,6 @@ repos:
     hooks:
       - id: codespell
         stages: [commit, commit-msg]
-        args: [--ignore-words-list, struc]
 
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.6.3

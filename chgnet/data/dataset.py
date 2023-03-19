@@ -77,9 +77,9 @@ class StructureData(Dataset):
         if idx not in self.failed_idx:
             graph_id = self.keys[idx]
             try:
-                struc = Structure.from_dict(self.structures[graph_id])
+                struct = Structure.from_dict(self.structures[graph_id])
                 crystal_graph = self.graph_converter(
-                    struc, graph_id=graph_id, mp_id=graph_id
+                    struct, graph_id=graph_id, mp_id=graph_id
                 )
                 targets = {
                     "e": torch.tensor(self.energies[graph_id], dtype=datatype),
@@ -102,8 +102,8 @@ class StructureData(Dataset):
 
             # Omit structures with isolated atoms. Return another random selected structure
             except Exception:
-                struc = Structure.from_dict(self.structures[graph_id])
-                self.failed_graph_id[graph_id] = struc.composition.formula
+                struct = Structure.from_dict(self.structures[graph_id])
+                self.failed_graph_id[graph_id] = struct.composition.formula
                 self.failed_idx.append(idx)
                 idx = random.randint(0, len(self) - 1)
                 return self.__getitem__(idx)
@@ -484,9 +484,9 @@ class StructureJsonData(Dataset):
         if idx not in self.failed_idx:
             mp_id, graph_id = self.keys[idx]
             try:
-                struc = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
+                struct = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
                 crystal_graph = self.graph_converter(
-                    struc, graph_id=graph_id, mp_id=mp_id
+                    struct, graph_id=graph_id, mp_id=mp_id
                 )
 
                 targets = {}
