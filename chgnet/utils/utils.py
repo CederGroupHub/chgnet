@@ -30,49 +30,6 @@ class AverageMeter:
             self.avg = self.sum / self.count
 
 
-class MeanNormalizer:
-    """Normalize a Tensor and restore it later."""
-
-    def __init__(self, tensor) -> None:
-        """Tensor is taken as a sample to calculate the mean and std."""
-        self.mean = torch.mean(tensor)
-        self.std = torch.std(tensor)
-
-    def norm(self, tensor):
-        return (tensor - self.mean) / self.std
-
-    def denorm(self, normed_tensor):
-        return normed_tensor * self.std + self.mean
-
-    def state_dict(self):
-        return {"mean": self.mean, "std": self.std}
-
-    def load_state_dict(self, state_dict):
-        self.mean = state_dict["mean"]
-        self.std = state_dict["std"]
-
-
-class BaseNormalizer:
-    """Base normalizer to normalize target scalar."""
-
-    def __init__(self) -> None:
-        self.mean = 1
-        self.std = 1
-
-    def norm(self, tensor):
-        return tensor
-
-    def denorm(self, normed_tensor):
-        return normed_tensor
-
-    def state_dict(self):
-        return {"mean": 1, "std": 1}
-
-    def load_state_dict(self, state_dict):
-        self.mean = state_dict["mean"]
-        self.std = state_dict["std"]
-
-
 def mae(prediction: Tensor, target: Tensor) -> Tensor:
     """Computes the mean absolute error between prediction and target
     Parameters
