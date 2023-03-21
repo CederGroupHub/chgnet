@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import TYPE_CHECKING
 
 import torch
+from torch import Tensor
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
@@ -14,15 +14,20 @@ class AverageMeter:
     """Computes and stores the average and current value."""
 
     def __init__(self) -> None:
+        """Initialize the meter."""
         self.reset()
 
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
+    def reset(self) -> None:
+        """Reset the meter value, average, sum and count to 0."""
+        self.val = self.avg = self.sum = self.count = 0.0
 
-    def update(self, val, n=1):
+    def update(self, val: float, n: int = 1) -> None:
+        """Update the meter value, average, sum and count.
+
+        Args:
+            val (float): New value to be added to the running average.
+            n (int, optional): Number of times the value is added. Default = 1.
+        """
         self.val = val
         self.sum += val * n
         self.count += n
@@ -30,50 +35,7 @@ class AverageMeter:
             self.avg = self.sum / self.count
 
 
-class MeanNormalizer:
-    """Normalize a Tensor and restore it later."""
-
-    def __init__(self, tensor) -> None:
-        """Tensor is taken as a sample to calculate the mean and std."""
-        self.mean = torch.mean(tensor)
-        self.std = torch.std(tensor)
-
-    def norm(self, tensor):
-        return (tensor - self.mean) / self.std
-
-    def denorm(self, normed_tensor):
-        return normed_tensor * self.std + self.mean
-
-    def state_dict(self):
-        return {"mean": self.mean, "std": self.std}
-
-    def load_state_dict(self, state_dict):
-        self.mean = state_dict["mean"]
-        self.std = state_dict["std"]
-
-
-class BaseNormalizer:
-    """Base normalizer to normalize target scalar."""
-
-    def __init__(self) -> None:
-        self.mean = 1
-        self.std = 1
-
-    def norm(self, tensor):
-        return tensor
-
-    def denorm(self, normed_tensor):
-        return normed_tensor
-
-    def state_dict(self):
-        return {"mean": 1, "std": 1}
-
-    def load_state_dict(self, state_dict):
-        self.mean = state_dict["mean"]
-        self.std = state_dict["std"]
-
-
-def mae(prediction, target):
+def mae(prediction: Tensor, target: Tensor) -> Tensor:
     """Computes the mean absolute error between prediction and target
     Parameters
     ----------
@@ -81,15 +43,6 @@ def mae(prediction, target):
     target: torch.Tensor (N, 1).
     """
     return torch.mean(torch.abs(target - prediction))
-
-
-def mkdir(path):
-    folder = os.path.exists(path)
-    if not folder:
-        os.makedirs(path)
-    else:
-        print("Folder exists")
-    return path
 
 
 def read_json(fjson):

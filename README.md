@@ -1,6 +1,7 @@
 # CHGNet
 
 [![Tests](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml)
+[![Linting](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml)
 ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/CederGroupHub/chgnet?logo=Github)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/CederGroupHub/chgnet?logo=Github)
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
@@ -147,13 +148,13 @@ trainer.train(train_loader, val_loader, test_loader)
 1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`.
 2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102).
 The parameter for VASP is described in [`MPRelaxSet`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879).
-If you're fine-tuninig with [`MPRelaxSet`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879), it is recommended that apply the [`MP2020`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102)
+If you're fine-tuning with `MPRelaxSet``](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879), it is recommended that apply the [`MP2020`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102)
 compatibility to your energy labels so that they're consistent with the pretrained dataset.
 3. If you're fine-tuning to functionals other than GGA, we recommend you to refit the [`AtomRef`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/composition_model.py).
 4. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in
 [`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py). So `VASP` stress can be directly fed to `StructureData`
 5. To save time from graph conversion step for each training, we recommend you use [`GraphData`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py) defined in
-[`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py), which reads graph directly from saved directory. To create a saved graphs,
+[`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py), which reads graphs directly from saved directory. To create saved graphs,
 see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/main/examples/make_graphs.py).
 6. Apple’s Metal Performance Shaders `MPS` is currently disabled before stable version of `pytorch` for
 `MPS` is released.
