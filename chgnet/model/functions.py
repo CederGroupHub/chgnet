@@ -165,11 +165,13 @@ class ScaledSiLU(torch.nn.Module):
     """Scaled Sigmoid Linear Unit."""
 
     def __init__(self) -> None:
+        """Initialize a scaled SiLU."""
         super().__init__()
         self.scale_factor = 1 / 0.6
         self._activation = torch.nn.SiLU()
 
     def forward(self, x: Tensor) -> Tensor:
+        """Forward pass."""
         return self._activation(x) * self.scale_factor
 
 

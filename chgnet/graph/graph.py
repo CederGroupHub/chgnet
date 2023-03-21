@@ -38,6 +38,7 @@ class UndirectedEdge:
         self.info = info
 
     def __str__(self):
+        """Return a string representation of this edge."""
         return f"UndirectedEdge{self.index}, Nodes{self.nodes}, info={self.info}"
 
     def __eq__(self, other):
