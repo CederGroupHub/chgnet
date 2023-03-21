@@ -25,7 +25,7 @@ def make_graphs(
     graph_dir: str,
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
-):
+) -> None:
     """Make graphs from a StructureJsonData dataset.
 
     Args:
@@ -34,7 +34,7 @@ def make_graphs(
         train_ratio (float): train ratio
         val_ratio (float): val ratio
     """
-    utils.mkdir(graph_dir)
+    os.makedirs(graph_dir, exist_ok=True)
     random.shuffle(data.keys)
     labels = {}
     failed_graphs = []

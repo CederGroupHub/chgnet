@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import inspect
-import os.path
+import os
 import random
 import shutil
 import time
@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 
 from chgnet import TrainTask
 from chgnet.model.model import CHGNet
-from chgnet.utils import AverageMeter, mae, mkdir, write_json
+from chgnet.utils import AverageMeter, mae, write_json
 
 
 class Trainer:
@@ -206,7 +206,7 @@ class Trainer:
         global best_checkpoint
         if save_dir is None:
             save_dir = datetime.date.today().strftime("%m-%d-%Y")
-        mkdir(save_dir)
+        os.makedirs(save_dir, exist_ok=True)
 
         print(f"Begin Training: using {self.device} device")
         print(f"training targets: {self.targets}")
@@ -570,7 +570,7 @@ class CombinedLoss(nn.Module):
         force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
-        **kwargs,
+        delta: float = 0.1,
     ) -> None:
         """Initialize the combined loss.
 
@@ -589,7 +589,7 @@ class CombinedLoss(nn.Module):
                 Default = 0.1
             mag_loss_ratio (float): magmom loss ratio in loss function
                 Default = 0.1
-            **kwargs:
+            delta (float): delta for torch.nn.HuberLoss. Default = 0.1
         """
         super().__init__()
         # Define loss criterion
@@ -598,7 +598,7 @@ class CombinedLoss(nn.Module):
         elif criterion in ["MAE", "mae", "l1"]:
             self.criterion = nn.L1Loss()
         elif criterion in ["Huber"]:
-            self.criterion = nn.HuberLoss(delta=kwargs.pop("delta", 0.1))
+            self.criterion = nn.HuberLoss(delta=delta)
         else:
             raise NotImplementedError
         self.target_str = target_str

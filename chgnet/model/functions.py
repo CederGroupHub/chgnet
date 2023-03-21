@@ -45,8 +45,8 @@ class MLP(nn.Module):
     def __init__(
         self,
         input_dim: int = None,
-        output_dim: int = 1,
-        hidden_dim: int | Sequence[int] = (64, 64),
+        output_dim: int | None = 1,
+        hidden_dim: int | Sequence[int] | None = (64, 64),
         dropout=0,
         activation="silu",
     ) -> None:
@@ -64,7 +64,7 @@ class MLP(nn.Module):
                 Default: "silu".
         """
         super().__init__()
-        if hidden_dim is None or hidden_dim == 0:
+        if hidden_dim in (None, 0):
             layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim)]
         elif type(hidden_dim) == int:
             layers = [
@@ -104,21 +104,23 @@ class GatedMLP(nn.Module):
         self,
         input_dim: int = None,
         output_dim: int = None,
-        hidden_dim: int | list[int] = None,
+        hidden_dim: int | list[int] | None = None,
         dropout=0,
         activation="silu",
         norm="batch",
     ) -> None:
-        """Args:
-        input_dim (int): the input dimension
-        output_dim (int): the output dimension
-        hidden_dim (list[int] | int]): a list of integers or a single integer representing
-        the number of hidden units in each layer of the MLP. Default = None
-        dropout (float): the dropout rate before each linear layer. Default: 0
-        activation (str, optional): The name of the activation function to use in the gated MLP.
-            Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-        norm (str, optional): The name of the normalization layer to use on the updated atom features.
-            Must be one of "batch", "layer", or None. Default: "batch".
+        """Initialize a gated MLP.
+
+        Args:
+            input_dim (int): the input dimension
+            output_dim (int): the output dimension
+            hidden_dim (list[int] | int]): a list of integers or a single integer representing
+            the number of hidden units in each layer of the MLP. Default = None
+            dropout (float): the dropout rate before each linear layer. Default: 0
+            activation (str, optional): The name of the activation function to use in the gated MLP.
+                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated atom features.
+                Must be one of "batch", "layer", or None. Default: "batch".
         """
         super().__init__()
         self.mlp_core = MLP(

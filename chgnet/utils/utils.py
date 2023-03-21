@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import TYPE_CHECKING
 
 import torch
+from torch import Tensor
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
@@ -73,7 +73,7 @@ class BaseNormalizer:
         self.std = state_dict["std"]
 
 
-def mae(prediction, target):
+def mae(prediction: Tensor, target: Tensor) -> Tensor:
     """Computes the mean absolute error between prediction and target
     Parameters
     ----------
@@ -81,15 +81,6 @@ def mae(prediction, target):
     target: torch.Tensor (N, 1).
     """
     return torch.mean(torch.abs(target - prediction))
-
-
-def mkdir(path):
-    folder = os.path.exists(path)
-    if not folder:
-        os.makedirs(path)
-    else:
-        print("Folder exists")
-    return path
 
 
 def read_json(fjson):
