@@ -81,6 +81,7 @@ class CrystalGraph:
         ), f"Error: {graph_id} number of directed index != 2 * number of undirected index!"
 
     def to(self, device="cpu") -> CrystalGraph:
+        """Move the graph to a device. Default = 'cpu'."""
         return CrystalGraph(
             atomic_number=self.atomic_number.to(device),
             atom_frac_coord=self.atom_frac_coord.to(device),
@@ -98,6 +99,7 @@ class CrystalGraph:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert the graph to a dictionary."""
         return {
             "atomic_number": self.atomic_number,
             "atom_frac_coord": self.atom_frac_coord,
@@ -114,7 +116,16 @@ class CrystalGraph:
             "composition": self.composition,
         }
 
-    def save(self, fname: str = None, save_dir: str = "./") -> str:
+    def save(self, fname: str = None, save_dir: str = ".") -> str:
+        """Save the graph to a file.
+
+        Args:
+            fname (str, optional): File name. Defaults to None.
+            save_dir (str, optional): Directory to save the file. Defaults to ".".
+
+        Returns:
+            str: The path to the saved file.
+        """
         if fname is not None:
             save_name = os.path.join(save_dir, fname)
         elif self.graph_id is not None:
@@ -126,14 +137,23 @@ class CrystalGraph:
 
     @classmethod
     def from_file(cls, file_name) -> CrystalGraph:
+        """Load the graph from a file.
+
+        Args:
+            file_name (str): The path to the file.
+
+        Returns:
+            CrystalGraph: The loaded graph.
+        """
         graph = torch.load(file_name)
         return graph
 
     @classmethod
-    def from_dict(cls, dic) -> CrystalGraph:
+    def from_dict(cls, dic: dict[str, Any]) -> CrystalGraph:
+        """Load a CrystalGraph from a dictionary."""
         return CrystalGraph(**dic)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """Details of the graph."""
         return (
             f"Crystal Graph {self.composition} \n"
@@ -143,6 +163,3 @@ class CrystalGraph:
             f"atom_graph={len(self.atom_graph)}, "
             f"bond_graph={len(self.bond_graph)})"
         )
-
-    def __repr__(self) -> str:
-        return str(self)

@@ -92,6 +92,18 @@ class RadialBessel(torch.nn.Module):
     def forward(
         self, dist: Tensor, return_smooth_factor: bool = False
     ) -> Tensor | tuple[Tensor, Tensor]:
+        """Apply Bessel expansion to a feature Tensor.
+
+        Args:
+            dist (Tensor): tensor of distances [n, 1]
+            return_smooth_factor (bool): whether to return the smooth factor
+                Default = False
+
+        Returns:
+            out (Tensor): tensor of Bessel distances [n, dim]
+            where the expanded dimension will be num_radial
+            smooth_factor (Tensor): tensor of smooth factors [n, 1]
+        """
         dist = dist[:, None]  # shape = (nEdges, 1)
         d_scaled = dist * self.inv_cutoff
         out = self.norm_const * torch.sin(self.frequencies * d_scaled) / dist
@@ -100,10 +112,7 @@ class RadialBessel(torch.nn.Module):
             out = smooth_factor * out
             if return_smooth_factor:
                 return out, smooth_factor
-            else:
-                return out
-        else:
-            return out
+        return out
 
 
 class GaussianExpansion(nn.Module):
@@ -135,10 +144,10 @@ class GaussianExpansion(nn.Module):
         """Apply Gaussian filter to a feature Tensor.
 
         Args:
-            features (torch.Tensor): tensor of features [n]
+            features (Tensor): tensor of features [n]
 
         Returns:
-            expanded features (torch.Tensor): tensor of Gaussian distances [n, dim]
+            expanded features (Tensor): tensor of Gaussian distances [n, dim]
             where the expanded dimension will be (dmax-dmin)/step + 1
         """
         return torch.exp(
