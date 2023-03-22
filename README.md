@@ -35,8 +35,7 @@ pip install -e .
 
 ## Direct Inference (Static Calculation)
 
-Pretrained `CHGNet` is able to predict the energy (eV/atom), force(eV/A), stress (GPa)
-and magmom (muB) of a given structure.
+Pretrained `CHGNet` can predict the energy (eV/atom), force(eV/A), stress (GPa) and magmom (muB) of a given structure.
 
 ```python
 from chgnet.model.model import CHGNet
@@ -66,8 +65,8 @@ md = MolecularDynamics(
     model=chgnet,
     ensemble='nvt',
     compressibility_au= 1.6,
-    temperature=1000,     # in k
-    timestep=2,           # in fs
+    temperature=1000,     # in K
+    timestep=2,           # in femto-seconds
     trajectory=f'md_out.traj',
     logfile=f'md_out.log',
     loginterval = 100,
@@ -96,8 +95,7 @@ print(struc_with_chg)
 
 ## Structure Optimization
 
-`CHGNet` is able to perform fast structure optimization and
-provide the site-wise magnetic moments. This make it ideal for pre-relaxation and
+`CHGNet` can perform fast structure optimization and provide site-wise magnetic moments. This makes it ideal for pre-relaxation and
 `MAGMOM` initialization in spin-polarized DFT.
 
 ```python
@@ -109,8 +107,7 @@ print('CHGNet relaxed structure', result['final_structure'])
 
 ## Model Training / Fine-tune
 
-Fine-tuning will help achieve better accuracy if high-precision study
-is desired. To train/tune a `CHGNet`, you need to define your data in a
+Fine-tuning will help achieve better accuracy if a high-precision study is desired. To train/tune a `CHGNet`, you need to define your data in a
 pytorch `Dataset` object. The example datasets are provided in `data/dataset.py`
 
 ```python
