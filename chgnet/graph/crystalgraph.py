@@ -38,23 +38,25 @@ class CrystalGraph:
                 (center atom indices, neighbor atom indices, undirected bond index)
                 for bonds in bond_fea [2*n_bond, 3]
             atom_graph_cutoff (float): the cutoff radius to draw edges in atom_graph
-            neighbor_image (Tensor): the periodic image specifying the location of neighboring atom [2*n_bond, 3]
-            directed2undirected (Tensor): the mapping from directed edge index to undirected edge index
-                for the atom graph
-            undirected2directed (Tensor): the mapping from undirected edge index to directed edge index,
-                this is essentially the inverse mapping of half of the third column in atom_graph,
-                this tensor is needed for computation efficiency. [n_bond]
+            neighbor_image (Tensor): the periodic image specifying the location of neighboring
+                atom [2*n_bond, 3]
+            directed2undirected (Tensor): the mapping from directed edge index to undirected
+                edge index for the atom graph
+            undirected2directed (Tensor): the mapping from undirected edge index to directed
+                edge index, this is essentially the inverse mapping of half of the third column
+                in atom_graph, this tensor is needed for computation efficiency. [n_bond]
             bond_graph (Tensor): a directed graph adjacency list,
                 (atom indices, 1st undirected bond idx, 1st directed bond idx,
                  2nd undirected bond idx, 2nd directed bond idx)
                 for angles in angle_fea [n_angle, 5]
-            bond_graph_cutoff (float): the cutoff bond length to include bond as nodes in bond_graph
+            bond_graph_cutoff (float): the cutoff bond length to include bond as nodes in
+                bond_graph
             lattice (Tensor): lattices of the input structure [3, 3]
             graph_id (str or None): an id to keep track of this crystal graph
                 Default = None
             mp_id (str) or None: Materials Project id of this structure
                 Default = None
-            composition: the chemical composition of the compound, used just for better tracking
+            composition: Chemical composition of the compound, used just for better tracking
                 Default = None.
 
         Returns:

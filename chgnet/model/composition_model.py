@@ -12,7 +12,9 @@ from chgnet.model.functions import GatedMLP, find_activation
 
 
 class Composition_model(nn.Module):
-    """A simple FC model that takes in a chemical composition (no structure info) and output energy."""
+    """A simple FC model that takes in a chemical composition (no structure info)
+    and outputs energy.
+    """
 
     def __init__(
         self,
@@ -276,7 +278,7 @@ class AtomRef(nn.Module):
         self.fitted = True
 
     def initialize_from_MPF(self):
-        """initialize pre-fitted weights from MPF dataset."""
+        """Initialize pre-fitted weights from MPF dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
             [

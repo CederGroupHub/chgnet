@@ -117,10 +117,10 @@ class GatedMLP(nn.Module):
             hidden_dim (list[int] | int]): a list of integers or a single integer representing
             the number of hidden units in each layer of the MLP. Default = None
             dropout (float): the dropout rate before each linear layer. Default: 0
-            activation (str, optional): The name of the activation function to use in the gated MLP.
-                Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated atom features.
-                Must be one of "batch", "layer", or None. Default: "batch".
+            activation (str, optional): The name of the activation function to use in the gated
+                MLP. Must be one of "relu", "silu", "tanh", or "gelu". Default: "silu".
+            norm (str, optional): The name of the normalization layer to use on the updated
+                atom features. Must be one of "batch", "layer", or None. Default: "batch".
         """
         super().__init__()
         self.mlp_core = MLP(

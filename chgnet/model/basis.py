@@ -148,7 +148,7 @@ class GaussianExpansion(nn.Module):
 
 class CutoffPolynomial(nn.Module):
     """Polynomial soft-cutoff function for atom graph
-    ref: https://github.com/TUM-DAML/gemnet_pytorch/blob/master/gemnet/model/layers/envelope.py.
+    ref: https://github.com/TUM-DAML/gemnet_pytorch/blob/-/gemnet/model/layers/envelope.py.
     """
 
     def __init__(self, cutoff: float = 5, cutoff_coeff: float = 5) -> None:
@@ -159,8 +159,8 @@ class CutoffPolynomial(nn.Module):
             Default = 5
             cutoff_coeff (float): the strength of soft-Cutoff
             0 will disable the cutoff, returning 1 at every r
-            for positive numbers > 0, the smaller cutoff_coeff is, the faster this function decays
-            Default = 5.
+            for positive numbers > 0, the smaller cutoff_coeff is, the faster this function
+                decays. Default = 5.
         """
         super().__init__()
         self.cutoff = cutoff

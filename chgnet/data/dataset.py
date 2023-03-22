@@ -210,9 +210,8 @@ class CIFData(Dataset):
 
 
 class GraphData(Dataset):
-    """A dataset of graphs
-    this is compatible with the graph.pt documents made by make_graphs.py
-    we recommend you to use the dataset to avoid graph conversion steps.
+    """A dataset of graphs. This is compatible with the graph.pt documents made by
+    make_graphs.py. We recommend you to use the dataset to avoid graph conversion steps.
     """
 
     def __init__(
@@ -220,8 +219,8 @@ class GraphData(Dataset):
         graph_path: str,
         labels: str | dict = "labels.json",
         targets: PredTask = "efsm",
-        exclude: str | list = None,
-        **kwargs,
+        exclude: str | list | None = None,
+        energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
 
@@ -229,6 +228,8 @@ class GraphData(Dataset):
             graph_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
             targets ("ef" | "efs" | "efsm"): The training targets. Default = "efsm"
+            exclude (str, list | None): the path or list of excluded graphs. Default = None
+            energy_str (str, optional): the key of energy in the labels.
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -254,15 +255,15 @@ class GraphData(Dataset):
         if self.excluded_graph is not None:
             print(f"{len(self.excluded_graph)} graphs are pre-excluded")
 
-        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
+        self.energy_str = energy_str
         self.targets = targets
         self.failed_idx = []
         self.failed_graph_id = []
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.keys)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> tuple[CrystalGraph, dict]:
         """Get one item in the dataset.
 
         Returns:
@@ -323,7 +324,8 @@ class GraphData(Dataset):
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val,
+        test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training
@@ -438,8 +440,9 @@ class StructureJsonData(Dataset):
 
         Args:
             data (str | dict): json path or dir name that contain all the jsons
-            graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "efsm"
+            graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure to graph
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress,
+                m=magmons. Default = "efsm".
             **kwargs: other arguments
         """
         if isinstance(data, str):
@@ -534,7 +537,8 @@ class StructureJsonData(Dataset):
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val,
+        test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training

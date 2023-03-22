@@ -28,8 +28,8 @@ class CrystalGraphConverter(nn.Module):
         """Initialize the Crystal Graph Converter.
 
         Args:
-            atom_graph_cutoff (float): cutoff radius to search for neighboring atom in atom_graph
-                Default = 5
+            atom_graph_cutoff (float): cutoff radius to search for neighboring atom in
+                atom_graph. Default = 5
             bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
                 Default = 3
             verbose (bool): whether to print initialization message
