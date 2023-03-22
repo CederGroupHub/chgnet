@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 import torch
 from pymatgen.core.structure import Structure
+from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
@@ -59,7 +60,7 @@ class StructureData(Dataset):
         self.failed_idx = []
         self.failed_graph_id = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the number of structures in this dataset."""
         return len(self.keys)
 
@@ -174,18 +175,18 @@ class CIFData(Dataset):
                     structure, graph_id=graph_id, mp_id=mp_id
                 )
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.data[graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f":
+                    elif key == "f":
                         force = self.data[graph_id]["forces"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s":
+                    elif key == "s":
                         stress = self.data[graph_id]["stress"]
                         # Convert VASP stress
-                        targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                        targets["s"] = torch.tensor(stress, dtype=datatype) * -0.1
+                    elif key == "m":
                         mag = self.data[graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
@@ -261,9 +262,10 @@ class GraphData(Dataset):
         self.failed_graph_id = []
 
     def __len__(self) -> int:
+        """Get the number of graphs in this dataset."""
         return len(self.keys)
 
-    def __getitem__(self, idx) -> tuple[CrystalGraph, dict]:
+    def __getitem__(self, idx) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
         Returns:
@@ -281,18 +283,18 @@ class GraphData(Dataset):
                 graph_path = os.path.join(self.graph_path, f"{graph_id}.pt")
                 crystal_graph = CrystalGraph.from_file(graph_path)
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.labels[mp_id][graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f" or i == "force":
+                    elif key == "f" or key == "force":
                         force = self.labels[mp_id][graph_id]["force"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s" or i == "stresses":
+                    elif key == "s" or key == "stresses":
                         stress = self.labels[mp_id][graph_id]["stress"]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                    elif key == "m":
                         mag = self.labels[mp_id][graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         if mag is None:
@@ -301,7 +303,7 @@ class GraphData(Dataset):
                             targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit failed structures. Return another random selected structure
+            # Omit failed structures. Return another randomly selected structure
             except Exception:
                 self.failed_graph_id.append(graph_id)
                 self.failed_idx.append(idx)
@@ -472,7 +474,7 @@ class StructureJsonData(Dataset):
         self.failed_idx = []
         self.failed_graph_id = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the number of structures with targets in the dataset."""
         return len(self.keys)
 
@@ -493,18 +495,18 @@ class StructureJsonData(Dataset):
                 )
 
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.data[mp_id][graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f" or i == "force":
+                    elif key == "f" or key == "force":
                         force = self.data[mp_id][graph_id]["force"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s" or i == "stresses":
+                    elif key == "s" or key == "stresses":
                         stress = self.data[mp_id][graph_id]["stress"]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                    elif key == "m":
                         mag = self.data[mp_id][graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         if mag is None:
