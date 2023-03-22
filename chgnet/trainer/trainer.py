@@ -204,7 +204,7 @@ class Trainer:
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
-        global best_checkpoint
+        global best_checkpoint  # noqa: PLW0603
         if save_dir is None:
             save_dir = datetime.date.today().strftime("%m-%d-%Y")
         os.makedirs(save_dir, exist_ok=True)
