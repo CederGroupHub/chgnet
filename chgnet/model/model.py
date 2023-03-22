@@ -291,7 +291,7 @@ class CHGNet(nn.Module):
     ) -> dict:
         """Get prediction associated with input graphs
         Args:
-            graphs (List): a list of Crystal_Graphs
+            graphs (List): a list of CrystalGraphs
             task (str): the prediction task
                         eg: 'e', 'em', 'ef', 'efs', 'efsm'
                 Default = 'e'
@@ -535,7 +535,7 @@ class CHGNet(nn.Module):
         batch_size: int = 100,
     ) -> dict[str, Tensor]:
         """Args:
-            graph (CrystalGraph): Crystal_Graph or a list of Crystal_Graphs to predict.
+            graph (CrystalGraph): Crystal_Graph or a list of CrystalGraphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_atom_feas (bool): whether to return atom features.
@@ -701,7 +701,7 @@ class BatchedGraph:
         """Featurize and assemble a list of graphs.
 
         Args:
-            graphs (list[Tensor]): a list of Crystal_Graphs
+            graphs (list[Tensor]): a list of CrystalGraphs
             bond_basis_expansion (nn.Module): bond basis expansion layer in CHGNet
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
             compute_stress (bool): whether to compute stress

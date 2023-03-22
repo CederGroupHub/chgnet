@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+from typing import Sequence
 
 import numpy as np
 import torch
@@ -11,7 +12,7 @@ from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.model.functions import GatedMLP, find_activation
 
 
-class Composition_model(nn.Module):
+class CompositionModel(nn.Module):
     """A simple FC model that takes in a chemical composition (no structure info)
     and outputs energy.
     """
@@ -23,6 +24,7 @@ class Composition_model(nn.Module):
         is_intensive: bool = True,
         max_num_elements: int = 94,
     ) -> None:
+        """Initialize a CompositionModel."""
         super().__init__()
         self.is_intensive = is_intensive
         self.max_num_elements = max_num_elements
@@ -50,6 +52,7 @@ class Composition_model(nn.Module):
         return self.fc2(composition_feas).view(-1)
 
     def forward(self, graphs: list[CrystalGraph]) -> Tensor:
+        """Get the energy of a list of CrystalGraphs as Tensor."""
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
@@ -57,7 +60,7 @@ class Composition_model(nn.Module):
         """Assemble a list of graphs into one-hot composition encodings.
 
         Args:
-            graphs (list[CrystalGraph]): a list of Crystal_Graphs
+            graphs (list[CrystalGraph]): a list of CrystalGraphs
 
         Returns:
             assembled batch_graph that contains all information for model.
@@ -75,11 +78,12 @@ class Composition_model(nn.Module):
 
 
 class AtomRef(nn.Module):
-    """A linear regression for elemental energy
-    from: https://github.com/materialsvirtuallab/m3gnet/.
+    """A linear regression for elemental energy.
+    From: https://github.com/materialsvirtuallab/m3gnet/.
     """
 
     def __init__(self, is_intensive: bool = True, max_num_elements: int = 94) -> None:
+        """Initialize an AtomRef model."""
         super().__init__()
         self.is_intensive = is_intensive
         self.max_num_elements = max_num_elements
@@ -87,7 +91,7 @@ class AtomRef(nn.Module):
         self.fitted = False
 
     def forward(self, graphs: list[CrystalGraph]):
-        """Get the energy of a list of Crystal_Graphs.
+        """Get the energy of a list of CrystalGraphs.
 
         Args:
             graphs (List(CrystalGraph)): a list of Crystal Graph to compute
@@ -110,15 +114,25 @@ class AtomRef(nn.Module):
         """
         return self.fc(composition_feas).view(-1)
 
-    def fit(self, structures_or_graphs, energies):
-        is_structure = isinstance(structures_or_graphs[0], Structure)
+    def fit(
+        self,
+        structures_or_graphs: Sequence[Structure | CrystalGraph],
+        energies: Sequence[float],
+    ) -> None:
+        """Fit the model to a list of crystals and energies.
+
+        Args:
+            structures_or_graphs (list[Structure  |  CrystalGraph]): Any iterable of
+                pymatgen structures and/or graphs.
+            energies (list[float]): Target energies.
+        """
         num_data = len(energies)
         composition_feas = torch.zeros([num_data, self.max_num_elements])
         e = torch.zeros([num_data])
         for index, (structure, energy) in enumerate(
             zip(structures_or_graphs, energies)
         ):
-            if is_structure:
+            if isinstance(structure, Structure):
                 atomic_number = torch.tensor(
                     [i.specie.Z for i in structure], dtype=int, requires_grad=False
                 )
@@ -148,7 +162,7 @@ class AtomRef(nn.Module):
     def _assemble_graphs(self, graphs: list[CrystalGraph]):
         """Assemble a list of graphs into one-hot composition encodings
         Args:
-            graphs (list[Tensor]): a list of Crystal_Graphs
+            graphs (list[Tensor]): a list of CrystalGraphs
         Returns:
             assembled batch_graph that contains all information for model.
         """
@@ -383,6 +397,7 @@ class AtomRef(nn.Module):
         self.fitted = True
 
     def initialize_from_numpy(self, file_name):
+        """Initialize pre-fitted weights from numpy file."""
         atom_ref_np = np.load(file_name)
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(atom_ref_np).view([1, 94])

@@ -75,6 +75,8 @@ class BondEncoder(nn.Module):
         Args:
             center (Tensor): 3d cartesian coordinates of center atoms [n_bond, 3]
             neighbor (Tensor): 3d cartesian coordinates of neighbor atoms [n_bond, 3]
+            undirected2directed (Tensor): mapping from undirected bond to directed bond
+                [n_bond, 2]
             image (Tensor): the periodic image specifying the location of neighboring
                 atom [n_bond, 3]
             lattice (Tensor): the lattice of this structure [3, 3]
