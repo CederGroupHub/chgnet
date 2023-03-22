@@ -140,7 +140,8 @@ class CHGNet(nn.Module):
             self.composition_model = composition_model
         else:
             self.composition_model = AtomRef(is_intensive=is_intensive)
-            self.composition_model.initialize_from(composition_model)
+            if isinstance(composition_model, str):
+                self.composition_model.initialize_from(composition_model)
         if self.composition_model is not None:
             # fixed composition_model weights
             for param in self.composition_model.parameters():
@@ -279,7 +280,8 @@ class CHGNet(nn.Module):
             )
 
         print(
-            f"CHGNet initialized with {sum(p.numel() for p in self.parameters()):,} parameters"
+            f"CHGNet initialized with {sum(p.numel() for p in self.parameters()):,} "
+            f"parameters"
         )
 
     def forward(
