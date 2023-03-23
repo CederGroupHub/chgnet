@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 import torch
 from pymatgen.core.structure import Structure
+from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
@@ -59,7 +60,7 @@ class StructureData(Dataset):
         self.failed_idx = []
         self.failed_graph_id = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the number of structures in this dataset."""
         return len(self.keys)
 
@@ -174,18 +175,18 @@ class CIFData(Dataset):
                     structure, graph_id=graph_id, mp_id=mp_id
                 )
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.data[graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f":
+                    elif key == "f":
                         force = self.data[graph_id]["forces"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s":
+                    elif key == "s":
                         stress = self.data[graph_id]["stress"]
                         # Convert VASP stress
-                        targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                        targets["s"] = torch.tensor(stress, dtype=datatype) * -0.1
+                    elif key == "m":
                         mag = self.data[graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
@@ -210,9 +211,8 @@ class CIFData(Dataset):
 
 
 class GraphData(Dataset):
-    """A dataset of graphs
-    this is compatible with the graph.pt documents made by make_graphs.py
-    we recommend you to use the dataset to avoid graph conversion steps.
+    """A dataset of graphs. This is compatible with the graph.pt documents made by
+    make_graphs.py. We recommend you to use the dataset to avoid graph conversion steps.
     """
 
     def __init__(
@@ -220,8 +220,8 @@ class GraphData(Dataset):
         graph_path: str,
         labels: str | dict = "labels.json",
         targets: PredTask = "efsm",
-        exclude: str | list = None,
-        **kwargs,
+        exclude: str | list | None = None,
+        energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
 
@@ -229,6 +229,8 @@ class GraphData(Dataset):
             graph_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
             targets ("ef" | "efs" | "efsm"): The training targets. Default = "efsm"
+            exclude (str, list | None): the path or list of excluded graphs. Default = None
+            energy_str (str, optional): the key of energy in the labels.
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -254,15 +256,16 @@ class GraphData(Dataset):
         if self.excluded_graph is not None:
             print(f"{len(self.excluded_graph)} graphs are pre-excluded")
 
-        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
+        self.energy_str = energy_str
         self.targets = targets
-        self.failed_idx = []
-        self.failed_graph_id = []
+        self.failed_idx: list[str] = []
+        self.failed_graph_id: dict[str, str] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Get the number of graphs in this dataset."""
         return len(self.keys)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
         Returns:
@@ -280,18 +283,18 @@ class GraphData(Dataset):
                 graph_path = os.path.join(self.graph_path, f"{graph_id}.pt")
                 crystal_graph = CrystalGraph.from_file(graph_path)
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.labels[mp_id][graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f" or i == "force":
+                    elif key == "f" or key == "force":
                         force = self.labels[mp_id][graph_id]["force"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s" or i == "stresses":
+                    elif key == "s" or key == "stresses":
                         stress = self.labels[mp_id][graph_id]["stress"]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                    elif key == "m":
                         mag = self.labels[mp_id][graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         if mag is None:
@@ -300,7 +303,7 @@ class GraphData(Dataset):
                             targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit failed structures. Return another random selected structure
+            # Omit failed structures. Return another randomly selected structure
             except Exception:
                 self.failed_graph_id.append(graph_id)
                 self.failed_idx.append(idx)
@@ -323,7 +326,8 @@ class GraphData(Dataset):
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val,
+        test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training
@@ -438,8 +442,9 @@ class StructureJsonData(Dataset):
 
         Args:
             data (str | dict): json path or dir name that contain all the jsons
-            graph_converter (CrystalGraphConverter): converter to convert pymatgen.core.Structure to graph
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress, m=magmons. Default = "efsm"
+            graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure to graph
+            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress,
+                m=magmons. Default = "efsm".
             **kwargs: other arguments
         """
         if isinstance(data, str):
@@ -466,10 +471,10 @@ class StructureJsonData(Dataset):
         self.graph_converter = graph_converter
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
-        self.failed_idx = []
-        self.failed_graph_id = {}
+        self.failed_idx: list[str] = []
+        self.failed_graph_id: dict[str, str] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the number of structures with targets in the dataset."""
         return len(self.keys)
 
@@ -490,18 +495,18 @@ class StructureJsonData(Dataset):
                 )
 
                 targets = {}
-                for i in self.targets:
-                    if i == "e":
+                for key in self.targets:
+                    if key == "e":
                         energy = self.data[mp_id][graph_id][self.energy_str]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif i == "f" or i == "force":
+                    elif key == "f" or key == "force":
                         force = self.data[mp_id][graph_id]["force"]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif i == "s" or i == "stresses":
+                    elif key == "s" or key == "stresses":
                         stress = self.data[mp_id][graph_id]["stress"]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
-                    elif i == "m":
+                    elif key == "m":
                         mag = self.data[mp_id][graph_id]["magmom"]
                         # use absolute value for magnetic moments
                         if mag is None:
@@ -534,7 +539,8 @@ class StructureJsonData(Dataset):
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
-        or use pre-defined train_keys, val_keys, and test_keys to create train, val, test loaders.
+        or use pre-defined train_keys, val_keys, and test_keys to create train, val,
+        test loaders.
 
         Args:
             train_ratio (float): The ratio of the dataset to use for training

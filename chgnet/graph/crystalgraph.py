@@ -38,23 +38,25 @@ class CrystalGraph:
                 (center atom indices, neighbor atom indices, undirected bond index)
                 for bonds in bond_fea [2*n_bond, 3]
             atom_graph_cutoff (float): the cutoff radius to draw edges in atom_graph
-            neighbor_image (Tensor): the periodic image specifying the location of neighboring atom [2*n_bond, 3]
-            directed2undirected (Tensor): the mapping from directed edge index to undirected edge index
-                for the atom graph
-            undirected2directed (Tensor): the mapping from undirected edge index to directed edge index,
-                this is essentially the inverse mapping of half of the third column in atom_graph,
-                this tensor is needed for computation efficiency. [n_bond]
+            neighbor_image (Tensor): the periodic image specifying the location of neighboring
+                atom [2*n_bond, 3]
+            directed2undirected (Tensor): the mapping from directed edge index to undirected
+                edge index for the atom graph
+            undirected2directed (Tensor): the mapping from undirected edge index to directed
+                edge index, this is essentially the inverse mapping of half of the third column
+                in atom_graph, this tensor is needed for computation efficiency. [n_bond]
             bond_graph (Tensor): a directed graph adjacency list,
                 (atom indices, 1st undirected bond idx, 1st directed bond idx,
                  2nd undirected bond idx, 2nd directed bond idx)
                 for angles in angle_fea [n_angle, 5]
-            bond_graph_cutoff (float): the cutoff bond length to include bond as nodes in bond_graph
+            bond_graph_cutoff (float): the cutoff bond length to include bond as nodes in
+                bond_graph
             lattice (Tensor): lattices of the input structure [3, 3]
             graph_id (str or None): an id to keep track of this crystal graph
                 Default = None
             mp_id (str) or None: Materials Project id of this structure
                 Default = None
-            composition: the chemical composition of the compound, used just for better tracking
+            composition: Chemical composition of the compound, used just for better tracking
                 Default = None.
 
         Returns:
@@ -79,6 +81,7 @@ class CrystalGraph:
         ), f"Error: {graph_id} number of directed index != 2 * number of undirected index!"
 
     def to(self, device="cpu") -> CrystalGraph:
+        """Move the graph to a device. Default = 'cpu'."""
         return CrystalGraph(
             atomic_number=self.atomic_number.to(device),
             atom_frac_coord=self.atom_frac_coord.to(device),
@@ -96,6 +99,7 @@ class CrystalGraph:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert the graph to a dictionary."""
         return {
             "atomic_number": self.atomic_number,
             "atom_frac_coord": self.atom_frac_coord,
@@ -112,7 +116,16 @@ class CrystalGraph:
             "composition": self.composition,
         }
 
-    def save(self, fname: str = None, save_dir: str = "./") -> str:
+    def save(self, fname: str = None, save_dir: str = ".") -> str:
+        """Save the graph to a file.
+
+        Args:
+            fname (str, optional): File name. Defaults to None.
+            save_dir (str, optional): Directory to save the file. Defaults to ".".
+
+        Returns:
+            str: The path to the saved file.
+        """
         if fname is not None:
             save_name = os.path.join(save_dir, fname)
         elif self.graph_id is not None:
@@ -124,14 +137,23 @@ class CrystalGraph:
 
     @classmethod
     def from_file(cls, file_name) -> CrystalGraph:
+        """Load the graph from a file.
+
+        Args:
+            file_name (str): The path to the file.
+
+        Returns:
+            CrystalGraph: The loaded graph.
+        """
         graph = torch.load(file_name)
         return graph
 
     @classmethod
-    def from_dict(cls, dic) -> CrystalGraph:
+    def from_dict(cls, dic: dict[str, Any]) -> CrystalGraph:
+        """Load a CrystalGraph from a dictionary."""
         return CrystalGraph(**dic)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """Details of the graph."""
         return (
             f"Crystal Graph {self.composition} \n"
@@ -141,6 +163,3 @@ class CrystalGraph:
             f"atom_graph={len(self.atom_graph)}, "
             f"bond_graph={len(self.bond_graph)})"
         )
-
-    def __repr__(self) -> str:
-        return str(self)

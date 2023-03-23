@@ -61,8 +61,8 @@ class Trainer:
                 Default = 0.1
             optimizer (str): optimizer to update model. Can be "Adam", "SGD", "AdamW", "RAdam"
                 Default = 'Adam'
-            scheduler (str): learning rate scheduler. Can be "CosLR", "ExponentialLR", "CosRestartLR"
-                Default = 'CosLR'
+            scheduler (str): learning rate scheduler. Can be "CosLR", "ExponentialLR",
+                "CosRestartLR". Default = 'CosLR'
             criterion (str): loss function criterion. Can be "MSE", "Huber", "MAE"
                 Default = 'MSE'
             epochs (int): number of epochs for training
@@ -196,14 +196,15 @@ class Trainer:
         Args:
             train_loader (DataLoader): train loader to update CHGNet weights
             val_loader (DataLoader): val loader to test accuracy after each epoch
-            test_loader (DataLoader):  test loader to test accuracy at end of training, can be None
+            test_loader (DataLoader):  test loader to test accuracy at end of training.
+                Can be None. Default = None.
             save_dir (str): the dir name to save the trained weights
                 Default = None
             save_test_result (bool): whether to save the test set prediction in a json file
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
-        global best_checkpoint
+        global best_checkpoint  # noqa: PLW0603
         if save_dir is None:
             save_dir = datetime.date.today().strftime("%m-%d-%Y")
         os.makedirs(save_dir, exist_ok=True)
@@ -528,9 +529,7 @@ class Trainer:
         """Load trainer state_dict."""
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
-        print(
-            f"Total Number of loaded Model Params = {sum(p.numel() for p in model.parameters()):,}"
-        )
+        print(f"Loaded model params = {sum(p.numel() for p in model.parameters()):,}")
         if "model" in state["trainer_args"]:
             del state["trainer_args"]["model"]
         trainer = Trainer(model=model, **state["trainer_args"])

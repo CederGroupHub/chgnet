@@ -33,38 +33,38 @@ class UndirectedEdge:
     """An edge in a graph."""
 
     def __init__(self, nodes: list, index: int = None, info: dict = None) -> None:
+        """Initialize an UndirectedEdge."""
         self.nodes = nodes
         self.index = index
         self.info = info
 
-    def __str__(self):
+    def __repr__(self):
         """Return a string representation of this edge."""
         return f"UndirectedEdge{self.index}, Nodes{self.nodes}, info={self.info}"
 
     def __eq__(self, other):
-        if self.nodes == other.nodes and self.info == other.info:
-            return True
-        return False
-
-    def __repr__(self):
-        return str(self)
+        """Check if two edges are equal."""
+        return self.nodes == other.nodes and self.info == other.info
 
 
 class DirectedEdge:
     """An edge in a graph."""
 
     def __init__(self, nodes: list, index: int, info: dict = None) -> None:
+        """Initialize a DirectedEdge."""
         self.nodes = nodes
         self.index = index
         self.info = info
 
     def make_undirected(self, index, info=None):
+        """Make a directed edge undirected."""
         if info is None:
             info = {}
         info["distance"] = self.info["distance"]
         return UndirectedEdge(self.nodes, index, info)
 
     def __eq__(self, other):
+        """Check if two edges are equal."""
         if (
             self.nodes == other.nodes
             and (self.info["image"] == other.info["image"]).all()
@@ -72,8 +72,8 @@ class DirectedEdge:
             # print(self.nodes, other.nodes)
             # print(self.info['image'], other.info['image'])
             print(
-                "!!!!!! the two directed edges are equal "
-                "but this operation is not supposed to happen"
+                "!!!!!! the two directed edges are equal but this operation is "
+                "not supposed to happen"
             )
             return True
         if (
@@ -83,23 +83,25 @@ class DirectedEdge:
             return True
         return False
 
-    def __str__(self):
-        return f"DirectedEdge{self.index}, Nodes{self.nodes}, info={self.info}"
-
     def __repr__(self):
-        return str(self)
+        """Return a string representation of this edge."""
+        return f"DirectedEdge{self.index}, Nodes{self.nodes}, info={self.info}"
 
 
 class Graph:
+    """A graph for storing the neighbor information of atoms."""
+
     def __init__(self, nodes: list[Node]) -> None:
+        """Initialize a Graph from a list of nodes."""
         self.nodes = nodes
-        self.directed_edges = {}
-        self.directed_edges_list = []
-        self.undirected_edges = {}
-        self.undirected_edges_list = []
+        self.directed_edges: dict[frozenset[int], list[DirectedEdge]] = {}
+        self.directed_edges_list: list[DirectedEdge] = []
+        self.undirected_edges: dict[frozenset[int], list[UndirectedEdge]] = {}
+        self.undirected_edges_list: list[UndirectedEdge] = []
 
     def add_edge(self, center_index, neighbor_index, image, distance) -> None:
-        """Add an directed edge to the graph
+        """Add an directed edge to the graph.
+
         Args:
             center_index: center node index
             neighbor_index: neighbor node index
