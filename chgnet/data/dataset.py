@@ -4,6 +4,7 @@ import functools
 import os
 import random
 import warnings
+from typing import Any, Sequence
 
 import numpy as np
 import torch
@@ -24,24 +25,24 @@ class StructureData(Dataset):
 
     def __init__(
         self,
-        structures: list,
-        energies: list,
-        forces: list,
-        stresses: list = None,
-        magmoms: list = None,
+        structures: list[dict[str, Any]],
+        energies: list[float],
+        forces: list[Sequence[Sequence[float]]],
+        stresses: list[Sequence[Sequence[float]]] = None,
+        magmoms: list[Sequence[Sequence[float]]] = None,
         graph_converter: CrystalGraphConverter = None,
     ) -> None:
         """Initialize the dataset.
 
         Args:
-            structures (list): a list of structures
-            energies (list): a list of  energies
-            forces (list): a list of forces
-            stresses (List, optional): a list of stresses
-            magmoms (List, optional): a list of magmoms
-            graph_converter (CrystalGraphConverter, optional):
-                a CrystalGraphConverter to convert the structures,
-                if None, it will be set to CHGNet default converter
+            structures (list[dict]): a list of structures in pymatgen dict format, i.e.
+                the output of Structure.to_dict()
+            energies (list[float]): [data_size, 1]
+            forces (list[list[float]]): [data_size, n_atoms, 3]
+            stresses (list[list[float]], optional): [data_size, 3, 3]
+            magmoms (list[list[float]], optional): [data_size, n_atoms, 3]
+            graph_converter (CrystalGraphConverter, optional): Converts the structures to
+                graphs. If None, it will be set to CHGNet default converter.
         """
         self.structures = structures
         self.energies = energies
@@ -50,13 +51,10 @@ class StructureData(Dataset):
         self.magmoms = magmoms
         self.keys = np.arange(len(structures))
         random.shuffle(self.keys)
-        print(f"{len(self.structures)} structures imported")
-        if graph_converter is not None:
-            self.graph_converter = graph_converter
-        else:
-            self.graph_converter = CrystalGraphConverter(
-                atom_graph_cutoff=5, bond_graph_cutoff=3
-            )
+        print(f"{len(structures)} structures imported")
+        self.graph_converter = graph_converter or CrystalGraphConverter(
+            atom_graph_cutoff=5, bond_graph_cutoff=3
+        )
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
 
@@ -65,7 +63,7 @@ class StructureData(Dataset):
         return len(self.keys)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx) -> tuple[CrystalGraph, dict]:
+    def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict]:
         """Get one graph for a structure in this dataset.
 
         Args:
@@ -157,12 +155,12 @@ class CIFData(Dataset):
         return len(self.cif_ids)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
         Returns:
-            crystal_graph (CrystalGraph): graph of the crystal structure
-            targets (dict): list of targets. i.e. energy, force, stress
+            tuple[CrystalGraph, dict[str, Tensor]]: graph of the crystal structure
+                and dict of targets i.e. energy, force, stress
         """
         if idx not in self.failed_idx:
             try:
@@ -436,16 +434,16 @@ class StructureJsonData(Dataset):
         data: str | dict,
         graph_converter: CrystalGraphConverter,
         targets: TrainTask = "efsm",
-        **kwargs,
+        energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset by reading Json files.
 
         Args:
-            data (str | dict): json path or dir name that contain all the jsons
+            data (str | dict): file path or dir name that contain all the JSONs
             graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure to graph
             targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress,
                 m=magmons. Default = "efsm".
-            **kwargs: other arguments
+            energy_str (str): key to get energy from the JSON file. Default = "energy_per_atom"
         """
         if isinstance(data, str):
             self.data = {}
@@ -469,7 +467,7 @@ class StructureJsonData(Dataset):
         random.shuffle(self.keys)
         print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
         self.graph_converter = graph_converter
-        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
+        self.energy_str = energy_str
         self.targets = targets
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
