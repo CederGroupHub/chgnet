@@ -30,30 +30,30 @@ class CHGNet(nn.Module):
     """
 
     def __init__(
-        self,
-        atom_fea_dim: int = 64,
-        bond_fea_dim: int = 64,
-        angle_fea_dim: int = 64,
-        composition_model: str | nn.Module = None,
-        num_radial: int = 9,
-        num_angular: int = 9,
-        n_conv: int = 4,
-        atom_conv_hidden_dim: Sequence[int] | int = 64,
-        update_bond: bool = True,
-        bond_conv_hidden_dim: Sequence[int] | int = 64,
-        update_angle: bool = True,
-        angle_layer_hidden_dim: Sequence[int] | int = 0,
-        conv_dropout: float = 0,
-        read_out: str = "ave",
-        mlp_hidden_dims: Sequence[int] | int = (64, 64),
-        mlp_dropout: float = 0,
-        mlp_first: bool = True,
-        is_intensive: bool = True,
-        non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "relu",
-        atom_graph_cutoff: int = 5,
-        bond_graph_cutoff: int = 3,
-        learnable_rbf: bool = True,
-        **kwargs,
+            self,
+            atom_fea_dim: int = 64,
+            bond_fea_dim: int = 64,
+            angle_fea_dim: int = 64,
+            composition_model: str | nn.Module = None,
+            num_radial: int = 9,
+            num_angular: int = 9,
+            n_conv: int = 4,
+            atom_conv_hidden_dim: Sequence[int] | int = 64,
+            update_bond: bool = True,
+            bond_conv_hidden_dim: Sequence[int] | int = 64,
+            update_angle: bool = True,
+            angle_layer_hidden_dim: Sequence[int] | int = 0,
+            conv_dropout: float = 0,
+            read_out: str = "ave",
+            mlp_hidden_dims: Sequence[int] | int = (64, 64),
+            mlp_dropout: float = 0,
+            mlp_first: bool = True,
+            is_intensive: bool = True,
+            non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "relu",
+            atom_graph_cutoff: int = 5,
+            bond_graph_cutoff: int = 3,
+            learnable_rbf: bool = True,
+            **kwargs,
     ) -> None:
         """Initialize the CHGNet.
 
@@ -285,11 +285,11 @@ class CHGNet(nn.Module):
         )
 
     def forward(
-        self,
-        graphs: Sequence[CrystalGraph],
-        task: PredTask = "e",
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
+            self,
+            graphs: Sequence[CrystalGraph],
+            task: PredTask = "e",
+            return_atom_feas: bool = False,
+            return_crystal_feas: bool = False,
     ) -> dict:
         """Get prediction associated with input graphs
         Args:
@@ -335,13 +335,13 @@ class CHGNet(nn.Module):
         return prediction
 
     def _compute(
-        self,
-        g,
-        site_wise: bool = False,
-        compute_force: bool = False,
-        compute_stress: bool = False,
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
+            self,
+            g,
+            site_wise: bool = False,
+            compute_force: bool = False,
+            compute_stress: bool = False,
+            return_atom_feas: bool = False,
+            return_crystal_feas: bool = False,
     ) -> dict:
         """Get Energy, Force, Stress, Magmom associated with input graphs
         force = - d(Energy)/d(atom_positions)
@@ -384,7 +384,8 @@ class CHGNet(nn.Module):
 
         # Message Passing
         for idx, (atom_layer, bond_layer, angle_layer) in enumerate(
-            zip(self.atom_conv_layers[:-1], self.bond_conv_layers, self.angle_layers)
+                zip(self.atom_conv_layers[:-1], self.bond_conv_layers,
+                    self.angle_layers)
         ):
             # Atom Conv
             atom_feas = atom_layer(
@@ -475,12 +476,12 @@ class CHGNet(nn.Module):
         return prediction
 
     def predict_structure(
-        self,
-        structure: Structure | Sequence[Structure],
-        task: PredTask = "efsm",
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
-        batch_size: int = 100,
+            self,
+            structure: Structure | Sequence[Structure],
+            task: PredTask = "efsm",
+            return_atom_feas: bool = False,
+            return_crystal_feas: bool = False,
+            batch_size: int = 100,
     ) -> dict[str, Tensor]:
         """Predict from pymatgen.core.Structure.
 
@@ -505,7 +506,7 @@ class CHGNet(nn.Module):
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
         """
         assert (
-            self.graph_converter is not None
+                self.graph_converter is not None
         ), "self.graph_converter needs to be initialized first!"
         if type(structure) == Structure:
             graph = self.graph_converter(structure)
@@ -529,12 +530,12 @@ class CHGNet(nn.Module):
             raise Exception("input should either be a structure or list of structures!")
 
     def predict_graph(
-        self,
-        graph: CrystalGraph | Sequence[CrystalGraph],
-        task: PredTask = "efsm",
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
-        batch_size: int = 100,
+            self,
+            graph: CrystalGraph | Sequence[CrystalGraph],
+            task: PredTask = "efsm",
+            return_atom_feas: bool = False,
+            return_crystal_feas: bool = False,
+            batch_size: int = 100,
     ) -> dict[str, Tensor]:
         """Args:
             graph (CrystalGraph): Crystal_Graph or a list of CrystalGraphs to predict.
@@ -555,10 +556,11 @@ class CHGNet(nn.Module):
                 s (Tensor) : stress of structure [3 * batch_size, 3]
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
         """
+        model_device = next(self.parameters()).device
         if type(graph) == CrystalGraph:
             self.eval()
             prediction = self.forward(
-                [graph],
+                [graph.to(model_device)],
                 task=task,
                 return_atom_feas=return_atom_feas,
                 return_crystal_feas=return_crystal_feas,
@@ -579,7 +581,8 @@ class CHGNet(nn.Module):
             n_steps = math.ceil(len(graph) / batch_size)
             for n in range(n_steps):
                 prediction = self.forward(
-                    graph[batch_size * n : batch_size * (n + 1)],
+                    [g.to(model_device) for g in
+                     graph[batch_size * n: batch_size * (n + 1)]],
                     task=task,
                     return_atom_feas=return_atom_feas,
                     return_crystal_feas=return_crystal_feas,
@@ -612,7 +615,7 @@ class CHGNet(nn.Module):
         start = 0
         result = []
         for i in n:
-            result.append(x[start : start + i])
+            result.append(x[start: start + i])
             start += i
         assert start == len(x), "Error: source tensor not correctly split!"
         return result
@@ -694,11 +697,11 @@ class BatchedGraph:
 
     @classmethod
     def from_graphs(
-        cls,
-        graphs: Sequence[CrystalGraph],
-        bond_basis_expansion: nn.Module,
-        angle_basis_expansion: nn.Module,
-        compute_stress: bool = False,
+            cls,
+            graphs: Sequence[CrystalGraph],
+            bond_basis_expansion: nn.Module,
+            angle_basis_expansion: nn.Module,
+            compute_stress: bool = False,
     ) -> BatchedGraph:
         """Featurize and assemble a list of graphs.
 
