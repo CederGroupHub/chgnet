@@ -581,8 +581,10 @@ class CHGNet(nn.Module):
             n_steps = math.ceil(len(graph) / batch_size)
             for n in range(n_steps):
                 prediction = self.forward(
-                    [g.to(model_device) for g in
-                     graph[batch_size * n: batch_size * (n + 1)]],
+                    [
+                        g.to(model_device)
+                        for g in graph[batch_size * n: batch_size * (n + 1)]
+                    ],
                     task=task,
                     return_atom_feas=return_atom_feas,
                     return_crystal_feas=return_crystal_feas,
