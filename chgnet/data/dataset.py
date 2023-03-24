@@ -40,7 +40,7 @@ class StructureData(Dataset):
             energies (list[float]): [data_size, 1]
             forces (list[list[float]]): [data_size, n_atoms, 3]
             stresses (list[list[float]], optional): [data_size, 3, 3]
-            magmoms (list[list[float]], optional): [data_size, n_atoms, 3]
+            magmoms (list[list[float]], optional): [data_size, n_atoms, 1]
             graph_converter (CrystalGraphConverter, optional): Converts the structures to
                 graphs. If None, it will be set to CHGNet default converter.
         """
