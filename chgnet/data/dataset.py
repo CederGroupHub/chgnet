@@ -101,7 +101,7 @@ class StructureData(Dataset):
 
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another random selected structure
+            # Omit structures with isolated atoms. Return another randomly selected structure
             except Exception:
                 struct = Structure.from_dict(self.structures[graph_id])
                 self.failed_graph_id[graph_id] = struct.composition.formula
@@ -114,7 +114,7 @@ class StructureData(Dataset):
 
 
 class CIFData(Dataset):
-    """A dataset from cifs."""
+    """A dataset from CIFs."""
 
     def __init__(
         self,
@@ -124,7 +124,7 @@ class CIFData(Dataset):
         graph_converter: CrystalGraphConverter = None,
         **kwargs,
     ) -> None:
-        """Initialize the dataset from a directory containing cifs.
+        """Initialize the dataset from a directory containing CIFs.
 
         Args:
             cif_path (str): path that contain all the graphs, labels.json
@@ -192,7 +192,7 @@ class CIFData(Dataset):
                         targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another random selected structure
+            # Omit structures with isolated atoms. Return another randomly selected structure
             except Exception:
                 try:
                     graph_id = self.cif_ids[idx]
@@ -515,7 +515,7 @@ class StructureJsonData(Dataset):
                             targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another random selected structure
+            # Omit structures with isolated atoms. Return another randomly selected structure
             except Exception:
                 structure = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
                 self.failed_graph_id[graph_id] = structure.composition.formula

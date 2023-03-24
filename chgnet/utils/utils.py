@@ -39,8 +39,8 @@ def mae(prediction: Tensor, target: Tensor) -> Tensor:
     """Computes the mean absolute error between prediction and target
     Parameters
     ----------
-    prediction: torch.Tensor (N, 1)
-    target: torch.Tensor (N, 1).
+    prediction: Tensor (N, 1)
+    target: Tensor (N, 1).
     """
     return torch.mean(torch.abs(target - prediction))
 
@@ -52,8 +52,8 @@ def read_json(fjson):
     Returns:
         dictionary stored in fjson
     """
-    with open(fjson) as f:
-        return json.load(f)
+    with open(fjson) as file:
+        return json.load(file)
 
 
 def write_json(d, fjson):
@@ -64,8 +64,8 @@ def write_json(d, fjson):
     Returns:
         written dictionary
     """
-    with open(fjson, "w") as f:
-        json.dump(d, f)
+    with open(fjson, "w") as file:
+        json.dump(d, file)
 
 
 def solve_charge_by_mag(
