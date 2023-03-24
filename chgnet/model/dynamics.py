@@ -212,7 +212,9 @@ class StructOptimizer:
         struct = AseAtomsAdaptor.get_structure(atoms)
         for k in struct.site_properties:
             struct.remove_site_property(property_name=k)
-        struct.add_site_property("magmom", list(atoms.get_magnetic_moments()))
+        struct.add_site_property(
+            "magmom", [float(i) for i in atoms.get_magnetic_moments()]
+        )
         return {"final_structure": struct, "trajectory": obs}
 
 
