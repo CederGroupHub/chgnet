@@ -57,8 +57,8 @@ class StructureData(Dataset):
             self.graph_converter = CrystalGraphConverter(
                 atom_graph_cutoff=5, bond_graph_cutoff=3
             )
-        self.failed_idx = []
-        self.failed_graph_id = {}
+        self.failed_idx: list[int] = []
+        self.failed_graph_id: dict[str, str] = {}
 
     def __len__(self) -> int:
         """Get the number of structures in this dataset."""
@@ -149,7 +149,7 @@ class CIFData(Dataset):
 
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
-        self.failed_idx: list[str] = []
+        self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
 
     def __len__(self) -> int:
@@ -258,7 +258,7 @@ class GraphData(Dataset):
 
         self.energy_str = energy_str
         self.targets = targets
-        self.failed_idx: list[str] = []
+        self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
 
     def __len__(self) -> int:
@@ -471,7 +471,7 @@ class StructureJsonData(Dataset):
         self.graph_converter = graph_converter
         self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
         self.targets = targets
-        self.failed_idx: list[str] = []
+        self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
 
     def __len__(self) -> int:
