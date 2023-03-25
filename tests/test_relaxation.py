@@ -38,8 +38,8 @@ def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
     try:
         relaxer = StructOptimizer(use_device=use_device)
         assert relaxer.calculator.device == use_device
-    except (RuntimeError, AssertionError) as exc:
+    except (RuntimeError, AssertionError, NotImplementedError) as exc:
         assert "Torch not compiled with CUDA enabled" in str(
             exc
-        ) or 'NotImplementedError("mps is not supported yet")' in str(exc)
+        ) or "mps is not supported yet" in str(exc)
         # TODO: remove mps case once mps is supported
