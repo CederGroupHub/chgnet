@@ -71,7 +71,7 @@ class CHGNetCalculator(Calculator):
         # elif torch.backends.mps.is_available():
         #     self.device = 'mps'
         # Determine the device to use
-        self.device = use_device or "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
 
         # Move the model to the specified device
         if model is None:
