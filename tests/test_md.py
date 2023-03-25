@@ -8,12 +8,13 @@ from ase.md.nvtberendsen import NVTBerendsen
 from pymatgen.core import Structure
 from pytest import MonkeyPatch
 
+from chgnet import ROOT
 from chgnet.model import StructOptimizer
 from chgnet.model.dynamics import CHGNetCalculator, MolecularDynamics
 from chgnet.model.model import CHGNet
 
 relaxer = StructOptimizer()
-structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 chgnet = CHGNet.load()
 
 

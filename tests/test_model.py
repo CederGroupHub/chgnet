@@ -5,10 +5,11 @@ import pytest
 from pymatgen.core import Structure
 from pytest import mark
 
+from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model.model import CHGNet
 
-structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 graph = CrystalGraphConverter()(structure, graph_id="test-model")
 
 
