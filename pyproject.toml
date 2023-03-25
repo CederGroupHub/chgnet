@@ -11,10 +11,10 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
-    "numpy~=1.21.6",
-    "torch~=1.11.0",
-    "pymatgen~=2022.4.19",
-    "ase==3.22.0",
+    "numpy>=1.21.6",
+    "torch>=1.11.0",
+    "pymatgen>=2022.4.19",
+    "ase>=3.22.0",
 ]
 
 [project.optional-dependencies]
