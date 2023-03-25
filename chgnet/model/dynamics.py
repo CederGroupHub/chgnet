@@ -85,7 +85,7 @@ class CHGNetCalculator(Calculator):
         atoms: Atoms | None = None,
         desired_properties: list | None = None,
         changed_properties: list | None = None,
-    ):
+    ) -> None:
         """Calculate various properties of the atoms using CHGNet.
 
         Args:
@@ -94,9 +94,6 @@ class CHGNetCalculator(Calculator):
                 Default is all properties.
             changed_properties (list | None): The changes made to the system.
                 Default is all changes.
-
-        Returns:
-            None
         """
         desired_properties = desired_properties or all_properties
         changed_properties = changed_properties or all_changes
@@ -259,25 +256,23 @@ class TrajectoryObserver:
         energy = self.atoms.get_potential_energy()
         return energy
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         """Save the trajectory to file.
 
         Args:
             filename (str): filename to save the trajectory
         """
-        with open(filename, "wb") as f:
-            pickle.dump(
-                {
-                    "energy": self.energies,
-                    "forces": self.forces,
-                    "stresses": self.stresses,
-                    "magmoms": self.magmoms,
-                    "atom_positions": self.atom_positions,
-                    "cell": self.cells,
-                    "atomic_number": self.atoms.get_atomic_numbers(),
-                },
-                f,
-            )
+        out_pkl = {
+            "energy": self.energies,
+            "forces": self.forces,
+            "stresses": self.stresses,
+            "magmoms": self.magmoms,
+            "atom_positions": self.atom_positions,
+            "cell": self.cells,
+            "atomic_number": self.atoms.get_atomic_numbers(),
+        }
+        with open(filename, "wb") as file:
+            pickle.dump(out_pkl, file)
 
 
 class MolecularDynamics:
