@@ -48,22 +48,22 @@ from chgnet.model.model import CHGNet
 from chgnet.model.dynamics import MolecularDynamics
 from pymatgen.core import Structure
 
-structure = Structure.from_file('examples/o-LiMnO2_unit.cif')
+structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
 chgnet = CHGNet.load()
 
 md = MolecularDynamics(
     atoms=structure,
     model=chgnet,
-    ensemble='nvt',
-    compressibility_au= 1.6,
-    temperature=1000,     # in K
-    timestep=2,           # in femto-seconds
-    trajectory=f'md_out.traj',
-    logfile=f'md_out.log',
-    loginterval = 100,
-    use_device = 'cpu'    # use 'cuda' for faster MD
+    ensemble="nvt",
+    compressibility_au=1.6,
+    temperature=1000,  # in K
+    timestep=2,  # in femto-seconds
+    trajectory=f"md_out.traj",
+    logfile=f"md_out.log",
+    loginterval=100,
+    use_device="cpu",  # use 'cuda' for faster MD
 )
-md.run(50) # run a 0.1 ps MD simulation
+md.run(50)  # run a 0.1 ps MD simulation
 ```
 
 Visualize the magnetic moments after the MD run
@@ -72,6 +72,7 @@ Visualize the magnetic moments after the MD run
 from ase.io.trajectory import Trajectory
 from pymatgen.io.ase import AseAtomsAdaptor
 from chgnet.utils.utils import solve_charge_by_mag
+
 traj = Trajectory("md_out.traj")
 mag = traj[-1].get_magnetic_moments()
 
@@ -91,9 +92,10 @@ print(struct_with_chg)
 
 ```python
 from chgnet.model import StructOptimizer
+
 relaxer = StructOptimizer()
 result = relaxer.relax(structure)
-print('CHGNet relaxed structure', result['final_structure'])
+print("CHGNet relaxed structure", result["final_structure"])
 ```
 
 ### Model Training / Fine-tune
@@ -110,22 +112,19 @@ dataset = StructureData(
     energies=list_of_energies,
     forces=list_of_forces,
     stresses=list_of_stresses,
-    magmoms=list_of_magmoms
+    magmoms=list_of_magmoms,
 )
 train_loader, val_loader, test_loader = get_train_val_test_loader(
-    dataset,
-    batch_size=32,
-    train_ratio=0.9,
-    val_ratio=0.05
+    dataset, batch_size=32, train_ratio=0.9, val_ratio=0.05
 )
 trainer = Trainer(
     model=chgnet,
-    targets='efsm',
-    optimizer='Adam',
-    criterion='MSE',
+    targets="efsm",
+    optimizer="Adam",
+    criterion="MSE",
     learning_rate=1e-2,
     epochs=50,
-    use_device='cuda'
+    use_device="cuda",
 )
 
 trainer.train(train_loader, val_loader, test_loader)
