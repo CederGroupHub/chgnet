@@ -35,7 +35,7 @@ def test_relaxation():
 
 
 no_cuda = mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
-no_mps = mark.skipif(not torch.backends.mps.is_available(), reason="No MPS device")
+no_mps = mark.skipif(not hasattr(torch.backends, "mps"), reason="No MPS device")
 
 
 @mark.parametrize(
