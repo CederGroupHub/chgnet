@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import torch
 from pymatgen.core import Structure
-from pytest import approx, mark
+from pytest import approx, mark, param
 
 from chgnet.model import StructOptimizer
 
@@ -33,13 +34,17 @@ def test_relaxation():
     assert traj.energies[-1] == approx(-58.972927)
 
 
-@mark.parametrize("use_device", ["cpu", "mps", "cuda"])
+no_cuda = mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
+no_mps = mark.skipif(not torch.backends.mps.is_available(), reason="No MPS device")
+
+
+@mark.parametrize(
+    "use_device", ["cpu", param("cuda", marks=no_cuda), param("mps", marks=no_mps)]
+)
 def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
     try:
         relaxer = StructOptimizer(use_device=use_device)
         assert relaxer.calculator.device == use_device
-    except (RuntimeError, AssertionError, NotImplementedError) as exc:
-        assert "Torch not compiled with CUDA enabled" in str(
-            exc
-        ) or "mps is not supported yet" in str(exc)
-        # TODO: remove mps case once mps is supported
+    except NotImplementedError as exc:
+        # TODO: remove try/except once mps is supported
+        assert str(exc) == "mps is not supported yet"
