@@ -4,7 +4,7 @@ import functools
 import os
 import random
 import warnings
-from typing import Any, Sequence
+from typing import Sequence
 
 import numpy as np
 import torch
@@ -25,7 +25,7 @@ class StructureData(Dataset):
 
     def __init__(
         self,
-        structures: list[dict[str, Any]],
+        structures: list[Structure],
         energies: list[float],
         forces: list[Sequence[Sequence[float]]],
         stresses: list[Sequence[Sequence[float]]] = None,
@@ -35,8 +35,7 @@ class StructureData(Dataset):
         """Initialize the dataset.
 
         Args:
-            structures (list[dict]): a list of structures in pymatgen dict format, i.e.
-                the output of Structure.to_dict()
+            structures (list[dict]): pymatgen Structure objects.
             energies (list[float]): [data_size, 1]
             forces (list[list[float]]): [data_size, n_atoms, 3]
             stresses (list[list[float]], optional): [data_size, 3, 3]
@@ -44,6 +43,9 @@ class StructureData(Dataset):
             graph_converter (CrystalGraphConverter, optional): Converts the structures to
                 graphs. If None, it will be set to CHGNet default converter.
         """
+        for idx, struct in enumerate(structures):
+            if not isinstance(struct, Structure):
+                raise ValueError(f"{idx} is not a pymatgen Structure object: {struct}")
         self.structures = structures
         self.energies = energies
         self.forces = forces
@@ -76,7 +78,7 @@ class StructureData(Dataset):
         if idx not in self.failed_idx:
             graph_id = self.keys[idx]
             try:
-                struct = Structure.from_dict(self.structures[graph_id])
+                struct = self.structures[graph_id]
                 crystal_graph = self.graph_converter(
                     struct, graph_id=graph_id, mp_id=graph_id
                 )
@@ -101,7 +103,7 @@ class StructureData(Dataset):
 
             # Omit structures with isolated atoms. Return another randomly selected structure
             except Exception:
-                struct = Structure.from_dict(self.structures[graph_id])
+                struct = self.structures[graph_id]
                 self.failed_graph_id[graph_id] = struct.composition.formula
                 self.failed_idx.append(idx)
                 idx = random.randint(0, len(self) - 1)
@@ -462,7 +464,7 @@ class StructureJsonData(Dataset):
 
         self.keys = []
         for mp_id, dic in self.data.items():
-            for graph_id, _ in dic.items():
+            for graph_id in dic:
                 self.keys.append((mp_id, graph_id))
         random.shuffle(self.keys)
         print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
