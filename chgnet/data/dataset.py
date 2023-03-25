@@ -4,7 +4,7 @@ import functools
 import os
 import random
 import warnings
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import torch
@@ -13,8 +13,11 @@ from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from chgnet import PredTask, TrainTask, utils
+from chgnet import utils
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
+
+if TYPE_CHECKING:
+    from chgnet import PredTask, TrainTask
 
 warnings.filterwarnings("ignore")
 datatype = torch.float32

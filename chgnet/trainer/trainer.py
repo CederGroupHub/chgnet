@@ -6,6 +6,7 @@ import os
 import random
 import shutil
 import time
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -18,9 +19,11 @@ from torch.optim.lr_scheduler import (
 )
 from torch.utils.data import DataLoader
 
-from chgnet import TrainTask
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, mae, write_json
+
+if TYPE_CHECKING:
+    from chgnet import TrainTask
 
 
 class Trainer:

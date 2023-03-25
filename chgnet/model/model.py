@@ -3,13 +3,12 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import dataclass
-from typing import Literal, Sequence
+from typing import TYPE_CHECKING, Literal, Sequence
 
 import torch
 from pymatgen.core import Structure
 from torch import Tensor, nn
 
-from chgnet import PredTask
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.graph.crystalgraph import datatype
 from chgnet.model.composition_model import AtomRef
@@ -22,6 +21,9 @@ from chgnet.model.layers import (
     GraphAttentionReadOut,
     GraphPooling,
 )
+
+if TYPE_CHECKING:
+    from chgnet import PredTask
 
 
 class CHGNet(nn.Module):
