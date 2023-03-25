@@ -8,7 +8,7 @@
 
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
-![chgnet](./chgnet-logo.png)
+![chgnet](chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
 
@@ -18,10 +18,10 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Example notebooks
 
-|                                                                                                                              | &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                          |                                                                                                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [**CHGNet_examples**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basic_python_api_example.ipynb)             | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Minimal examples for loading pre-trained model, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
-| [**crystaltoolkit_relax_viewer**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basic_python_api_example.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Plotly Dash app built with Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
+|                                                                                                                                 | &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                          |                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [**CHGNet_examples**](https://github.com/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)                         | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Minimal examples for loading pre-trained model, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
+| [**crystaltoolkit_relax_viewer**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Plotly Dash app built with Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
 
 [Open in Google Colab]: https://colab.research.google.com/assets/colab-badge.svg
 
@@ -67,8 +67,8 @@ md = MolecularDynamics(
     compressibility_au=1.6,
     temperature=1000,  # in K
     timestep=2,  # in femto-seconds
-    trajectory=f"md_out.traj",
-    logfile=f"md_out.log",
+    trajectory="md_out.traj",
+    logfile="md_out.log",
     loginterval=100,
     use_device="cpu",  # use 'cuda' for faster MD
 )
