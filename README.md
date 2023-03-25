@@ -16,6 +16,15 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
+## Example notebooks
+
+|                                                                                                                              | &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                          |                                                                                                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [**CHGNet_examples**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basic_python_api_example.ipynb)             | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Minimal examples for loading pre-trained model, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
+| [**crystaltoolkit_relax_viewer**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basic_python_api_example.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Plotly Dash app built with Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
+
+[Open in Google Colab]: https://colab.research.google.com/assets/colab-badge.svg
+
 ## Installation
 
 CHGNet is interfaced to `pymatgen` and `ase`, to install:
