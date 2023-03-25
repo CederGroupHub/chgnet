@@ -18,15 +18,6 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Installation
 
-CHGNet is interfaced to `pymatgen` and `ase`, to install:
-
-- numpy~=1.21.6
-- torch~=1.11.0
-- pymatgen~=2022.4.19
-- ase==3.22.0
-
-To install:
-
 ```bash
 pip install -e .
 ```
