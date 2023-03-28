@@ -4,10 +4,11 @@ import torch
 from pymatgen.core import Structure
 from pytest import approx, mark, param
 
+from chgnet import ROOT
 from chgnet.model import StructOptimizer
 
 relaxer = StructOptimizer()
-structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 
 
 def test_relaxation():
