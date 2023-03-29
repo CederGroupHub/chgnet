@@ -142,12 +142,12 @@ class Graph:
             this_directed_edge.info["undirected_edge_index"] = len(
                 self.undirected_edges_list
             )
-            undirected_edge = this_directed_edge.make_undirected(
+            this_undirected_edge = this_directed_edge.make_undirected(
                 index=len(self.undirected_edges_list),
                 info={"directed_edge_index": [directed_edge_index]},
             )
-            self.undirected_edges[tmp] = [undirected_edge]
-            self.undirected_edges_list.append(undirected_edge)
+            self.undirected_edges[tmp] = [this_undirected_edge]
+            self.undirected_edges_list.append(this_undirected_edge)
             self.nodes[center_index].add_neighbor(neighbor_index, this_directed_edge)
             self.directed_edges_list.append(this_directed_edge)
         else:
@@ -181,12 +181,12 @@ class Graph:
             this_directed_edge.info["undirected_edge_index"] = len(
                 self.undirected_edges_list
             )
-            undirected_edge = this_directed_edge.make_undirected(
+            this_undirected_edge = this_directed_edge.make_undirected(
                 index=len(self.undirected_edges_list),
                 info={"directed_edge_index": [directed_edge_index]},
             )
-            self.undirected_edges[tmp].append(undirected_edge)
-            self.undirected_edges_list.append(undirected_edge)
+            self.undirected_edges[tmp].append(this_undirected_edge)
+            self.undirected_edges_list.append(this_undirected_edge)
             self.nodes[center_index].add_neighbor(neighbor_index, this_directed_edge)
             self.directed_edges_list.append(this_directed_edge)
 
