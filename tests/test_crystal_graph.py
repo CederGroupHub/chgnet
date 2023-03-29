@@ -6,8 +6,6 @@ from pymatgen.core import Structure
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 
-np.random.seed(0)
-
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
 
@@ -19,11 +17,17 @@ def test_crystal_graph():
     assert graph.atomic_number.tolist() == [3, 3, 25, 25, 8, 8, 8, 8]
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [384, 2]
-    assert graph.atom_graph[100].tolist() == [2, 4]
-    assert graph.atom_graph[200].tolist() == [4, 2]
+    assert (graph.atom_graph[:, 0] == 0).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 0).sum().item() == 48
+    assert (graph.atom_graph[:, 0] == 4).sum().item() == 48
+    assert (graph.atom_graph[:, 0] == 7).sum().item() == 48
+
     assert list(graph.bond_graph.shape) == [744, 5]
-    assert graph.bond_graph[100].tolist() == [5, 37, 286, 142, 279]
-    assert graph.bond_graph[200].tolist() == [7, 65, 368, 190, 359]
+    assert (graph.bond_graph[:, 0] == 1).sum().item() == 72
+    assert (graph.bond_graph[:, 1] == 100).sum().item() == 16
+    assert (graph.bond_graph[:, 3] == 100).sum().item() == 16
+    assert (graph.bond_graph[:, 2] == 348).sum().item() == 8
+    assert (graph.bond_graph[:, 4] == 121).sum().item() == 8
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [192]
     assert list(graph.directed2undirected.shape) == [384]
@@ -35,45 +39,74 @@ def test_crystal_graph_different_cutoff():
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [624, 2]
-    assert graph.atom_graph[100].tolist() == [1, 2]
-    assert graph.atom_graph[200].tolist() == [2, 3]
+    assert (graph.atom_graph[:, 0] == 5).sum().item() == 78
+    assert (graph.atom_graph[:, 1] == 5).sum().item() == 78
+    assert (graph.atom_graph[:, 1] == 7).sum().item() == 78
+
     assert list(graph.bond_graph.shape) == [2448, 5]
-    assert graph.bond_graph[100].tolist() == [3, 37, 244, 135, 293]
-    assert graph.bond_graph[200].tolist() == [5, 41, 416, 285, 437]
+    assert (graph.bond_graph[:, 0] == 1).sum().item() == 306
+    assert (graph.bond_graph[:, 1] == 100).sum().item() == 0
+    assert (graph.bond_graph[:, 3] == 100).sum().item() == 0
+    assert (graph.bond_graph[:, 2] == 250).sum().item() == 17
+    assert (graph.bond_graph[:, 4] == 50).sum().item() == 17
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [312]
     assert list(graph.directed2undirected.shape) == [624]
 
 
 def test_crystal_graph_perturb():
+    np.random.seed(0)
     structure_perturbed = structure.copy()
     structure_perturbed.perturb(distance=0.1)
     graph = converter(structure_perturbed)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [410, 2]
-    assert graph.atom_graph[100].tolist() == [2, 6]
-    assert graph.atom_graph[200].tolist() == [3, 7]
+    assert (graph.atom_graph[:, 0] == 3).sum().item() == 53
+    assert (graph.atom_graph[:, 1] == 3).sum().item() == 53
+    assert (graph.atom_graph[:, 1] == 6).sum().item() == 50
+
     assert list(graph.bond_graph.shape) == [688, 5]
-    assert graph.bond_graph[100].tolist() == [7, 36, 400, 68, 393]
-    assert graph.bond_graph[200].tolist() == [1, 59, 62, 56, 59]
+    print(graph.bond_graph[120, :])
+    assert (graph.bond_graph[:, 0] == 1).sum().item() == 90
+    assert (graph.bond_graph[:, 1] == 36).sum().item() == 17
+    assert (graph.bond_graph[:, 3] == 36).sum().item() == 17
+    assert (graph.bond_graph[:, 2] == 306).sum().item() == 10
+    assert (graph.bond_graph[:, 4] == 120).sum().item() == 0
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [205]
     assert list(graph.directed2undirected.shape) == [410]
 
 
-def test_crystal_graph_strained():
+def test_crystal_graph_isotropic_strained():
     structure_strained = structure.copy()
-    structure_strained.apply_strain([0.1, -0.3, 0.5])
+    structure_strained.apply_strain([0.1, 0.1, 0.1])
+    graph = converter(structure_strained)
+
+    assert list(graph.atom_frac_coord.shape) == [8, 3]
+    assert list(graph.atom_graph.shape) == [264, 2]
+    assert (graph.atom_graph[:, 0] == 3).sum().item() == 34
+    assert (graph.atom_graph[:, 1] == 3).sum().item() == 34
+    assert (graph.atom_graph[:, 0] == 7).sum().item() == 32
+
+    assert list(graph.bond_graph.shape) == [288, 5]
+    assert list(graph.lattice.shape) == [3, 3]
+    assert list(graph.undirected2directed.shape) == [132]
+    assert list(graph.directed2undirected.shape) == [264]
+
+
+def test_crystal_graph_anisotropic_strained():
+    structure_strained = structure.copy()
+    structure_strained.apply_strain([0.2, -0.3, 0.5])
     graph = converter(structure_strained)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [336, 2]
-    assert graph.atom_graph[100].tolist() == [2, 7]
-    assert graph.atom_graph[200].tolist() == [4, 3]
-    assert list(graph.bond_graph.shape) == [360, 5]
-    assert graph.bond_graph[100].tolist() == [7, 52, 321, 87, 334]
-    assert graph.bond_graph[200].tolist() == [2, 100, 121, 87, 103]
+    assert (graph.atom_graph[:, 0] == 3).sum().item() == 42
+    assert (graph.atom_graph[:, 1] == 3).sum().item() == 42
+    assert (graph.atom_graph[:, 0] == 7).sum().item() == 42
+
+    assert list(graph.bond_graph.shape) == [256, 5]
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [168]
     assert list(graph.directed2undirected.shape) == [336]
@@ -87,11 +120,30 @@ def test_crystal_graph_supercell():
     assert graph.composition == "Li48 Mn48 O96"
     assert list(graph.atom_frac_coord.shape) == [192, 3]
     assert list(graph.atom_graph.shape) == [9216, 2]
-    assert graph.atom_graph[1000].tolist() == [20, 24]
-    assert graph.atom_graph[2000].tolist() == [41, 5]
+    assert (graph.atom_graph[:, 0] == 30).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 30).sum().item() == 48
+    assert (graph.atom_graph[:, 0] == 70).sum().item() == 48
+
     assert list(graph.bond_graph.shape) == [17856, 5]
-    assert graph.bond_graph[1000].tolist() == [6, 314, 317, 300, 302]
-    assert graph.bond_graph[10000].tolist() == [74, 3074, 3592, 3050, 3561]
+    assert (graph.bond_graph[:, 0] == 100).sum().item() == 72
+    assert (graph.bond_graph[:, 1] == 623).sum().item() == 16
+    assert (graph.bond_graph[:, 3] == 623).sum().item() == 16
+    assert (graph.bond_graph[:, 2] == 2938).sum().item() == 8
+    assert (graph.bond_graph[:, 4] == 121).sum().item() == 8
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [4608]
     assert list(graph.directed2undirected.shape) == [9216]
+
+
+def test_crystal_graph_stability():
+    for _i in range(20):
+        np.random.seed(0)
+        structure_perturbed = structure.copy()
+        structure_perturbed.make_supercell([2, 2, 2])
+        structure_perturbed.perturb(distance=0.5)
+        graph = converter(structure_perturbed)
+
+        assert (
+            graph.directed2undirected.shape[0] == 2 * graph.undirected2directed.shape[0]
+        )
+        assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
