@@ -63,8 +63,8 @@ class CrystalGraph:
                 better tracking of the graph
                 Default = None.
 
-        Returns:
-            Crystal Graph.
+        Raises:
+            ValueError: if len(directed2undirected) != 2 * len(undirected2directed)
         """
         super().__init__()
         self.atomic_number = atomic_number
@@ -80,11 +80,12 @@ class CrystalGraph:
         self.graph_id = graph_id
         self.mp_id = mp_id
         self.composition = composition
-        assert len(undirected2directed) == 0.5 * len(
-            directed2undirected
-        ), f"Error: {graph_id} number of directed index != 2 * number of undirected index!"
+        if len(directed2undirected) != 2 * len(undirected2directed):
+            raise ValueError(
+                f"{graph_id} number of directed indices != 2 * number of undirected indices!"
+            )
 
-    def to(self, device="cpu") -> CrystalGraph:
+    def to(self, device: str = "cpu") -> CrystalGraph:
         """Move the graph to a device. Default = 'cpu'."""
         return CrystalGraph(
             atomic_number=self.atomic_number.to(device),
@@ -140,8 +141,8 @@ class CrystalGraph:
         return save_name
 
     @classmethod
-    def from_file(cls, file_name) -> CrystalGraph:
-        """Load the graph from a file.
+    def from_file(cls, file_name: str) -> CrystalGraph:
+        """Load a crystal graph from a file.
 
         Args:
             file_name (str): The path to the file.

@@ -193,7 +193,7 @@ class Trainer:
         test_loader: DataLoader = None,
         save_dir: str = None,
         save_test_result: bool = False,
-    ):
+    ) -> None:
         """Train the model using torch data_loaders.
 
         Args:
@@ -209,7 +209,7 @@ class Trainer:
             raise ValueError("Model needs to be initialized")
         global best_checkpoint  # noqa: PLW0603
         if save_dir is None:
-            save_dir = datetime.date.today().strftime("%m-%d-%Y")
+            save_dir = f"{datetime.datetime.now():%m-%d-%Y}"
         os.makedirs(save_dir, exist_ok=True)
 
         print(f"Begin Training: using {self.device} device")
@@ -533,8 +533,8 @@ class Trainer:
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(f"Loaded model params = {sum(p.numel() for p in model.parameters()):,}")
-        if "model" in state["trainer_args"]:
-            del state["trainer_args"]["model"]
+        # drop model from trainer_args if present
+        state["trainer_args"].pop("model", None)
         trainer = Trainer(model=model, **state["trainer_args"])
         trainer.model.to(trainer.device)
         trainer.optimizer.load_state_dict(state["optimizer"])
@@ -621,9 +621,9 @@ class CombinedLoss(nn.Module):
 
     def forward(
         self,
-        targets: dict,
-        prediction: dict,
-    ) -> dict:
+        targets: dict[str, Tensor],
+        prediction: dict[str, Tensor],
+    ) -> dict[str, Tensor]:
         """Compute the combined loss using CHGNet prediction and labels
         this function can automatically mask out magmom loss contribution of
         data points without magmom labels.
@@ -635,7 +635,7 @@ class CombinedLoss(nn.Module):
         Returns:
             dictionary of all the loss, MAE and MAE_size
         """
-        out = {"loss": 0}
+        out: dict[str, Tensor | int] = {"loss": 0}
         # Energy
         if self.energy_loss_ratio != 0 and "e" in targets:
             if self.is_intensive:
