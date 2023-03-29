@@ -114,14 +114,14 @@ class AngleEncoder(nn.Module):
         """Initialize the angle encoder.
 
         Args:
-            num_angular (int): number of angular basis to use
-            (Note: num_angular can only be an odd number)
+            num_angular (int): number of angular basis to use. Must be an odd integer.
             learnable (bool): whether to set the frequencies of the Fourier expansion
-            as learnable parameters. Default = False
+                as learnable parameters. Default = False
         """
         super().__init__()
-        assert num_angular % 2 == 1, "angle_feature_dim can only be odd integer!"
-        circular_harmonics_order = int((num_angular - 1) / 2)
+        if num_angular % 2 != 1:
+            raise ValueError(f"{num_angular=} must be an odd integer")
+        circular_harmonics_order = (num_angular - 1) // 2
         self.fourier_expansion = Fourier(
             order=circular_harmonics_order, learnable=learnable
         )
@@ -136,9 +136,8 @@ class AngleEncoder(nn.Module):
         Returns:
             angle_fea (Tensor):  expanded cos_ij [n_angle, angle_feature_dim]
         """
-        cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (
-            1 - 1e-6
-        )  # for torch.acos stability
+        # 1 - 1e-6 for torch.acos stability
+        cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (1 - 1e-6)
         angle = torch.acos(cosine_ij)
         result = self.fourier_expansion(angle)
         return result
