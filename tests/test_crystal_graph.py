@@ -6,6 +6,8 @@ from pymatgen.core import Structure
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 
+np.random.seed(0)
+
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
 
@@ -45,20 +47,19 @@ def test_crystal_graph_different_cutoff():
 
 def test_crystal_graph_perturb():
     structure_perturbed = structure.copy()
-    np.random.seed(100)
     structure_perturbed.perturb(distance=0.1)
     graph = converter(structure_perturbed)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
-    assert list(graph.atom_graph.shape) == [416, 2]
-    assert graph.atom_graph[100].tolist() == [1, 5]
-    assert graph.atom_graph[200].tolist() == [3, 2]
-    assert list(graph.bond_graph.shape) == [934, 5]
-    assert graph.bond_graph[100].tolist() == [4, 36, 242, 173, 249]
-    assert graph.bond_graph[200].tolist() == [1, 55, 57, 60, 62]
+    assert list(graph.atom_graph.shape) == [410, 2]
+    assert graph.atom_graph[100].tolist() == [2, 6]
+    assert graph.atom_graph[200].tolist() == [3, 7]
+    assert list(graph.bond_graph.shape) == [688, 5]
+    assert graph.bond_graph[100].tolist() == [7, 36, 400, 68, 393]
+    assert graph.bond_graph[200].tolist() == [1, 59, 62, 56, 59]
     assert list(graph.lattice.shape) == [3, 3]
-    assert list(graph.undirected2directed.shape) == [208]
-    assert list(graph.directed2undirected.shape) == [416]
+    assert list(graph.undirected2directed.shape) == [205]
+    assert list(graph.directed2undirected.shape) == [410]
 
 
 def test_crystal_graph_strained():
