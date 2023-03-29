@@ -330,7 +330,7 @@ class MolecularDynamics:
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
         self.atoms = atoms
-        self.atoms.set_calculator(CHGNetCalculator(model, use_device=use_device))
+        self.atoms.calc = CHGNetCalculator(model, use_device=use_device)
 
         if taut is None:
             taut = 100 * timestep * units.fs
@@ -418,4 +418,4 @@ class MolecularDynamics:
         calculator = self.atoms.calc
         self.atoms = atoms
         self.dyn.atoms = atoms
-        self.dyn.atoms.set_calculator(calculator)
+        self.dyn.atoms.calc = calculator
