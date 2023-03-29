@@ -45,11 +45,12 @@ class BondEncoder(nn.Module):
         """Initialize the bond encoder.
 
         Args:
-            atom_graph_cutoff (float): the cutoff for constructing AtomGraph default = 5
-            bond_graph_cutoff (float): the cutoff for constructing BondGraph default = 3
-            num_radial (int): the number of radial component
-            cutoff_coeff (int): strength for graph cutoff smoothness
-            learnable(bool): whether the frequency in rbf expansion is learnable
+            atom_graph_cutoff (float): The cutoff for constructing AtomGraph default = 5
+            bond_graph_cutoff (float): The cutoff for constructing BondGraph default = 3
+            num_radial (int): The number of radial component. Default = 9
+            cutoff_coeff (int): Strength for graph cutoff smoothness. Default = 5
+            learnable(bool): Whether the frequency in rbf expansion is learnable.
+                Default = False
         """
         super().__init__()
         self.rbf_expansion_ag = RadialBessel(
