@@ -10,15 +10,18 @@ class AtomEmbedding(nn.Module):
     """Encode an atom by its atomic number using a learnable embedding layer."""
 
     def __init__(self, atom_feature_dim: int, max_num_elements: int = 94) -> None:
-        """Initialize the Atom featurizer
+        """Initialize the Atom featurizer.
+
         Args:
             atom_feature_dim (int): dimension of atomic embedding.
+            max_num_elements (int): maximum number of elements in the dataset. Default = 94
         """
         super().__init__()
         self.embedding = nn.Embedding(max_num_elements, atom_feature_dim)
 
     def forward(self, atomic_numbers: Tensor) -> Tensor:
-        """Convert the structure to a atom embedding tensor
+        """Convert the structure to a atom embedding tensor.
+
         Args:
             atomic_numbers (Tensor): [n_atom, 1].
 
