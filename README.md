@@ -1,10 +1,13 @@
-# CHGNet
+<h1 align="center">CHGNet</h1>
+
+<h4 align="center">
 
 [![Tests](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml)
 [![Linting](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml)
 ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/CederGroupHub/chgnet?logo=Github)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/CederGroupHub/chgnet?logo=Github)
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
+</h4>
 
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
@@ -27,8 +30,17 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Installation
 
-```bash
-pip install -e .
+CHGnet is not on PyPI yet. We plan to publish it as a package once the API has matured. For now, please install `chgnet` from source:
+
+```sh
+pip install -U git+https://github.com/CederGroupHub/chgnet
+```
+
+or for an editable source install from a local clone:
+
+```sh
+git clone https://github.com/CederGroupHub/chgnet
+pip install -e ./chgnet
 ```
 
 ## Usage
