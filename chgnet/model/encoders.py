@@ -10,15 +10,18 @@ class AtomEmbedding(nn.Module):
     """Encode an atom by its atomic number using a learnable embedding layer."""
 
     def __init__(self, atom_feature_dim: int, max_num_elements: int = 94) -> None:
-        """Initialize the Atom featurizer
+        """Initialize the Atom featurizer.
+
         Args:
             atom_feature_dim (int): dimension of atomic embedding.
+            max_num_elements (int): maximum number of elements in the dataset. Default = 94
         """
         super().__init__()
         self.embedding = nn.Embedding(max_num_elements, atom_feature_dim)
 
     def forward(self, atomic_numbers: Tensor) -> Tensor:
-        """Convert the structure to a atom embedding tensor
+        """Convert the structure to a atom embedding tensor.
+
         Args:
             atomic_numbers (Tensor): [n_atom, 1].
 
@@ -42,11 +45,12 @@ class BondEncoder(nn.Module):
         """Initialize the bond encoder.
 
         Args:
-            atom_graph_cutoff (float): the cutoff for constructing AtomGraph default = 5
-            bond_graph_cutoff (float): the cutoff for constructing BondGraph default = 3
-            num_radial (int): the number of radial component
-            cutoff_coeff (int): strength for graph cutoff smoothness
-            learnable(bool): whether the frequency in rbf expansion is learnable
+            atom_graph_cutoff (float): The cutoff for constructing AtomGraph default = 5
+            bond_graph_cutoff (float): The cutoff for constructing BondGraph default = 3
+            num_radial (int): The number of radial component. Default = 9
+            cutoff_coeff (int): Strength for graph cutoff smoothness. Default = 5
+            learnable(bool): Whether the frequency in rbf expansion is learnable.
+                Default = False
         """
         super().__init__()
         self.rbf_expansion_ag = RadialBessel(
@@ -110,14 +114,14 @@ class AngleEncoder(nn.Module):
         """Initialize the angle encoder.
 
         Args:
-            num_angular (int): number of angular basis to use
-            (Note: num_angular can only be an odd number)
+            num_angular (int): number of angular basis to use. Must be an odd integer.
             learnable (bool): whether to set the frequencies of the Fourier expansion
-            as learnable parameters. Default = False
+                as learnable parameters. Default = False
         """
         super().__init__()
-        assert num_angular % 2 == 1, "angle_feature_dim can only be odd integer!"
-        circular_harmonics_order = int((num_angular - 1) / 2)
+        if num_angular % 2 != 1:
+            raise ValueError(f"{num_angular=} must be an odd integer")
+        circular_harmonics_order = (num_angular - 1) // 2
         self.fourier_expansion = Fourier(
             order=circular_harmonics_order, learnable=learnable
         )
@@ -132,9 +136,8 @@ class AngleEncoder(nn.Module):
         Returns:
             angle_fea (Tensor):  expanded cos_ij [n_angle, angle_feature_dim]
         """
-        cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (
-            1 - 1e-6
-        )  # for torch.acos stability
+        # 1 - 1e-6 for torch.acos stability
+        cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (1 - 1e-6)
         angle = torch.acos(cosine_ij)
         result = self.fourier_expansion(angle)
         return result
