@@ -20,6 +20,7 @@ from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
 from ase.optimize.optimize import Optimizer
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
+from pymatgen.analysis.eos import BirchMurnaghan
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -338,9 +339,12 @@ class MolecularDynamics:
             taup = 1000 * timestep * units.fs
 
         if ensemble.lower() == "nvt":
+            """
+            Berendsen (constant N, V, T) molecular dynamics.
+            """
             self.dyn = NVTBerendsen(
-                self.atoms,
-                timestep * units.fs,
+                atoms=self.atoms,
+                timestep=timestep * units.fs,
                 temperature_K=temperature,
                 taut=taut,
                 trajectory=trajectory,
@@ -348,51 +352,63 @@ class MolecularDynamics:
                 loginterval=loginterval,
                 append_trajectory=append_trajectory,
             )
-
-        elif ensemble.lower() == "npt":
-            """
-            NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
-            This is a more flexible scheme that fixes three angles of the unit
-            cell but allows three lattice parameter to change independently.
-            """
-
-            self.dyn = Inhomogeneous_NPTBerendsen(
-                self.atoms,
-                timestep * units.fs,
-                temperature_K=temperature,
-                pressure_au=pressure,
-                taut=taut,
-                taup=taup,
-                compressibility_au=compressibility_au,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-            )
-
-        elif ensemble.lower() == "npt_berendsen":
-            """
-            This is a similar scheme to the Inhomogeneous_NPTBerendsen.
-            This is a less flexible scheme that fixes the shape of the
-            cell - three angles are fixed and the ratios between the three
-            lattice constants.
-            """
-
-            self.dyn = NPTBerendsen(
-                self.atoms,
-                timestep * units.fs,
-                temperature_K=temperature,
-                pressure_au=pressure,
-                taut=taut,
-                taup=taup,
-                compressibility_au=compressibility_au,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-                append_trajectory=append_trajectory,
-            )
-
         else:
-            raise ValueError("Ensemble not supported")
+            if compressibility_au is None:
+                eos = EquationOfState(
+                    model=model,
+                    use_device=use_device,
+                )
+                eos.fit(atoms=atoms, steps=500, fmax=0.1)
+                compressibility_au = eos.get_compressibility(unit="A^3/eV")
+                print(
+                    f"Done compressibility calculation: "
+                    f"b = {round(compressibility_au, 3)} A^3/eV"
+                )
+
+            if ensemble.lower() == "npt":
+                """
+                NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
+                This is a more flexible scheme that fixes three angles of the unit
+                cell but allows three lattice parameter to change independently.
+                """
+
+                self.dyn = Inhomogeneous_NPTBerendsen(
+                    atoms=self.atoms,
+                    timestep=timestep * units.fs,
+                    temperature_K=temperature,
+                    pressure_au=pressure,
+                    taut=taut,
+                    taup=taup,
+                    compressibility_au=compressibility_au,
+                    trajectory=trajectory,
+                    logfile=logfile,
+                    loginterval=loginterval,
+                )
+
+            elif ensemble.lower() == "npt_berendsen":
+                """
+                This is a similar scheme to the Inhomogeneous_NPTBerendsen.
+                This is a less flexible scheme that fixes the shape of the
+                cell - three angles are fixed and the ratios between the three
+                lattice constants.
+                """
+
+                self.dyn = NPTBerendsen(
+                    atoms=self.atoms,
+                    timestep=timestep * units.fs,
+                    temperature_K=temperature,
+                    pressure_au=pressure,
+                    taut=taut,
+                    taup=taup,
+                    compressibility_au=compressibility_au,
+                    trajectory=trajectory,
+                    logfile=logfile,
+                    loginterval=loginterval,
+                    append_trajectory=append_trajectory,
+                )
+
+            else:
+                raise ValueError("Ensemble not supported")
 
         self.trajectory = trajectory
         self.logfile = logfile
@@ -419,3 +435,123 @@ class MolecularDynamics:
         self.atoms = atoms
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
+
+
+class EquationOfState:
+    """Class to calculate equation of state."""
+
+    def __init__(
+        self,
+        model: CHGNet = None,
+        optimizer_class: Optimizer | str | None = "FIRE",
+        use_device: str = None,
+        stress_weight: float = 1 / 160.21766208,
+    ) -> None:
+        """Initialize a structure optimizer object for calculation of bulk modulus.
+
+        Args:
+            model (CHGNet): instance of a chgnet model
+            optimizer_class (Optimizer,str): choose optimizer from ASE.
+                Default = FIRE
+            use_device (str, optional): The device to be used for predictions,
+                either "cpu", "cuda", or "mps". If not specified, the default device is
+                automatically selected based on the available options.
+            stress_weight (float): the conversion factor to convert GPa to eV/A^3.
+                Default = 1/160.21.
+        """
+        self.relaxer = StructOptimizer(
+            model=model,
+            optimizer_class=optimizer_class,
+            use_device=use_device,
+            stress_weight=stress_weight,
+        )
+        self.fitted = False
+
+    def fit(
+        self,
+        atoms: Structure | Atoms,
+        n_points: int = 11,
+        fmax: float | None = 0.1,
+        steps: int | None = 500,
+        **kwargs,
+    ):
+        """Relax the Structure/Atoms and fit the Birch-Murnaghan equation of state.
+
+        Args:
+            atoms (Structure | Atoms): A Structure or Atoms object to relax.
+            n_points (int): Number of structures used in fitting the equation of states
+            fmax (float | None): The maximum force tolerance for relaxation.
+                Default = 0.1
+            steps (int | None): The maximum number of steps for relaxation.
+                Default = 500
+            **kwargs: Additional parameters for the optimizer.
+
+        Returns:
+            Bulk Modulus (float)
+        """
+        if isinstance(atoms, Atoms):
+            atoms = AseAtomsAdaptor.get_structure(atoms)
+        volumes, energies = [], []
+        for i in np.linspace(-0.1, 0.1, n_points):
+            structure_strained = atoms.copy()
+            structure_strained.apply_strain([i, i, i])
+            result = self.relaxer.relax(
+                structure_strained,
+                relax_cell=False,
+                fmax=fmax,
+                steps=steps,
+                verbose=False,
+                **kwargs,
+            )
+            volumes.append(result["final_structure"].volume)
+            energies.append(result["trajectory"].energies[-1])
+        self.bm = BirchMurnaghan(volumes=volumes, energies=energies)
+        self.bm.fit()
+        self.fitted = True
+
+    def get_bulk_mudulus(self, unit: str = "eV/A^3"):
+        """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
+
+        Args:
+            unit (str): The unit of bulk modulus. Can be "eV/A^3" or "GPa"
+                Default = "eV/A^3"
+
+        Returns:
+            Bulk Modulus (float)
+        """
+        if self.fitted is False:
+            raise ValueError(
+                "Equation of state needs to be fitted " "first through self.fit()"
+            )
+        if unit == "eV/A^3":
+            return self.bm.b0
+        elif unit == "GPa":
+            return self.bm.b0_GPa
+        else:
+            raise NotImplementedError("unit has to be eV/A^3 or GPa")
+
+    def get_compressibility(self, unit: str = "A^3/eV"):
+        """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
+
+        Args:
+            unit (str): The unit of bulk modulus. Can be "A^3/eV",
+            "GPa^-1" "Pa^-1" or "m^2/N"
+                Default = "A^3/eV"
+
+        Returns:
+            Bulk Modulus (float)
+        """
+        if self.fitted is False:
+            raise ValueError(
+                "Equation of state needs to be fitted " "first through self.fit()"
+            )
+        if unit == "A^3/eV":
+            return 1 / self.bm.b0
+        elif unit == "GPa^-1":
+            return 1 / self.bm.b0_GPa
+        elif unit in ["Pa^-1", "m^2/N"]:
+            return 1 / (self.bm.b0_GPa * 1e9)
+        else:
+            raise NotImplementedError(
+                "unit has to be one of A^3/eV, " "GPa^-1 Pa^-1 or m^2/N"
+            )
