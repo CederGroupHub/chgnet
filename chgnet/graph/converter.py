@@ -20,10 +20,7 @@ class CrystalGraphConverter(nn.Module):
     """
 
     def __init__(
-        self,
-        atom_graph_cutoff: float = 5,
-        bond_graph_cutoff: float = 3,
-        verbose: bool = False,
+        self, atom_graph_cutoff: float = 5, bond_graph_cutoff: float = 3
     ) -> None:
         """Initialize the Crystal Graph Converter.
 
@@ -41,11 +38,6 @@ class CrystalGraphConverter(nn.Module):
             self.bond_graph_cutoff = atom_graph_cutoff
         else:
             self.bond_graph_cutoff = bond_graph_cutoff
-        if verbose:
-            print(
-                f"CrystalGraphConverter initialized with atom_cutoff={atom_graph_cutoff}, "
-                f"bond_cutoff={bond_graph_cutoff}"
-            )
 
     def forward(
         self,
@@ -63,10 +55,10 @@ class CrystalGraphConverter(nn.Module):
             mp_id (str): Materials Project id of this structure
                 Default = None
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms. Defaults to 'error'.
+                with isolated atoms. Default = 'error'
 
         Return:
-            Crystal_Graph that is ready for CHGNet input
+            Crystal_Graph that is ready to use by CHGNet
         """
         n_atoms = len(structure)
         atomic_number = torch.tensor(
