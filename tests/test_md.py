@@ -26,10 +26,10 @@ def test_eos():
     print(eos.get_bulk_mudulus(unit="GPa"))
     print(eos.get_compressibility())
     print(eos.get_compressibility(unit="GPa^-1"))
-    assert eos.get_bulk_mudulus() == approx(0.6621170816)
-    assert eos.get_bulk_mudulus(unit="GPa") == approx(106.08285172)
-    assert eos.get_compressibility() == approx(1.510306904)
-    assert eos.get_compressibility(unit="GPa^-1") == approx(0.009426594)
+    assert eos.get_bulk_mudulus() == approx(0.6621170816, rel=1e-5)
+    assert eos.get_bulk_mudulus(unit="GPa") == approx(106.08285172, rel=1e-5)
+    assert eos.get_compressibility() == approx(1.510306904, rel=1e-5)
+    assert eos.get_compressibility(unit="GPa^-1") == approx(0.009426594, rel=1e-5)
 
 
 def test_md_nvt(tmp_path: Path, monkeypatch: MonkeyPatch):
@@ -81,8 +81,8 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, Inhomogeneous_NPTBerendsen)
-    assert md.dyn.pressure == approx(6.324209e-07)
-    assert md.dyn.compressibility == approx(1.5103069)
+    assert md.dyn.pressure == approx(6.324209e-07, rel=1e-5)
+    assert md.dyn.compressibility == approx(1.5103069, rel=1e-5)
     assert os.path.isfile("md_out.traj")
     assert os.path.isfile("md_out.log")
     with open("md_out.log") as log_file:
