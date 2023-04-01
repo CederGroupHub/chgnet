@@ -500,11 +500,11 @@ class CHGNet(nn.Module):
                 Default = 100
 
         Returns:
-            prediction (dict): containing the fields:
-                e (Tensor) : energy of structures [batch_size, 1]
-                f (Tensor) : force on atoms [num_batch_atoms, 3]
-                s (Tensor) : stress of structure [3 * batch_size, 3]
-                m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
+            prediction (dict[str, Tensor]): containing the keys:
+                e: energy of structures [batch_size, 1] in eV/atom
+                f: force on atoms [num_batch_atoms, 3] in eV/A
+                s: stress of structure [3 * batch_size, 3] in GPa
+                m: magnetic moments of sites [num_batch_atoms, 3] in Bohr magneton mu_B
         """
         assert (
             self.graph_converter is not None
