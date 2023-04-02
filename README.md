@@ -47,7 +47,7 @@ pip install -e ./chgnet
 
 ### Direct Inference (Static Calculation)
 
-Pretrained `CHGNet` can predict the energy (eV/atom), force(eV/A), stress (GPa) and magmom (muB) of a given structure.
+Pretrained `CHGNet` can predict the energy (eV/atom), force (eV/$\dot{\text A}$), stress (GPa) and magmom ($\mu_B$) of a given structure.
 
 ```python
 from chgnet.model.model import CHGNet
@@ -56,8 +56,8 @@ from pymatgen.core import Structure
 chgnet = CHGNet.load()
 structure = Structure.from_file('examples/o-LiMnO2_unit.cif')
 prediction = chgnet.predict_structure(structure)
-print("CHGNet predicted energy=", prediction['e'])
-print("CHGNet predicted magmom=", prediction['m'])
+for key in ("energy", "forces", "stress", "magmom"):
+    print(f"CHGNet-predicted {key}={prediction[key[0]]}\n")
 ```
 
 ### Molecular Dynamics
@@ -187,4 +187,4 @@ Please cite the following:
 ## Development & Bugs
 
 `CHGNet` is under active development, if you encounter any bugs in installation and usage,
-please start an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!
+please open an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!

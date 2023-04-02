@@ -181,9 +181,9 @@ class Trainer:
             self.device = "cpu"
 
         self.print_freq = print_freq
-        self.training_history = {
-            key: {"train": [], "val": [], "test": []} for key in self.targets
-        }
+        self.training_history = dict.fromkeys(
+            self.targets, {"train": [], "val": [], "test": []}
+        )
         self.best_model = None
 
     def train(
@@ -346,8 +346,8 @@ class Trainer:
         batch_time = AverageMeter()
         losses = AverageMeter()
         mae_errors = {}
-        for i in self.targets:
-            mae_errors[i] = AverageMeter()
+        for key in self.targets:
+            mae_errors[key] = AverageMeter()
 
         # switch to evaluate mode
         self.model.eval()
@@ -356,7 +356,7 @@ class Trainer:
             test_pred = []
 
         end = time.time()
-        for i, (graphs, targets) in enumerate(val_loader):
+        for idx, (graphs, targets) in enumerate(val_loader):
             if "f" in self.targets or "s" in self.targets:
                 for g in graphs:
                     requires_force = "f" in self.targets
@@ -375,10 +375,10 @@ class Trainer:
             combined_loss = self.criterion(targets, prediction)
 
             losses.update(combined_loss["loss"].data.cpu().item(), len(graphs))
-            for k in self.targets:
-                mae_errors[k].update(
-                    combined_loss[f"{k}_MAE"].cpu().item(),
-                    combined_loss[f"{k}_MAE_size"],
+            for key in self.targets:
+                mae_errors[key].update(
+                    combined_loss[f"{key}_MAE"].cpu().item(),
+                    combined_loss[f"{key}_MAE_size"],
                 )
             if is_test and test_result_save_path:
                 for idx, graph_i in enumerate(graphs):
@@ -419,18 +419,15 @@ class Trainer:
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if (i + 1) % self.print_freq == 0:
+            if (idx + 1) % self.print_freq == 0:
                 message = (
-                    f"Test: [{i + 1}/{len(val_loader)}]\t"
-                    + "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t".format(
-                        batch_time=batch_time
-                    )
-                    + "Loss {loss.val:.4f} ({loss.avg:.4f})  ".format(loss=losses)
-                    + "MAEs:  "
+                    f"Test: [{idx + 1}/{len(val_loader)}]\t"
+                    f"Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
+                    f"Loss {losses.val:.4f} ({losses.avg:.4f})  MAEs:  "
                 )
-                for k in self.targets:
-                    message += "{k} {mae_error.val:.3f} ({mae_error.avg:.3f})  ".format(
-                        k=k, mae_error=mae_errors[k]
+                for key in self.targets:
+                    message += (
+                        f"{key} {mae_errors[key].val:.3f} ({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
 
@@ -442,10 +439,8 @@ class Trainer:
                 )
         else:
             message = "*   "
-        for k in self.targets:
-            message += "{k}_MAE ({mae_error.avg:.3f}) \t".format(
-                k=k, mae_error=mae_errors[k]
-            )
+        for key in self.targets:
+            message += f"{key}_MAE ({mae_errors[key].avg:.3f}) \t"
         print(message)
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 

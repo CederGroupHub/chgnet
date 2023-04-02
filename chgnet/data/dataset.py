@@ -125,7 +125,7 @@ class CIFData(Dataset):
         labels: str | dict = "labels.json",
         targets: TrainTask = "ef",
         graph_converter: CrystalGraphConverter = None,
-        **kwargs,
+        energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset from a directory containing CIFs.
 
@@ -139,18 +139,17 @@ class CIFData(Dataset):
                 if None, it will be set to CHGNet default converter
             energy_str (str, optional): the key of energy in the labels.
                 Default = "energy_per_atom".
-            **kwargs: other arguments
         """
         self.data_dir = cif_path
         self.data = utils.read_json(os.path.join(cif_path, labels))
         self.cif_ids = list(self.data)
         random.shuffle(self.cif_ids)
-        print(f"{cif_path}: {len(self.cif_ids)} structures imported")
+        print(f"{cif_path}: {len(self.cif_ids):,} structures imported")
         self.graph_converter = graph_converter or CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3
         )
 
-        self.energy_str = kwargs.pop("energy_str", "energy_per_atom")
+        self.energy_str = energy_str
         self.targets = targets
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
