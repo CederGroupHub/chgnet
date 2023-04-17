@@ -25,7 +25,7 @@ class AtomConv(nn.Module):
         norm: str = None,
         use_mlp_out: bool = True,
         resnet: bool = True,
-        **kwargs,
+        gMLP_norm: str = "batch",
     ) -> None:
         """Args:
         atom_fea_dim (int): The dimensionality of the input atom features.
@@ -37,8 +37,7 @@ class AtomConv(nn.Module):
             Default = 0.
         activation (str, optional): The name of the activation function to use in the
             gated MLP.
-        Must be one of "relu", "silu", "tanh", or "gelu".
-            Default = "silu".
+        Must be one of "relu", "silu", "tanh", or "gelu". Default = "silu".
         norm (str, optional): The name of the normalization layer to use on the updated
             atom features. Must be one of "batch", "layer", or None.
             Default = None.
@@ -48,6 +47,8 @@ class AtomConv(nn.Module):
         resnet (bool, optional): Whether to apply a residual connection to the
             updated atom features.
             Default = True.
+        gMLP_norm (str, optional): The name of the normalization layer to use on the
+            gated MLP. Must be one of "batch", "layer", or None. Default = "batch".
         **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
@@ -59,7 +60,7 @@ class AtomConv(nn.Module):
             output_dim=atom_fea_dim,
             hidden_dim=hidden_dim,
             dropout=dropout,
-            norm=kwargs.pop("gMLP_norm", "batch"),
+            norm=gMLP_norm,
             activation=activation,
         )
         if self.use_mlp_out:
@@ -152,8 +153,7 @@ class BondConv(nn.Module):
             Default = 0.
         activation (str, optional): The name of the activation function to use
             in the gated MLP.
-        Must be one of "relu", "silu", "tanh", or "gelu".
-            Default = "silu".
+        Must be one of "relu", "silu", "tanh", or "gelu". Default = "silu".
         norm (str, optional): The name of the normalization layer to use on the
             updated atom features.
         Must be one of "batch", "layer", or None.
@@ -245,7 +245,7 @@ class BondConv(nn.Module):
 
 
 class AngleUpdate(nn.Module):
-    """update angle_feas."""
+    """Update angle features."""
 
     def __init__(
         self,
@@ -259,26 +259,28 @@ class AngleUpdate(nn.Module):
         resnet: bool = True,
         **kwargs,
     ) -> None:
-        """Args:
-        atom_fea_dim (int): The dimensionality of the input atom features.
-        bond_fea_dim (int): The dimensionality of the input bond features.
-        angle_fea_dim (int): The dimensionality of the input angle features.
-        hidden_dim (int, optional): The dimensionality of the hidden layers
-            in the gated MLP.
-            Default = 0.
-        dropout (float, optional): The dropout probability to apply to the gated MLP.
-            Default = 0.
-        activation (str, optional): The name of the activation function to use
-            in the gated MLP. Must be one of "relu", "silu", "tanh", or "gelu".
-            Default = "silu".
-        norm (str, optional): The name of the normalization layer to use on the
-            updated atom features.
-        Must be one of "batch", "layer", or None.
-            Default = None.
-        resnet (bool, optional): Whether to apply a residual connection to the
-            updated atom features.
-            Default = True.
-        **kwargs: Additional keyword arguments to pass to the normalization layer.
+        """Create a new AngleUpdate instance.
+
+        Args:
+            atom_fea_dim (int): The dimensionality of the input atom features.
+            bond_fea_dim (int): The dimensionality of the input bond features.
+            angle_fea_dim (int): The dimensionality of the input angle features.
+            hidden_dim (int, optional): The dimensionality of the hidden layers
+                in the gated MLP.
+                Default = 0.
+            dropout (float, optional): The dropout probability to apply to the gated MLP.
+                Default = 0.
+            activation (str, optional): The name of the activation function to use
+                in the gated MLP. Must be one of "relu", "silu", "tanh", or "gelu".
+                Default = "silu".
+            norm (str, optional): The name of the normalization layer to use on the
+                updated atom features.
+            Must be one of "batch", "layer", or None.
+                Default = None.
+            resnet (bool, optional): Whether to apply a residual connection to the
+                updated atom features.
+                Default = True.
+            **kwargs: Additional keyword arguments to pass to the normalization layer.
         """
         super().__init__()
         self.resnet = resnet
@@ -352,13 +354,12 @@ class GraphPooling(nn.Module):
         """Merge the atom features that belong to same graph in a batched graph.
 
         Args:
-            atom_feas (Tensor): batched atom features after convolution layers
-                                [num_batch_atoms, atom_fea_dim]
-            atom_owner (Tensor): graph indices for each atom [num_batch_atoms]
+            atom_feas (Tensor): batched atom features after convolution layers.
+                shape = [num_batch_atoms, atom_fea_dim]
+            atom_owner (Tensor): graph indices for each atom. shape = [num_batch_atoms]
 
         Returns:
-            crystal_feas (Tensor): crystal feature matrix
-                                   [n_crystals, atom_fea_dim]
+            crystal_feas (Tensor): crystal feature matrix. shape = [n_crystals, atom_fea_dim]
         """
         return aggregate(atom_feas, atom_owner, average=self.average)
 
@@ -390,35 +391,30 @@ class GraphAttentionReadOut(nn.Module):
         """Merge the atom features that belong to same graph in a batched graph.
 
         Args:
-            atom_feas (Tensor): batched atom features after convolution layers
-                                [num_batch_atoms, atom_fea_dim]
-            atom_owner (Tensor): graph indices for each atom [num_batch_atoms]
+            atom_feas (Tensor): batched atom features after convolution layers.
+                shape = [num_batch_atoms, atom_fea_dim]
+            atom_owner (Tensor): graph indices for each atom. shape = [num_batch_atoms]
 
         Returns:
-            crystal_feas (Tensor): crystal feature matrix
-                                   [n_crystals, atom_fea_dim]
+            crystal_feas (Tensor): crystal feature matrix. shape = [n_crystals, atom_fea_dim]
         """
         crystal_feas = []
         weights = self.key(atom_feas)  # [n_batch_atom, n_heads]
-        bincount = torch.bincount(atom_owner)
+        bin_count = torch.bincount(atom_owner)
         start_index = 0
-        for n_atom in bincount:
-            # find atoms belong to this crystal
-            atom_fea = atom_feas[
-                start_index : start_index + n_atom, :
-            ]  # [n_atom, atom_fea_dim]
+        for n_atom in bin_count:
+            # find atoms belong to this crystal. shape = [n_atom, atom_fea_dim]
+            atom_fea = atom_feas[start_index : start_index + n_atom, :]
 
-            # find weight belong to these atoms
-            weight = self.softmax(
-                weights[start_index : start_index + n_atom, :]
-            )  # [n_atom, n_heads]
+            # find weight belong to these atoms. shape = [n_atom, n_heads]
+            weight = self.softmax(weights[start_index : start_index + n_atom, :])
 
             # Weighted summation from multiple attention heads
             crystal_fea = (atom_fea.T @ weight).view(-1)  # [n_heads * atom_fea_dim]
 
             # Normalize the crystal feature if the model output is intensive
             if self.average:
-                crystal_fea = crystal_fea / n_atom
+                crystal_fea /= n_atom
 
             crystal_feas.append(crystal_fea)
             start_index += n_atom
