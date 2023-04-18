@@ -21,14 +21,10 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Example notebooks
 
-|  Notebooks                                                                                                                        | Links&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                 |         Descriptions                                                                                                                                 |
+|                                                                                                                                 | &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                          |                                                                                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [**Using
-CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)                         | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Examples for loading pre-trained CHGNet, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
-| [**Tuning
-CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb) | Examples of fine tuning the pretrained CHGNet to your system of interest.   |
-| [**Visualize
-Relaxation**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
+| [**CHGNet_examples**](https://github.com/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)                         | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Minimal examples for loading pre-trained model, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
+| [**crystaltoolkit_relax_viewer**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Plotly Dash app built with Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
 
 [Open in Google Colab]: https://colab.research.google.com/assets/colab-badge.svg
 
@@ -51,7 +47,7 @@ pip install -e ./chgnet
 
 ### Direct Inference (Static Calculation)
 
-Pretrained `CHGNet` can predict the energy (eV/atom), force (eV/A), stress (GPa) and
+Pretrained `CHGNet` can predict the energy (eV/atom), force (eV/$\AA$), stress (GPa) and
 magmom ($\mu_B$) of a given structure.
 
 ```python
