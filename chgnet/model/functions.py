@@ -47,8 +47,8 @@ class MLP(nn.Module):
         input_dim: int = None,
         output_dim: int | None = 1,
         hidden_dim: int | Sequence[int] | None = (64, 64),
-        dropout=0,
-        activation="silu",
+        dropout: float = 0,
+        activation: str = "silu",
     ) -> None:
         """Initialize the MLP.
 

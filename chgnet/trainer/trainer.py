@@ -274,10 +274,10 @@ class Trainer:
         # switch to train mode
         self.model.train()
 
-        end = time.time()
+        end = time.perf_counter()
         for idx, (graphs, targets) in enumerate(train_loader):
             # measure data loading time
-            data_time.update(time.time() - end)
+            data_time.update(time.perf_counter() - end)
 
             # get input
             for g in graphs:
@@ -311,10 +311,9 @@ class Trainer:
             del prediction, combined_loss
 
             # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
+            batch_time.update(time.perf_counter() - end)
 
-            if (idx + 1) % self.print_freq == 0 or idx == 0:
+            if idx == 0 or (idx + 1) % self.print_freq == 0:
                 message = (
                     f"Epoch: [{current_epoch}][{idx + 1}/{len(train_loader)}]\t"
                     f"Time ({batch_time.avg:.3f})  Data ({data_time.avg:.3f})  "
@@ -355,7 +354,7 @@ class Trainer:
         if is_test:
             test_pred = []
 
-        end = time.time()
+        end = time.perf_counter()
         for idx, (graphs, targets) in enumerate(val_loader):
             if "f" in self.targets or "s" in self.targets:
                 for g in graphs:
@@ -416,8 +415,8 @@ class Trainer:
             del prediction, combined_loss
 
             # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
+            batch_time.update(time.perf_counter() - end)
+            end = time.perf_counter()
 
             if (idx + 1) % self.print_freq == 0:
                 message = (
@@ -459,7 +458,7 @@ class Trainer:
             if key not in (["self", "model", "kwargs"])
         ]
 
-    def save(self, filename=None):
+    def save(self, filename: str = "training_result.pth.tar") -> None:
         """Save the model, graph_converter, etc."""
         state = {
             "model": self.model.as_dict(),
@@ -468,11 +467,11 @@ class Trainer:
             "training_history": self.training_history,
             "trainer_args": self.trainer_args,
         }
-        if filename is None:
-            filename = "training_result.pth.tar"
         torch.save(state, filename)
 
-    def save_checkpoint(self, epoch: int, mae_error: dict, save_dir: str = None):
+    def save_checkpoint(
+        self, epoch: int, mae_error: dict, save_dir: str = None
+    ) -> None:
         """Function to save CHGNet trained weights after each epoch.
 
         Args:

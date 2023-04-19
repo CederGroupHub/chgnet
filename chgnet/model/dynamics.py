@@ -165,7 +165,7 @@ class StructOptimizer:
         trajectory_save_interval: int | None = 1,
         verbose: bool = True,
         **kwargs,
-    ):
+    ) -> dict[str, Structure | TrajectoryObserver]:
         """Relax the Structure/Atoms until maximum force is smaller than fmax.
 
         Args:
@@ -185,7 +185,8 @@ class StructOptimizer:
             **kwargs: Additional parameters for the optimizer.
 
         Returns:
-            A dictionary containing the final relaxed structure and the trajectory.
+            dict[str, Structure | TrajectoryObserver]: A dictionary with keys 'final_structure'
+                and 'trajectory'.
         """
         if isinstance(atoms, Structure):
             atoms = AseAtomsAdaptor.get_atoms(atoms)

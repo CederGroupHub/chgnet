@@ -5,7 +5,7 @@
 [![Tests](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/test.yml)
 [![Linting](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml/badge.svg)](https://github.com/CederGroupHub/chgnet/actions/workflows/lint.yml)
 ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/CederGroupHub/chgnet?logo=Github)
-[![arXiv link](https://img.shields.io/badge/arXiv-2302.14231-blue)](https://arxiv.org/abs/2302.14231)
+[![arXiv](https://img.shields.io/badge/arXiv-2302.14231-blue)](https://arxiv.org/abs/2302.14231)
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
 </h4>
 
@@ -21,11 +21,11 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Example notebooks
 
-|  Notebooks                                                                                                                        | Links&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                 |         Descriptions                                                                                                                                 |
-| ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [**Using CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)                         | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Examples for loading pre-trained CHGNet, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
-| [**Tuning CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb) | Examples of fine tuning the pretrained CHGNet to your system of interest.   |
-| [**Visualize Relaxation**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.    |
+| Notebooks                                                                                                                | Links&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                     | Descriptions                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [**Using CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)                     | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/CHGNet_examples.ipynb)             | Examples for loading pre-trained CHGNet, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
+| [**Tuning CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb)                        | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb)                 | Examples of fine tuning the pretrained CHGNet to your system of interest.                                                           |
+| [**Visualize Relaxation**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.                        |
 
 [Open in Google Colab]: https://colab.research.google.com/assets/colab-badge.svg
 
