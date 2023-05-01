@@ -33,7 +33,7 @@ jobs:
         run: pytest --capture=no --cov --cov-report=xml .
 
       - name: codacy-coverage-reporter
-        if: ${{ matrix.os == ubuntu-latest }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
             project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
