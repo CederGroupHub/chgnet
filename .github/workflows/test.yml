@@ -30,4 +30,10 @@ jobs:
           pip install -e .[test]
 
       - name: Run Tests
-        run: pytest --capture=no --cov .
+        run: pytest --capture=no --cov --cov-report=xml .
+
+      - name: codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+            project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+            coverage-reports: coverage.xml
