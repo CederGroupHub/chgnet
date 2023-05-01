@@ -71,4 +71,4 @@ isort.required-imports = ["from __future__ import annotations"]
 source = ["chgnet"]
 
 [tool.coverage.report]
-omit = ["tests/*", ]
+omit = ["tests/*"]
