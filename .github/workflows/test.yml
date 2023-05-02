@@ -3,7 +3,11 @@ name: Tests
 on:
   push:
     branches: [main]
-  pull_request:
+  # Needed to allow secrets access to forked PRs, consider breaking up workflow
+  # by running tests on pull_request, saving artifacts, and then running another
+  # workflow on pull_request_target to allow only minimal access to secrets
+  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
     branches: [main]
 
 jobs:
@@ -30,4 +34,11 @@ jobs:
           pip install -e .[test]
 
       - name: Run Tests
-        run: pytest --capture=no --cov .
+        run: pytest --capture=no --cov --cov-report=xml .
+
+      - name: codacy-coverage-reporter
+        if: matrix.os == 'ubuntu-latest'
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
