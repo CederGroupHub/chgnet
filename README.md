@@ -32,18 +32,12 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 ## Installation
 
-CHGnet is not on PyPI yet. We plan to publish it as a package once the API has matured. For now, please install `chgnet` from source:
+You can install `chgnet` through `pip`:
 
 ```sh
-pip install -U git+https://github.com/CederGroupHub/chgnet
+pip install chgnet
 ```
 
-or for an editable source install from a local clone:
-
-```sh
-git clone https://github.com/CederGroupHub/chgnet
-pip install -e ./chgnet
-```
 
 ## Usage
 
