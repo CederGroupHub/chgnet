@@ -42,3 +42,21 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: coverage.xml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.event_name == 'release' && needs.tests.result == 'success'
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Build and upload dist
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/* --strict
+          twine upload --skip-existing --repository-url https://upload.pypi.org/legacy/ dist/*.tar.gz
+        env:
+          TWINE_USERNAME: bowendeng
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
