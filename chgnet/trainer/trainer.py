@@ -181,9 +181,9 @@ class Trainer:
             self.device = "cpu"
 
         self.print_freq = print_freq
-        self.training_history = dict.fromkeys(
-            self.targets, {"train": [], "val": [], "test": []}
-        )
+        self.training_history = {
+            i: {"train": [], "val": [], "test": []} for i in self.targets
+        }
         self.best_model = None
 
     def train(

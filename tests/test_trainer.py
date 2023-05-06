@@ -48,4 +48,8 @@ def test_trainer(tmp_path) -> None:
     assert test_dir.is_dir(), "Training dir was not created"
 
     saved_weight = [f for f in test_dir.iterdir() if f.name.startswith("epoch")]
+    bestE_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestE")]
+    bestF_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestF")]
     assert len(saved_weight) == 1
+    assert len(bestE_weight) == 1
+    assert len(bestF_weight) == 1
