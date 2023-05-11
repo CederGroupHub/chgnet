@@ -36,7 +36,7 @@ class CHGNet(nn.Module):
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
-        composition_model: str | nn.Module = None,
+        composition_model: str | nn.Module = "MPtrj",
         num_radial: int = 9,
         num_angular: int = 9,
         n_conv: int = 4,
@@ -142,10 +142,12 @@ class CHGNet(nn.Module):
         # Optionally, define composition model
         if isinstance(composition_model, nn.Module):
             self.composition_model = composition_model
-        else:
+        elif isinstance(composition_model, str):
             self.composition_model = AtomRef(is_intensive=is_intensive)
-            if isinstance(composition_model, str):
-                self.composition_model.initialize_from(composition_model)
+            self.composition_model.initialize_from(composition_model)
+        else:
+            self.composition_model = None
+
         if self.composition_model is not None:
             # fixed composition_model weights
             for param in self.composition_model.parameters():
