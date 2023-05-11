@@ -54,6 +54,7 @@ class CHGNet(nn.Module):
         non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "relu",
         atom_graph_cutoff: int = 5,
         bond_graph_cutoff: int = 3,
+        cutoff_coeff: int = 5,
         learnable_rbf: bool = True,
         **kwargs,
     ) -> None:
@@ -117,6 +118,7 @@ class CHGNet(nn.Module):
                 this need to be consistent with value in training dataloader
                 Default = 3
             cutoff_coeff (float): cutoff strength used in graph smooth cutoff function.
+                the smaller this coeff is, the smoother the basis is
                 Default = 5
             learnable_rbf (bool): whether to set the frequencies in rbf and Fourier
                 basis functions learnable.
@@ -156,7 +158,6 @@ class CHGNet(nn.Module):
 
         # Define embedding layers
         self.atom_embedding = AtomEmbedding(atom_feature_dim=atom_fea_dim)
-        cutoff_coeff = kwargs.pop("cutoff_coeff", 5)
         self.bond_basis_expansion = BondEncoder(
             atom_graph_cutoff=atom_graph_cutoff,
             bond_graph_cutoff=bond_graph_cutoff,
