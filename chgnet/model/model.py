@@ -156,7 +156,7 @@ class CHGNet(nn.Module):
 
         # Define embedding layers
         self.atom_embedding = AtomEmbedding(atom_feature_dim=atom_fea_dim)
-        cutoff_coeff = kwargs.pop("cutoff_coeff", 6)
+        cutoff_coeff = kwargs.pop("cutoff_coeff", 5)
         self.bond_basis_expansion = BondEncoder(
             atom_graph_cutoff=atom_graph_cutoff,
             bond_graph_cutoff=bond_graph_cutoff,

@@ -312,6 +312,7 @@ class Trainer:
 
             # measure elapsed time
             batch_time.update(time.perf_counter() - end)
+            end = time.perf_counter()
 
             if idx == 0 or (idx + 1) % self.print_freq == 0:
                 message = (
