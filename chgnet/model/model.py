@@ -252,18 +252,17 @@ class CHGNet(nn.Module):
             self.read_out_type = "sum"
             input_dim = atom_fea_dim
             self.pooling = GraphPooling(average=False)
+        elif read_out in ["attn", "weighted"]:
+            self.read_out_type = "attn"
+            num_heads = kwargs.pop("num_heads", 3)
+            self.pooling = GraphAttentionReadOut(
+                atom_fea_dim, num_head=num_heads, average=True
+            )
+            input_dim = atom_fea_dim * num_heads
         else:
-            if read_out in ["attn", "weighted"]:
-                self.read_out_type = "attn"
-                num_heads = kwargs.pop("num_heads", 3)
-                self.pooling = GraphAttentionReadOut(
-                    atom_fea_dim, num_head=num_heads, average=True
-                )
-                input_dim = atom_fea_dim * num_heads
-            else:
-                self.read_out_type = "ave"
-                input_dim = atom_fea_dim
-                self.pooling = GraphPooling(average=True)
+            self.read_out_type = "ave"
+            input_dim = atom_fea_dim
+            self.pooling = GraphPooling(average=True)
         if kwargs.pop("final_mlp", "MLP") in ["normal", "MLP"]:
             self.mlp = MLP(
                 input_dim=input_dim,

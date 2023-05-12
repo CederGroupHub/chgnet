@@ -274,10 +274,10 @@ class Trainer:
         # switch to train mode
         self.model.train()
 
-        end = time.perf_counter()
+        start = time.perf_counter()  # start timer
         for idx, (graphs, targets) in enumerate(train_loader):
             # measure data loading time
-            data_time.update(time.perf_counter() - end)
+            data_time.update(time.perf_counter() - start)
 
             # get input
             for g in graphs:
@@ -311,8 +311,8 @@ class Trainer:
             del prediction, combined_loss
 
             # measure elapsed time
-            batch_time.update(time.perf_counter() - end)
-            end = time.perf_counter()
+            batch_time.update(time.perf_counter() - start)
+            start = time.perf_counter()
 
             if idx == 0 or (idx + 1) % self.print_freq == 0:
                 message = (
@@ -325,7 +325,7 @@ class Trainer:
                         f"{key} {mae_errors[key].val:.3f} ({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
-        return {key: round(mae_error.avg, 6) for key, mae_error in mae_errors.items()}
+        return {key: round(err.avg, 6) for key, err in mae_errors.items()}
 
     def _validate(
         self,

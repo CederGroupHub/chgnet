@@ -11,21 +11,21 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
-    "numpy>=1.21.6",
-    "torch>=1.11.0",
-    "pymatgen>=2022.4.19",
     "ase>=3.22.0",
+    "numpy>=1.21.6",
+    "pymatgen>=2022.4.19",
+    "torch>=1.11.0",
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.8",
-    "Topic :: Scientific/Engineering :: Chemistry",
+    "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics",
 ]
 
@@ -51,17 +51,20 @@ line-length = 95
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
-    "E",   # pycodestyle
+    "E",   # pycodestyle error
     "F",   # pyflakes
     "I",   # isort
+    "PIE", # flake8-pie
+    "PL",  # pylint
     "PLE", # pylint error
     "PLW", # pylint warning
+    "PT",  # flake8-pytest-style
     "PYI", # flakes8-pyi
     "Q",   # flake8-quotes
     "SIM", # flake8-simplify
     "TID", # tidy imports
     "UP",  # pyupgrade
-    "W",   # pycodestyle
+    "W",   # pycodestyle warning
     "YTT", # flake8-2020
 ]
 ignore = [
@@ -69,7 +72,12 @@ ignore = [
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
+    "PLC1901", # compare-to-empty-string
+    "PLR",     # pylint refactor
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PT011",   # pytest-raises-too-broad
+    "PT013",   # pytest-incorrect-pytest-import
     "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
     "SIM115",  # Use context handler for opening files
 ]

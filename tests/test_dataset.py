@@ -14,7 +14,7 @@ coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 
 
-@pytest.fixture
+@pytest.fixture()
 def structure_data() -> StructureData:
     """Create a graph with 3 nodes and 3 directed edges."""
     structures, energies, forces, stresses, magmoms = [], [], [], [], []
