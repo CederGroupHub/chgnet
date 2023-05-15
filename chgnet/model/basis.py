@@ -196,5 +196,4 @@ class CutoffPolynomial(nn.Module):
                 + self.c * r_scaled ** (self.p + 2)
             )
             return torch.where(r_scaled < 1, env_val, torch.zeros_like(r_scaled))
-        else:
-            return r.new_ones(r.shape)
+        return r.new_ones(r.shape)

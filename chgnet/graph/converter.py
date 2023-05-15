@@ -104,7 +104,7 @@ class CrystalGraphConverter(nn.Module):
             msg = f"{graph_id=} has isolated atom with {r_cutoff=}, should be skipped"
             if on_isolated_atoms == "ignore":
                 return None
-            elif on_isolated_atoms == "warn":
+            if on_isolated_atoms == "warn":
                 print(msg, file=sys.stderr)
                 return None
             # Discard this structure if it has isolated atom in the graph

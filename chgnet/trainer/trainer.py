@@ -543,7 +543,7 @@ class Trainer:
         """Move object to device."""
         if torch.is_tensor(obj):
             return obj.to(device)
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             out = []
             for tensor in obj:
                 if tensor is not None:
@@ -551,8 +551,7 @@ class Trainer:
                 else:
                     out.append(None)
             return out
-        else:
-            raise TypeError("Invalid type for move_to")
+        raise TypeError("Invalid type for move_to")
 
 
 class CombinedLoss(nn.Module):

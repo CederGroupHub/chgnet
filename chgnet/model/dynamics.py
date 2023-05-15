@@ -250,13 +250,12 @@ class TrajectoryObserver:
         return len(self.energies)
 
     def compute_energy(self) -> float:
-        """Calculate the energy, here we just use the potential energy.
+        """Calculate the potential energy.
 
         Returns:
             energy (float): the potential energy.
         """
-        energy = self.atoms.get_potential_energy()
-        return energy
+        return self.atoms.get_potential_energy()
 
     def save(self, filename: str) -> None:
         """Save the trajectory to file.
@@ -522,14 +521,13 @@ class EquationOfState:
         """
         if self.fitted is False:
             raise ValueError(
-                "Equation of state needs to be fitted " "first through self.fit()"
+                "Equation of state needs to be fitted first through self.fit()"
             )
         if unit == "eV/A^3":
             return self.bm.b0
-        elif unit == "GPa":
+        if unit == "GPa":
             return self.bm.b0_GPa
-        else:
-            raise NotImplementedError("unit has to be eV/A^3 or GPa")
+        raise NotImplementedError("unit has to be eV/A^3 or GPa")
 
     def get_compressibility(self, unit: str = "A^3/eV"):
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
@@ -544,15 +542,12 @@ class EquationOfState:
         """
         if self.fitted is False:
             raise ValueError(
-                "Equation of state needs to be fitted " "first through self.fit()"
+                "Equation of state needs to be fitted first through self.fit()"
             )
         if unit == "A^3/eV":
             return 1 / self.bm.b0
-        elif unit == "GPa^-1":
+        if unit == "GPa^-1":
             return 1 / self.bm.b0_GPa
-        elif unit in ["Pa^-1", "m^2/N"]:
+        if unit in ["Pa^-1", "m^2/N"]:
             return 1 / (self.bm.b0_GPa * 1e9)
-        else:
-            raise NotImplementedError(
-                "unit has to be one of A^3/eV, " "GPa^-1 Pa^-1 or m^2/N"
-            )
+        raise NotImplementedError("unit has to be one of A^3/eV, GPa^-1 Pa^-1 or m^2/N")
