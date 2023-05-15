@@ -261,7 +261,7 @@ class GraphData(Dataset):
         self.energy_str = energy_str
         self.targets = targets
         self.failed_idx: list[int] = []
-        self.failed_graph_id: dict[str, str] = {}
+        self.failed_graph_id: list[str] = []
 
     def __len__(self) -> int:
         """Get the number of graphs in this dataset."""
