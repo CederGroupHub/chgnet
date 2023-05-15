@@ -75,6 +75,7 @@ select = [
 ]
 ignore = [
     "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
+    "C408",    # unnecessary-collection-call
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
