@@ -520,7 +520,7 @@ class CHGNet(nn.Module):
                 return_crystal_feas=return_crystal_feas,
                 batch_size=batch_size,
             )
-        elif type(structure) == list:
+        if type(structure) == list:
             graphs = [self.graph_converter(i) for i in structure]
             return self.predict_graph(
                 graphs,
@@ -529,8 +529,7 @@ class CHGNet(nn.Module):
                 return_crystal_feas=return_crystal_feas,
                 batch_size=batch_size,
             )
-        else:
-            raise Exception("input should either be a structure or list of structures!")
+        raise Exception("input should either be a structure or list of structures!")
 
     def predict_graph(
         self,
@@ -578,7 +577,7 @@ class CHGNet(nn.Module):
                 elif key == "crystal_fea":
                     out[key] = pred.view(-1).cpu().detach().numpy()
             return out
-        elif type(graph) == list:
+        if type(graph) == list:
             self.eval()
             predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graph))]
             n_steps = math.ceil(len(graph) / batch_size)
@@ -610,8 +609,7 @@ class CHGNet(nn.Module):
                         for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
                             predictions[n * batch_size + i][key] = crystal_fea
             return predictions
-        else:
-            raise Exception("input should either be a graph or list of graphs!")
+        raise Exception("input should either be a graph or list of graphs!")
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
@@ -627,8 +625,7 @@ class CHGNet(nn.Module):
 
     def as_dict(self):
         """Return the CHGNet weights and args in a dictionary."""
-        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
-        return out
+        return {"state_dict": self.state_dict(), "model_args": self.model_args}
 
     @classmethod
     def from_dict(cls, dict, **kwargs):
@@ -641,8 +638,7 @@ class CHGNet(nn.Module):
     def from_file(cls, path, **kwargs):
         """Build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
-        chgnet = CHGNet.from_dict(state["model"], **kwargs)
-        return chgnet
+        return CHGNet.from_dict(state["model"], **kwargs)
 
     @classmethod
     def load(cls, model_name="MPtrj-efsm"):
@@ -652,8 +648,7 @@ class CHGNet(nn.Module):
             return cls.from_file(
                 os.path.join(current_dir, "../pretrained/e30f77s348m32.pth.tar")
             )
-        else:
-            raise Exception("model_name not supported")
+        raise Exception("model_name not supported")
 
 
 @dataclass

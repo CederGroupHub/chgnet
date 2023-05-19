@@ -139,5 +139,4 @@ class AngleEncoder(nn.Module):
         # 1 - 1e-6 for torch.acos stability
         cosine_ij = torch.sum(bond_i * bond_j, dim=1) * (1 - 1e-6)
         angle = torch.acos(cosine_ij)
-        result = self.fourier_expansion(angle)
-        return result
+        return self.fourier_expansion(angle)

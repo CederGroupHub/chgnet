@@ -116,6 +116,4 @@ def solve_charge_by_mag(
         print(ox_list)
         structure.add_oxidation_state_by_site(ox_list)
         return structure
-
-    else:
-        return
+    return None

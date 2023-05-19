@@ -714,8 +714,7 @@ def get_train_val_test_loader(
             pin_memory=pin_memory,
         )
         return train_loader, val_loader, test_loader
-    else:
-        return train_loader, val_loader
+    return train_loader, val_loader
 
 
 def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
@@ -734,7 +733,7 @@ def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
     Returns:
         data_loader
     """
-    data_loader = DataLoader(
+    return DataLoader(
         dataset,
         batch_size=batch_size,
         collate_fn=collate_graphs,
@@ -742,5 +741,3 @@ def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
         num_workers=num_workers,
         pin_memory=pin_memory,
     )
-
-    return data_loader

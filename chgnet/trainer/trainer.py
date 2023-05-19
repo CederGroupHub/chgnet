@@ -17,12 +17,13 @@ from torch.optim.lr_scheduler import (
     ExponentialLR,
     MultiStepLR,
 )
-from torch.utils.data import DataLoader
 
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, mae, write_json
 
 if TYPE_CHECKING:
+    from torch.utils.data import DataLoader
+
     from chgnet import TrainTask
 
 
@@ -543,7 +544,7 @@ class Trainer:
         """Move object to device."""
         if torch.is_tensor(obj):
             return obj.to(device)
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             out = []
             for tensor in obj:
                 if tensor is not None:
@@ -551,8 +552,7 @@ class Trainer:
                 else:
                     out.append(None)
             return out
-        else:
-            raise TypeError("Invalid type for move_to")
+        raise TypeError("Invalid type for move_to")
 
 
 class CombinedLoss(nn.Module):

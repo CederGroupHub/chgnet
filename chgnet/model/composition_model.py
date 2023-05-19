@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import collections
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import torch
 from pymatgen.core import Structure
 from torch import Tensor, nn
 
-from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.model.functions import GatedMLP, find_activation
+
+if TYPE_CHECKING:
+    from chgnet.graph.crystalgraph import CrystalGraph
 
 
 class CompositionModel(nn.Module):

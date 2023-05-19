@@ -26,14 +26,13 @@ def structure_data() -> StructureData:
         forces.append(np.random.random([2, 3]))
         stresses.append(np.random.random([3, 3]))
         magmoms.append(np.random.random([2, 1]))
-    data = StructureData(
+    return StructureData(
         structures=structures,
         energies=energies,
         forces=forces,
         stresses=stresses,
         magmoms=magmoms,
     )
-    return data
 
 
 def test_structure_data(structure_data: StructureData) -> None:
