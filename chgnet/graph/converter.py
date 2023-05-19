@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import sys
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import torch
-from pymatgen.core import Structure
 from torch import Tensor, nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
+
+if TYPE_CHECKING:
+    from pymatgen.core import Structure
 
 datatype = torch.float32
 

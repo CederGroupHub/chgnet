@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ase import Atoms
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen
@@ -13,6 +13,9 @@ from chgnet import ROOT
 from chgnet.model import StructOptimizer
 from chgnet.model.dynamics import CHGNetCalculator, EquationOfState, MolecularDynamics
 from chgnet.model.model import CHGNet
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 relaxer = StructOptimizer()
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")

@@ -4,13 +4,13 @@ import contextlib
 import io
 import pickle
 import sys
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.constraints import ExpCellFilter
-from ase.io import Trajectory
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.optimize.bfgs import BFGS
@@ -18,13 +18,16 @@ from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.fire import FIRE
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
-from ase.optimize.optimize import Optimizer
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.analysis.eos import BirchMurnaghan
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from chgnet.model.model import CHGNet
+
+if TYPE_CHECKING:
+    from ase.io import Trajectory
+    from ase.optimize.optimize import Optimizer
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet

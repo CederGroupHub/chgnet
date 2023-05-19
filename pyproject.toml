@@ -53,6 +53,7 @@ select = [
     "C4",  # flake8-comprehensions
     "D",   # pydocstyle
     "E",   # pycodestyle error
+    "EXE", # flake8-executable
     "F",   # pyflakes
     "FLY", # flynt
     "I",   # isort
@@ -68,6 +69,7 @@ select = [
     "RSE", # flake8-raise
     "RUF", # Ruff-specific rules
     "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
     "TID", # tidy imports
     "UP",  # pyupgrade
     "W",   # pycodestyle warning
