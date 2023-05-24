@@ -32,7 +32,9 @@ class Node:
 class UndirectedEdge:
     """An undirected/bi-directed edge in a graph."""
 
-    def __init__(self, nodes: list, index: int = None, info: dict = None) -> None:
+    def __init__(
+        self, nodes: list, index: int | None = None, info: dict | None = None
+    ) -> None:
         """Initialize an UndirectedEdge."""
         self.nodes = nodes
         self.index = index
@@ -53,7 +55,9 @@ class UndirectedEdge:
 class DirectedEdge:
     """A directed edge in a graph."""
 
-    def __init__(self, nodes: list, index: int = None, info: dict = None) -> None:
+    def __init__(
+        self, nodes: list, index: int | None = None, info: dict | None = None
+    ) -> None:
         """Initialize a DirectedEdge."""
         self.nodes = nodes
         self.index = index

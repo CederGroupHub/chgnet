@@ -7,7 +7,7 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Literal
 
 try:
-    __version__ = version(__name__)  # read from setup.py
+    __version__ = version(__name__)  # read from pyproject.toml
 except PackageNotFoundError:
     __version__ = "unknown"
 

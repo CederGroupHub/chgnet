@@ -24,9 +24,9 @@ class CrystalGraph:
         bond_graph: Tensor,
         bond_graph_cutoff: float,
         lattice: Tensor,
-        graph_id: str = None,
-        mp_id: str = None,
-        composition: str = None,
+        graph_id: str | None = None,
+        mp_id: str | None = None,
+        composition: str | None = None,
     ) -> None:
         """Initialize the crystal graph.
         Attention! This data class is not intended to be created manually.
@@ -121,7 +121,7 @@ class CrystalGraph:
             "composition": self.composition,
         }
 
-    def save(self, fname: str = None, save_dir: str = ".") -> str:
+    def save(self, fname: str | None = None, save_dir: str = ".") -> str:
         """Save the graph to a file.
 
         Args:

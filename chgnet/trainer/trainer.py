@@ -6,7 +6,7 @@ import os
 import random
 import shutil
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import torch
@@ -32,7 +32,7 @@ class Trainer:
 
     def __init__(
         self,
-        model: nn.Module = None,
+        model: nn.Module | None = None,
         targets: TrainTask = "ef",
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
@@ -45,9 +45,9 @@ class Trainer:
         starting_epoch: int = 0,
         learning_rate: float = 1e-3,
         print_freq: int = 100,
-        torch_seed: int = None,
-        data_seed: int = None,
-        use_device: str = None,
+        torch_seed: int | None = None,
+        data_seed: int | None = None,
+        use_device: str | None = None,
         **kwargs,
     ) -> None:
         """Initialize all hyper-parameters for trainer.
@@ -182,17 +182,17 @@ class Trainer:
             self.device = "cpu"
 
         self.print_freq = print_freq
-        self.training_history = {
-            i: {"train": [], "val": [], "test": []} for i in self.targets
-        }
+        self.training_history: dict[
+            str, dict[Literal["train", "val", "test"], list[float]]
+        ] = {key: {"train": [], "val": [], "test": []} for key in self.targets}
         self.best_model = None
 
     def train(
         self,
         train_loader: DataLoader,
         val_loader: DataLoader,
-        test_loader: DataLoader = None,
-        save_dir: str = None,
+        test_loader: DataLoader | None = None,
+        save_dir: str | None = None,
         save_test_result: bool = False,
     ) -> None:
         """Train the model using torch data_loaders.
@@ -332,7 +332,7 @@ class Trainer:
         self,
         val_loader: DataLoader,
         is_test: bool = False,
-        test_result_save_path: str = None,
+        test_result_save_path: str | None = None,
     ) -> dict:
         """Validation or test step.
 
