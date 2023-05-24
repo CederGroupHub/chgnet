@@ -44,7 +44,7 @@ class MLP(nn.Module):
 
     def __init__(
         self,
-        input_dim: int = None,
+        input_dim: int | None = None,
         output_dim: int | None = 1,
         hidden_dim: int | Sequence[int] | None = (64, 64),
         dropout: float = 0,
@@ -102,8 +102,8 @@ class GatedMLP(nn.Module):
 
     def __init__(
         self,
-        input_dim: int = None,
-        output_dim: int = None,
+        input_dim: int | None = None,
+        output_dim: int | None = None,
         hidden_dim: int | list[int] | None = None,
         dropout=0,
         activation="silu",

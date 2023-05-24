@@ -128,9 +128,9 @@ class StructOptimizer:
 
     def __init__(
         self,
-        model: CHGNet = None,
+        model: CHGNet | None = None,
         optimizer_class: Optimizer | str | None = "FIRE",
-        use_device: str = None,
+        use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
     ) -> None:
         """Provide a trained CHGNet model and an optimizer to relax crystal structures.
@@ -285,7 +285,7 @@ class MolecularDynamics:
     def __init__(
         self,
         atoms: Atoms | Structure,
-        model: CHGNet = None,
+        model: CHGNet | None = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 2.0,
@@ -297,7 +297,7 @@ class MolecularDynamics:
         logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
-        use_device: str = None,
+        use_device: str | None = None,
     ) -> None:
         """Initialize the MD class.
 
@@ -445,9 +445,9 @@ class EquationOfState:
 
     def __init__(
         self,
-        model: CHGNet = None,
+        model: CHGNet | None = None,
         optimizer_class: Optimizer | str | None = "FIRE",
-        use_device: str = None,
+        use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
     ) -> None:
         """Initialize a structure optimizer object for calculation of bulk modulus.

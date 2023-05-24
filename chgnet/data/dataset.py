@@ -31,9 +31,9 @@ class StructureData(Dataset):
         structures: list[Structure],
         energies: list[float],
         forces: list[Sequence[Sequence[float]]],
-        stresses: list[Sequence[Sequence[float]]] = None,
-        magmoms: list[Sequence[Sequence[float]]] = None,
-        graph_converter: CrystalGraphConverter = None,
+        stresses: list[Sequence[Sequence[float]]] | None | None = None,
+        magmoms: list[Sequence[Sequence[float]]] | None | None = None,
+        graph_converter: CrystalGraphConverter | None | None = None,
     ) -> None:
         """Initialize the dataset.
 
@@ -124,7 +124,7 @@ class CIFData(Dataset):
         cif_path: str,
         labels: str | dict = "labels.json",
         targets: TrainTask = "ef",
-        graph_converter: CrystalGraphConverter = None,
+        graph_converter: CrystalGraphConverter | None = None,
         energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset from a directory containing CIFs.
@@ -222,7 +222,7 @@ class GraphData(Dataset):
         graph_path: str,
         labels: str | dict = "labels.json",
         targets: PredTask = "efsm",
-        exclude: str | list | None = None,
+        exclude: str | list | None | None = None,
         energy_str: str = "energy_per_atom",
     ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
@@ -319,9 +319,9 @@ class GraphData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
-        train_key: list[str] = None,
-        val_key: list[str] = None,
-        test_key: list[str] = None,
+        train_key: list[str] | None | None = None,
+        val_key: list[str] | None | None = None,
+        test_key: list[str] | None | None = None,
         batch_size=32,
         num_workers=0,
         pin_memory=True,
@@ -532,9 +532,9 @@ class StructureJsonData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
-        train_key: list[str] = None,
-        val_key: list[str] = None,
-        test_key: list[str] = None,
+        train_key: list[str] | None = None,
+        val_key: list[str] | None = None,
+        test_key: list[str] | None = None,
         batch_size=32,
         num_workers=0,
         pin_memory=True,

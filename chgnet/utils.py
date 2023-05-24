@@ -70,8 +70,8 @@ def write_json(d, fjson):
 
 def solve_charge_by_mag(
     structure: Structure,
-    default_ox: dict[str, float] = None,
-    ox_ranges: dict[str, dict[tuple[float, float], int]] = None,
+    default_ox: dict[str, float] | None = None,
+    ox_ranges: dict[str, dict[tuple[float, float], int]] | None = None,
 ):
     """Solve oxidation states by magmom.
 
