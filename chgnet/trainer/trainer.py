@@ -634,7 +634,9 @@ class CombinedLoss(nn.Module):
         # Energy
         if self.energy_loss_ratio != 0 and "e" in targets:
             if self.is_intensive:
-                out["loss"] += self.criterion(targets["e"], prediction["e"])
+                out["loss"] += self.energy_loss_ratio * self.criterion(
+                    targets["e"], prediction["e"]
+                )
                 out["e_MAE"] = mae(targets["e"], prediction["e"])
                 out["e_MAE_size"] = prediction["e"].shape[0]
             else:
