@@ -630,7 +630,7 @@ class CombinedLoss(nn.Module):
         Returns:
             dictionary of all the loss, MAE and MAE_size
         """
-        out: dict[str, Tensor | int] = {"loss": 0}
+        out = {"loss": 0.0}
         # Energy
         if self.energy_loss_ratio != 0 and "e" in targets:
             if self.is_intensive:
