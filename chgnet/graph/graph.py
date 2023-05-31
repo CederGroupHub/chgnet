@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from chgnet import utils
+from chgnet.utils import write_json
 
 
 class Node:
@@ -314,7 +314,7 @@ class Graph:
 
     def to(self, filename="graph.json"):
         """Save graph dictionary to file."""
-        utils.write_json(self.as_dict(), filename)
+        write_json(self.as_dict(), filename)
 
     def __repr__(self) -> str:
         """Return string representation of the Graph."""

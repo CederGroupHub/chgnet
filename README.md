@@ -89,7 +89,7 @@ Visualize the magnetic moments after the MD run
 ```python
 from ase.io.trajectory import Trajectory
 from pymatgen.io.ase import AseAtomsAdaptor
-from chgnet.utils.utils import solve_charge_by_mag
+from chgnet.utils import solve_charge_by_mag
 
 traj = Trajectory("md_out.traj")
 mag = traj[-1].get_magnetic_moments()
