@@ -87,24 +87,24 @@ class CHGNetCalculator(Calculator):
     def calculate(
         self,
         atoms: Atoms | None = None,
-        desired_properties: list | None = None,
-        changed_properties: list | None = None,
+        properties: list | None = None,
+        system_changes: list | None = None,
     ) -> None:
         """Calculate various properties of the atoms using CHGNet.
 
         Args:
             atoms (Atoms | None): The atoms object to calculate properties for.
-            desired_properties (list | None): The properties to calculate.
+            properties (list | None): The properties to calculate.
                 Default is all properties.
-            changed_properties (list | None): The changes made to the system.
+            system_changes (list | None): The changes made to the system.
                 Default is all changes.
         """
-        desired_properties = desired_properties or all_properties
-        changed_properties = changed_properties or all_changes
+        properties = properties or all_properties
+        system_changes = system_changes or all_changes
         super().calculate(
             atoms=atoms,
-            properties=desired_properties,
-            system_changes=changed_properties,
+            properties=properties,
+            system_changes=system_changes,
         )
 
         # Run CHGNet
