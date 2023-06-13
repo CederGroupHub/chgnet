@@ -44,8 +44,8 @@ class MLP(nn.Module):
 
     def __init__(
         self,
-        input_dim: int | None = None,
-        output_dim: int | None = 1,
+        input_dim: int,
+        output_dim: int = 1,
         hidden_dim: int | Sequence[int] | None = (64, 64),
         dropout: float = 0,
         activation: str = "silu",
@@ -73,7 +73,7 @@ class MLP(nn.Module):
                 nn.Dropout(dropout),
                 nn.Linear(hidden_dim, output_dim),
             ]
-        else:  # type(hidden_dim) == list:
+        elif isinstance(hidden_dim, Sequence):
             layers = [nn.Linear(input_dim, hidden_dim[0]), find_activation(activation)]
             if len(hidden_dim) != 1:
                 for h_in, h_out in zip(hidden_dim[0:-1], hidden_dim[1:]):
@@ -81,6 +81,10 @@ class MLP(nn.Module):
                     layers.append(find_activation(activation))
             layers.append(nn.Dropout(dropout))
             layers.append(nn.Linear(hidden_dim[-1], output_dim))
+        else:
+            raise TypeError(
+                f"{hidden_dim=} must be an integer, a list of integers, or None."
+            )
         self.layers = nn.Sequential(*layers)
 
     def forward(self, X: Tensor) -> Tensor:
@@ -102,8 +106,8 @@ class GatedMLP(nn.Module):
 
     def __init__(
         self,
-        input_dim: int | None = None,
-        output_dim: int | None = None,
+        input_dim: int,
+        output_dim: int,
         hidden_dim: int | list[int] | None = None,
         dropout=0,
         activation="silu",
