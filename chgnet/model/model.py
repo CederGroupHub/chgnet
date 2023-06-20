@@ -51,7 +51,7 @@ class CHGNet(nn.Module):
         mlp_dropout: float = 0,
         mlp_first: bool = True,
         is_intensive: bool = True,
-        non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "relu",
+        non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "silu",
         atom_graph_cutoff: int = 5,
         bond_graph_cutoff: int = 3,
         cutoff_coeff: int = 5,
