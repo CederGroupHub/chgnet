@@ -108,15 +108,13 @@ def parse_vasp_dir(file_root):
 
     n_atoms = len(vasprun_orig.ionic_steps[0]["structure"])
     dataset = {
-        "structures": [i["structure"] for i in vasprun_orig.ionic_steps],
-        "uncorrected_total_energies": [
-            i["e_0_energy"] for i in vasprun_orig.ionic_steps
-        ],
-        "energies_per_atom": [
+        "structure": [i["structure"] for i in vasprun_orig.ionic_steps],
+        "uncorrected_total_energy": [i["e_0_energy"] for i in vasprun_orig.ionic_steps],
+        "energy_per_atom": [
             i["e_0_energy"] / n_atoms for i in vasprun_orig.ionic_steps
         ],
-        "forces": [i["forces"] for i in vasprun_orig.ionic_steps],
-        "magmoms": [[i["tot"] for i in j] for j in mag_x_all],
+        "force": [i["forces"] for i in vasprun_orig.ionic_steps],
+        "magmom": [[i["tot"] for i in j] for j in mag_x_all],
     }
     if "stress" in vasprun_orig.ionic_steps[0]:
         dataset["stress"] = [i["stress"] for i in vasprun_orig.ionic_steps]
@@ -138,9 +136,15 @@ def solve_charge_by_mag(
         default_ox (dict[str, float]): default oxidation state for elements.
             Default = {"Li": 1, "O": -2}
         ox_ranges (dict[str, dict[tuple[float, float], int]]): user defined range to
-            convert magmoms into formal valence. Default = {
-                "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
-            }
+            convert magmoms into formal valence.
+            Example for Mn (Default):
+                {"Mn": {
+                (0.5, 1.5): 2,
+                (1.5, 2.5): 3,
+                (2.5, 3.5): 4,
+                (3.5, 4.2): 3,
+                (4.2, 5): 2
+                }}
     """
     ox_list = []
     solved_ox = True

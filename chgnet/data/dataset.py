@@ -17,7 +17,7 @@ from chgnet import utils
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 if TYPE_CHECKING:
-    from chgnet import PredTask, TrainTask
+    from chgnet import TrainTask
 
 warnings.filterwarnings("ignore")
 datatype = torch.float32
@@ -123,22 +123,31 @@ class CIFData(Dataset):
         self,
         cif_path: str,
         labels: str | dict = "labels.json",
-        targets: TrainTask = "ef",
+        targets: TrainTask = "efsm",
         graph_converter: CrystalGraphConverter | None = None,
-        energy_str: str = "energy_per_atom",
+        energy_key: str = "energy_per_atom",
+        force_key: str = "force",
+        stress_key: str = "stress",
+        magmom_key: str = "magmom",
     ) -> None:
         """Initialize the dataset from a directory containing CIFs.
 
         Args:
             cif_path (str): path that contain all the graphs, labels.json
             labels (str, dict): the path or dictionary of labels
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces,
-                s=stress, m=magmons. Default = "ef"
+            targets ("ef" | "efs" | "efm" | "efsm"): The training targets.
+                Default = "efsm"
             graph_converter (CrystalGraphConverter, optional):
                 a CrystalGraphConverter to convert the structures,
                 if None, it will be set to CHGNet default converter
-            energy_str (str, optional): the key of energy in the labels.
+            energy_key (str, optional): the key of energy in the labels.
                 Default = "energy_per_atom".
+            force_key (str, optional): the key of force in the labels.
+                Default = "force".
+            stress_key (str, optional): the key of stress in the labels.
+                Default = "stress".
+            magmom_key (str, optional): the key of magmom in the labels.
+                Default = "magmom".
         """
         self.data_dir = cif_path
         self.data = utils.read_json(os.path.join(cif_path, labels))
@@ -149,7 +158,10 @@ class CIFData(Dataset):
             atom_graph_cutoff=5, bond_graph_cutoff=3
         )
 
-        self.energy_str = energy_str
+        self.energy_key = energy_key
+        self.force_key = force_key
+        self.stress_key = stress_key
+        self.magmom_key = magmom_key
         self.targets = targets
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
@@ -179,22 +191,23 @@ class CIFData(Dataset):
                 targets = {}
                 for key in self.targets:
                     if key == "e":
-                        energy = self.data[graph_id][self.energy_str]
+                        energy = self.data[graph_id][self.energy_key]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
                     elif key == "f":
-                        force = self.data[graph_id]["forces"]
+                        force = self.data[graph_id][self.force_key]
                         targets["f"] = torch.tensor(force, dtype=datatype)
                     elif key == "s":
-                        stress = self.data[graph_id]["stress"]
+                        stress = self.data[graph_id][self.stress_key]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * -0.1
                     elif key == "m":
-                        mag = self.data[graph_id]["magmom"]
+                        mag = self.data[graph_id][self.magmom_key]
                         # use absolute value for magnetic moments
                         targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another randomly selected structure
+            # Omit structures with isolated atoms.
+            # Return another randomly selected structure
             except Exception:
                 try:
                     graph_id = self.cif_ids[idx]
@@ -221,18 +234,31 @@ class GraphData(Dataset):
         self,
         graph_path: str,
         labels: str | dict = "labels.json",
-        targets: PredTask = "efsm",
+        targets: TrainTask = "efsm",
         exclude: str | list | None | None = None,
-        energy_str: str = "energy_per_atom",
+        energy_key: str = "energy_per_atom",
+        force_key: str = "force",
+        stress_key: str = "stress",
+        magmom_key: str = "magmom",
     ) -> None:
         """Initialize the dataset from a directory containing saved crystal graphs.
 
         Args:
             graph_path (str): path that contain all the graphs, labels.json
-            labels (str, dict): the path or dictionary of labels
-            targets ("ef" | "efs" | "efsm"): The training targets. Default = "efsm"
-            exclude (str, list | None): the path or list of excluded graphs. Default = None
-            energy_str (str, optional): the key of energy in the labels.
+            labels (str, dict): the path or dictionary of labels.
+                Default = "labels.json"
+            targets ("ef" | "efs" | "efm" | "efsm"): The training targets.
+                Default = "efsm"
+            exclude (str, list | None): the path or list of excluded graphs.
+                Default = None
+            energy_key (str, optional): the key of energy in the labels.
+                Default = "energy_per_atom".
+            force_key (str, optional): the key of force in the labels.
+                Default = "force".
+            stress_key (str, optional): the key of stress in the labels.
+                Default = "stress".
+            magmom_key (str, optional): the key of magmom in the labels.
+                Default = "magmom".
         """
         self.graph_path = graph_path
         if isinstance(labels, str):
@@ -258,7 +284,10 @@ class GraphData(Dataset):
         if self.excluded_graph is not None:
             print(f"{len(self.excluded_graph)} graphs are pre-excluded")
 
-        self.energy_str = energy_str
+        self.energy_key = energy_key
+        self.force_key = force_key
+        self.stress_key = stress_key
+        self.magmom_key = magmom_key
         self.targets = targets
         self.failed_idx: list[int] = []
         self.failed_graph_id: list[str] = []
@@ -287,17 +316,17 @@ class GraphData(Dataset):
                 targets = {}
                 for key in self.targets:
                     if key == "e":
-                        energy = self.labels[mp_id][graph_id][self.energy_str]
+                        energy = self.labels[mp_id][graph_id][self.energy_key]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif key == "f" or key == "force":
-                        force = self.labels[mp_id][graph_id]["force"]
+                    elif key == "f":
+                        force = self.labels[mp_id][graph_id][self.force_key]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif key == "s" or key == "stresses":
-                        stress = self.labels[mp_id][graph_id]["stress"]
+                    elif key == "s":
+                        stress = self.labels[mp_id][graph_id][self.magmom_key]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
                     elif key == "m":
-                        mag = self.labels[mp_id][graph_id]["magmom"]
+                        mag = self.labels[mp_id][graph_id][self.magmom_key]
                         # use absolute value for magnetic moments
                         if mag is None:
                             targets["m"] = None
@@ -438,16 +467,27 @@ class StructureJsonData(Dataset):
         data: str | dict,
         graph_converter: CrystalGraphConverter,
         targets: TrainTask = "efsm",
-        energy_str: str = "energy_per_atom",
+        energy_key: str = "energy_per_atom",
+        force_key: str = "force",
+        stress_key: str = "stress",
+        magmom_key: str = "magmom",
     ) -> None:
         """Initialize the dataset by reading Json files.
 
         Args:
             data (str | dict): file path or dir name that contain all the JSONs
             graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure to graph
-            targets ('ef' | 'efs' | 'efsm'): the training targets e=energy, f=forces, s=stress,
-                m=magmons. Default = "efsm".
-            energy_str (str): key to get energy from the JSON file. Default = "energy_per_atom"
+            targets ("ef" | "efs" | "efm" | "efsm"): The training targets.
+                Default = "efsm"
+            energy_key (str, optional): the key of energy in the labels.
+                Default = "energy_per_atom".
+            force_key (str, optional): the key of force in the labels.
+                Default = "force".
+            stress_key (str, optional): the key of stress in the labels.
+                Default = "stress".
+            magmom_key (str, optional): the key of magmom in the labels.
+                Default = "magmom".
+
         """
         if isinstance(data, str):
             self.data = {}
@@ -471,7 +511,10 @@ class StructureJsonData(Dataset):
         random.shuffle(self.keys)
         print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
         self.graph_converter = graph_converter
-        self.energy_str = energy_str
+        self.energy_key = energy_key
+        self.force_key = force_key
+        self.stress_key = stress_key
+        self.magmom_key = magmom_key
         self.targets = targets
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
@@ -499,17 +542,17 @@ class StructureJsonData(Dataset):
                 targets = {}
                 for key in self.targets:
                     if key == "e":
-                        energy = self.data[mp_id][graph_id][self.energy_str]
+                        energy = self.data[mp_id][graph_id][self.energy_key]
                         targets["e"] = torch.tensor(energy, dtype=datatype)
-                    elif key == "f" or key == "force":
-                        force = self.data[mp_id][graph_id]["force"]
+                    elif key == "f":
+                        force = self.data[mp_id][graph_id][self.force_key]
                         targets["f"] = torch.tensor(force, dtype=datatype)
-                    elif key == "s" or key == "stresses":
-                        stress = self.data[mp_id][graph_id]["stress"]
+                    elif key == "s":
+                        stress = self.data[mp_id][graph_id][self.stress_key]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
                     elif key == "m":
-                        mag = self.data[mp_id][graph_id]["magmom"]
+                        mag = self.data[mp_id][graph_id][self.magmom_key]
                         # use absolute value for magnetic moments
                         if mag is None:
                             targets["m"] = None
