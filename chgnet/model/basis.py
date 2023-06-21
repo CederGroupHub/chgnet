@@ -121,7 +121,11 @@ class GaussianExpansion(nn.Module):
     """
 
     def __init__(
-        self, min: float = 0, max: float = 5, step: float = 0.5, var: float = None
+        self,
+        min: float = 0,
+        max: float = 5,
+        step: float = 0.5,
+        var: float | None = None,
     ) -> None:
         """Gaussian Expansion
         expand a scalar feature to a soft-one-hot feature vector.

@@ -251,7 +251,7 @@ class GraphData(Dataset):
 
         self.keys = []
         for mp_id, dic in self.labels.items():
-            for graph_id, _ in dic.items():
+            for graph_id in dic:
                 self.keys.append((mp_id, graph_id))
         random.shuffle(self.keys)
         print(f"{len(self.labels)} mp_ids, {len(self)} frames imported")

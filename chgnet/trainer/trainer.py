@@ -472,7 +472,7 @@ class Trainer:
         torch.save(state, filename)
 
     def save_checkpoint(
-        self, epoch: int, mae_error: dict, save_dir: str = None
+        self, epoch: int, mae_error: dict, save_dir: str | None = None
     ) -> None:
         """Function to save CHGNet trained weights after each epoch.
 

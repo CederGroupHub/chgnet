@@ -6,7 +6,7 @@ from chgnet.utils import write_json
 class Node:
     """A node in a graph."""
 
-    def __init__(self, index: int, info: dict = None) -> None:
+    def __init__(self, index: int, info: dict | None = None) -> None:
         """Initialize a Node.
 
         Args:

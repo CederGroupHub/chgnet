@@ -20,6 +20,7 @@ for _ in range(100):
     forces.append(np.random.random([2, 3]))
     stresses.append(np.random.random([3, 3]))
     magmoms.append(np.random.random(2))
+
 data = StructureData(
     structures=structures,
     energies=energies,
@@ -48,8 +49,8 @@ def test_trainer(tmp_path) -> None:
     assert test_dir.is_dir(), "Training dir was not created"
 
     saved_weight = [f for f in test_dir.iterdir() if f.name.startswith("epoch")]
-    bestE_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestE")]
-    bestF_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestF")]
+    best_e_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestE")]
+    best_f_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestF")]
     assert len(saved_weight) == 1
-    assert len(bestE_weight) == 1
-    assert len(bestF_weight) == 1
+    assert len(best_e_weight) == 1
+    assert len(best_f_weight) == 1

@@ -195,7 +195,7 @@ def find_activation(name: str) -> nn.Module:
         raise NotImplementedError from exc
 
 
-def find_normalization(name: str, dim: int = None) -> nn.Module | None:
+def find_normalization(name: str, dim: int | None = None) -> nn.Module | None:
     """Return an normalization function using name."""
     if name is None:
         return None

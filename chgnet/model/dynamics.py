@@ -47,7 +47,7 @@ OPTIMIZERS = {
 class CHGNetCalculator(Calculator):
     """CHGNet Calculator for ASE applications."""
 
-    implemented_properties = ["energy", "forces", "stress", "magmoms"]
+    implemented_properties = ("energy", "forces", "stress", "magmoms")
 
     def __init__(
         self,
