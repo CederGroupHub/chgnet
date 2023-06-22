@@ -58,3 +58,5 @@ docs/_build/
 .DS_Store
 .idea
 .ipynb_checkpoints
+bond_graph_error.cif
+test.py

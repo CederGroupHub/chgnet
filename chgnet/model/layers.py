@@ -204,7 +204,7 @@ class BondConv(nn.Module):
             angle_feas (Tensor): angle features tensor with shape
                 [num_batch_angles, atom_fea_dim]
             bond_graph (Tensor): Directed BondGraph tensor with shape
-                [num_batched_angles, 5]
+                [num_batched_angles, 3]
 
         Returns:
             new_bond_feas (Tensor): bond feature tensor with shape
@@ -312,7 +312,7 @@ class AngleUpdate(nn.Module):
             angle_feas (Tensor): angle features tensor with shape
                 [num_batch_angles, atom_fea_dim]
             bond_graph (Tensor): Directed BondGraph tensor with shape
-                [num_batched_angles, 5]
+                [num_batched_angles, 3]
 
         Returns:
             new_angle_feas (Tensor): angle features tensor with shape
