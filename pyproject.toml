@@ -32,7 +32,7 @@ classifiers = [
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
 # needed to run interactive example notebooks
-crystal-toolkit = ["crystal-toolkit", "jupyter-dash"]
+crystal-toolkit = ["crystal-toolkit"]
 
 [project.urls]
 Source = "https://github.com/CederGroupHub/chgnet"
@@ -55,6 +55,7 @@ select = [
     "E",    # pycodestyle error
     "EXE",  # flake8-executable
     "F",    # pyflakes
+    "FA",   # flake8-future-annotations
     "FLY",  # flynt
     "I",    # isort
     "ICN",  # flake8-import-conventions
@@ -84,7 +85,6 @@ ignore = [
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
-    "PLC1901", # compare-to-empty-string
     "PLR",     # pylint refactor
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "PT006",   # pytest-parametrize-names-wrong-type

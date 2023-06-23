@@ -4,7 +4,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.274
+    rev: v0.0.275
     hooks:
       - id: ruff
         args: [--fix]
@@ -27,7 +27,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
         stages: [commit, commit-msg]
