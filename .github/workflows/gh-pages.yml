@@ -19,6 +19,7 @@ jobs:
     with:
       python-version: "3.11"
       working-directory: site
+      install-cmd: npm install --force
       pre-build: |
         pip install '..[gh-pages]'
         python make_docs.py
