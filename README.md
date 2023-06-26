@@ -13,7 +13,7 @@
 
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
-![chgnet](chgnet-logo.png)
+![chgnet](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
 
@@ -25,7 +25,7 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 | Notebooks                                                                                                                | Links&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                     | Descriptions                                                                                                                        |
 | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| [**CHGNet Basics**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basics.ipynb)                     | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/basics.ipynb)             | Examples for loading pre-trained CHGNet, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
+| [**CHGNet Basics**](https://github.com/CederGroupHub/chgnet/blob/main/examples/basics.ipynb)                             | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/basics.ipynb)                      | Examples for loading pre-trained CHGNet, predicting energy, force, stress, magmom as well as running structure optimization and MD. |
 | [**Tuning CHGNet**](https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb)                        | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb)                 | Examples of fine tuning the pretrained CHGNet to your system of interest.                                                           |
 | [**Visualize Relaxation**](https://github.com/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | [![Open in Google Colab]](https://colab.research.google.com/github/CederGroupHub/chgnet/blob/main/examples/crystaltoolkit_relax_viewer.ipynb) | Crystal Toolkit that visualizes atom positions, energies and forces of a structure during CHGNet relaxation.                        |
 
@@ -38,6 +38,8 @@ You can install `chgnet` through `pip`:
 ```sh
 pip install chgnet
 ```
+
+<slot name='docs' />
 
 ## Usage
 

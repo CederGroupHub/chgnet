@@ -1,0 +1,54 @@
+{
+  "name": "chgnet",
+  "description": "Universal neural network potential for charge-informed atomistic modeling",
+  "author": "Deng et al.",
+  "homepage": "https://CederGroupHub.github.io/chgnet",
+  "repository": "https://github.com/CederGroupHub/chgnet",
+  "license": "MIT",
+  "type": "module",
+  "bugs": "https://github.com/CederGroupHub/chgnet/issues",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite build && vite preview",
+    "changelog": "npx auto-changelog --package --output ../changelog.md --unreleased-only --hide-credit --commit-limit false"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^2.0.2",
+    "@sveltejs/kit": "^1.20.5",
+    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
+    "eslint": "^8.43.0",
+    "eslint-plugin-svelte3": "^4.0.0",
+    "hastscript": "^7.2.0",
+    "mdsvex": "^0.11.0",
+    "prettier": "^2.8.8",
+    "prettier-plugin-svelte": "^2.10.1",
+    "rehype-autolink-headings": "^6.1.1",
+    "rehype-slug": "^5.1.0",
+    "svelte": "^4.0.0",
+    "svelte-check": "^3.4.4",
+    "svelte-multiselect": "^9.0.0",
+    "svelte-preprocess": "^5.0.4",
+    "svelte-toc": "^0.5.5",
+    "svelte-zoo": "^0.4.8",
+    "svelte2tsx": "^0.6.16",
+    "tslib": "^2.5.3",
+    "typescript": "^5.1.3",
+    "vite": "^4.3.9"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.svelte",
+        "options": {
+          "printWidth": 90
+        }
+      }
+    ]
+  }
+}
