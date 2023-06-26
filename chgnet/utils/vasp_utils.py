@@ -134,17 +134,17 @@ def solve_charge_by_mag(
     Args:
         structure: input pymatgen structure
         default_ox (dict[str, float]): default oxidation state for elements.
-            Default = {"Li": 1, "O": -2}
-        ox_ranges (dict[str, dict[tuple[float, float], int]]): user defined range to
+            Default = dict(Li=1, O=-2)
+        ox_ranges (dict[str, dict[tuple[float, float], int]]): user-defined range to
             convert magmoms into formal valence.
             Example for Mn (Default):
-                {"Mn": {
-                (0.5, 1.5): 2,
-                (1.5, 2.5): 3,
-                (2.5, 3.5): 4,
-                (3.5, 4.2): 3,
-                (4.2, 5): 2
-                }}
+                ("Mn": (
+                    (0.5, 1.5): 2,
+                    (1.5, 2.5): 3,
+                    (2.5, 3.5): 4,
+                    (3.5, 4.2): 3,
+                    (4.2, 5): 2
+                ))
     """
     ox_list = []
     solved_ox = True
