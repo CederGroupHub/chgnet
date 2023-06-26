@@ -33,6 +33,7 @@ classifiers = [
 test = ["pytest", "pytest-cov"]
 # needed to run interactive example notebooks
 crystal-toolkit = ["crystal-toolkit"]
+docs = ["lazydocs"]
 
 [project.urls]
 Source = "https://github.com/CederGroupHub/chgnet"
