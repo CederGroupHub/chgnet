@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Readme from '$root/readme.md'
+  import Readme from '$root/README.md'
 </script>
 
 <main>
