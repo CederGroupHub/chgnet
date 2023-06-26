@@ -669,7 +669,7 @@ class StructureJsonData(Dataset):
 
 
 def collate_graphs(batch_data: list):
-    """Collate of list of (graph, target) into batch data,.
+    """Collate of list of (graph, target) into batch data.
 
     Args:
         batch_data (list): list of (graph, target(dict))
