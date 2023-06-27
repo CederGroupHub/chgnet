@@ -48,5 +48,9 @@ export default {
       $site: `.`,
       $root: `..`,
     },
+
+    paths: {
+      base: process.env.NODE_ENV === `production` ? `/chgnet` : ``,
+    },
   },
 }
