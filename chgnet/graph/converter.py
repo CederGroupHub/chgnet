@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Literal
 
 import torch
 from torch import Tensor, nn
+import numpy as np
+
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
@@ -14,6 +16,10 @@ if TYPE_CHECKING:
 
 datatype = torch.float32
 
+try:
+    from chgnet.graph.cygraph import make_graph
+except:
+    print("Error importing fast graph conversion (cygraph). Reverting to legacy.")
 
 class CrystalGraphConverter(nn.Module):
     """Convert a pymatgen.core.Structure to a CrystalGraph
@@ -45,6 +51,7 @@ class CrystalGraphConverter(nn.Module):
         graph_id=None,
         mp_id=None,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
+        graph_converter: Literal["legacy", "fast"] = "fast"
     ) -> CrystalGraph:
         """Convert a structure, return a CrystalGraph.
 
@@ -55,8 +62,9 @@ class CrystalGraphConverter(nn.Module):
             mp_id (str): Materials Project id of this structure
                 Default = None
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms.
-                Default = 'error'
+                with isolated atoms. Default = 'error'
+            graph_converter ('legacy' | 'fast'): graph converter to use when converting.
+                default = 'fast'
 
         Return:
             Crystal_Graph that is ready to use by CHGNet
@@ -74,9 +82,16 @@ class CrystalGraphConverter(nn.Module):
         center_index, neighbor_index, image, distance = self.get_neighbors(structure)
 
         # Make Graph
-        graph = Graph([Node(index=i) for i in range(n_atoms)])
-        for ii, jj, img, dist in zip(center_index, neighbor_index, image, distance):
-            graph.add_edge(center_index=ii, neighbor_index=jj, image=img, distance=dist)
+        if graph_converter == "fast":
+            try:
+                graph = self._create_graph_fast(n_atoms, center_index, neighbor_index, image, distance)
+            except:
+                print("Failed to retrieve fast graph converter. Reverting to legacy.")
+                graph = self._create_graph_legacy(n_atoms, center_index, neighbor_index, image, distance)
+        elif graph_converter == "legacy":
+            graph = self._create_graph_legacy(n_atoms, center_index, neighbor_index, image, distance)
+        else:
+            raise ValueError(f"No graph_converter named {graph_converter}")
 
         # Atom Graph
         atom_graph, directed2undirected = graph.adjacency_list()
@@ -126,6 +141,70 @@ class CrystalGraphConverter(nn.Module):
             atom_graph_cutoff=self.atom_graph_cutoff,
             bond_graph_cutoff=self.bond_graph_cutoff,
         )
+
+    def _create_graph_legacy(
+        self,
+        n_atoms: int, 
+        center_index: np.ndarray, 
+        neighbor_index: np.ndarray, 
+        image: np.ndarray,
+        distance: np.ndarray
+    ) -> Graph:
+        """Given structure information, create a Graph structure to be used to 
+        create Crystal_Graph
+
+        Args:
+            n_atoms (int): the number of atoms in the structure 
+            center_index (np.ndarray): np array of indices of center atoms. Shape: (# of edges, )
+            neighbor_index (np.ndarray): np array of indices of neighbor atoms. Shape: (# of edges, )
+            image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
+            distance (np.ndarray): np array of distances. Shape: (# of edges, )
+
+        Return:
+            Graph data structure used to create Crystal_Graph object
+        """
+        graph = Graph([Node(index=i) for i in range(n_atoms)])
+        for ii, jj, img, dist in zip(center_index, neighbor_index, image, distance):
+            graph.add_edge(center_index=ii, neighbor_index=jj, image=img, distance=dist)
+        
+        return graph
+
+
+    def _create_graph_fast(
+        self,
+        n_atoms: int, 
+        center_index: np.ndarray, 
+        neighbor_index: np.ndarray, 
+        image: np.ndarray,
+        distance: np.ndarray
+    ) -> Graph:
+        """Given structure information, create a Graph structure to be used to 
+        create Crystal_Graph. NOTE: this is the fast version of _create_graph_legacy optimized
+        in c (~3x speedup).
+
+        Args:
+            n_atoms (int): the number of atoms in the structure 
+            center_index (np.ndarray): np array of indices of center atoms. Shape: (# of edges, )
+            neighbor_index (np.ndarray): np array of indices of neighbor atoms. Shape: (# of edges, )
+            image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
+            distance (np.ndarray): np array of distances. Shape: (# of edges, )
+
+        Return:
+            Graph data structure used to create Crystal_Graph object
+        """
+        
+        center_index = np.ascontiguousarray(center_index)
+        neighbor_index = np.ascontiguousarray(neighbor_index)
+        image = np.ascontiguousarray(image, dtype=np.int_)
+        distance = np.ascontiguousarray(distance)
+
+        nodes, directed_edges_list, undirected_edges_list, undirected_edges = make_graph(center_index, len(center_index), neighbor_index, image, distance, n_atoms)
+        graph = Graph(nodes=nodes)
+        graph.directed_edges_list = directed_edges_list
+        graph.undirected_edges_list = undirected_edges_list
+        graph.undirected_edges = undirected_edges
+
+        return graph
 
     def get_neighbors(
         self, structure: Structure
