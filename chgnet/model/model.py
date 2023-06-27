@@ -493,7 +493,7 @@ class CHGNet(nn.Module):
         """Predict from pymatgen.core.Structure.
 
         Args:
-            structure (Structure, List(Structure)): structure or a list of structures
+            structure (Structure | Sequence[Structure]): structure or a list of structures
                 to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
@@ -512,28 +512,24 @@ class CHGNet(nn.Module):
                 s: stress of structure [3 * batch_size, 3] in GPa
                 m: magnetic moments of sites [num_batch_atoms, 3] in Bohr magneton mu_B
         """
-        assert (
-            self.graph_converter is not None
-        ), "self.graph_converter needs to be initialized first!"
-        if type(structure) == Structure:
-            graph = self.graph_converter(structure)
-            return self.predict_graph(
-                graph,
-                task=task,
-                return_atom_feas=return_atom_feas,
-                return_crystal_feas=return_crystal_feas,
-                batch_size=batch_size,
+        if not isinstance(structure, (Structure, Sequence)):
+            raise ValueError(
+                f"structure should be a Structure or list of structures, got {type(structure)}"
             )
-        if type(structure) == list:
-            graphs = [self.graph_converter(i) for i in structure]
-            return self.predict_graph(
-                graphs,
-                task=task,
-                return_atom_feas=return_atom_feas,
-                return_crystal_feas=return_crystal_feas,
-                batch_size=batch_size,
-            )
-        raise Exception("input should either be a structure or list of structures!")
+        if self.graph_converter is None:
+            raise ValueError("graph_converter cannot be None!")
+
+        if not isinstance(structure, Sequence):
+            structure = [structure]
+
+        graphs = [self.graph_converter(struct) for struct in structure]
+        return self.predict_graph(
+            graphs,
+            task=task,
+            return_atom_feas=return_atom_feas,
+            return_crystal_feas=return_crystal_feas,
+            batch_size=batch_size,
+        )
 
     def predict_graph(
         self,
@@ -564,58 +560,45 @@ class CHGNet(nn.Module):
                 s (Tensor) : stress of structure [3 * batch_size, 3]
                 m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
         """
+        if not isinstance(graph, (CrystalGraph, Sequence)):
+            raise ValueError(
+                f"{type(graph)=} must be CrystalGraph or list of CrystalGraphs"
+            )
+
         model_device = next(self.parameters()).device
-        if type(graph) == CrystalGraph:
-            self.eval()
+        if isinstance(graph, CrystalGraph):
+            graph = [graph]
+        self.eval()
+        predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graph))]
+        n_steps = math.ceil(len(graph) / batch_size)
+        for step in range(n_steps):
             prediction = self.forward(
-                [graph.to(model_device)],
+                [
+                    g.to(model_device)
+                    for g in graph[batch_size * step : batch_size * (step + 1)]
+                ],
                 task=task,
                 return_atom_feas=return_atom_feas,
                 return_crystal_feas=return_crystal_feas,
             )
-            out = {}
             for key, pred in prediction.items():
-                if key == "e":
-                    out[key] = pred.item()
-                elif key in ["f", "s", "m", "atom_fea"]:
-                    assert len(pred) == 1
-                    out[key] = pred[0].cpu().detach().numpy()
+                if key in ["e"]:
+                    for i, e in enumerate(pred.cpu().detach().numpy()):
+                        predictions[step * batch_size + i][key] = e
+                elif key in ["f", "s", "m"]:
+                    for i, tmp in enumerate(pred):
+                        predictions[step * batch_size + i][key] = (
+                            tmp.cpu().detach().numpy()
+                        )
+                elif key == "atom_fea":
+                    for i, atom_fea in enumerate(pred):
+                        predictions[step * batch_size + i][key] = (
+                            atom_fea.cpu().detach().numpy()
+                        )
                 elif key == "crystal_fea":
-                    out[key] = pred.view(-1).cpu().detach().numpy()
-            return out
-        if type(graph) == list:
-            self.eval()
-            predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graph))]
-            n_steps = math.ceil(len(graph) / batch_size)
-            for n in range(n_steps):
-                prediction = self.forward(
-                    [
-                        g.to(model_device)
-                        for g in graph[batch_size * n : batch_size * (n + 1)]
-                    ],
-                    task=task,
-                    return_atom_feas=return_atom_feas,
-                    return_crystal_feas=return_crystal_feas,
-                )
-                for key, pred in prediction.items():
-                    if key in ["e"]:
-                        for i, e in enumerate(pred.cpu().detach().numpy()):
-                            predictions[n * batch_size + i][key] = e
-                    elif key in ["f", "s", "m"]:
-                        for i, tmp in enumerate(pred):
-                            predictions[n * batch_size + i][key] = (
-                                tmp.cpu().detach().numpy()
-                            )
-                    elif key == "atom_fea":
-                        for i, atom_fea in enumerate(pred):
-                            predictions[n * batch_size + i][key] = (
-                                atom_fea.cpu().detach().numpy()
-                            )
-                    elif key == "crystal_fea":
-                        for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
-                            predictions[n * batch_size + i][key] = crystal_fea
-            return predictions
-        raise Exception("input should either be a graph or list of graphs!")
+                    for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
+                        predictions[step * batch_size + i][key] = crystal_fea
+        return predictions
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
@@ -654,7 +637,7 @@ class CHGNet(nn.Module):
             return cls.from_file(
                 os.path.join(current_dir, "../pretrained/e30f77s348m32.pth.tar")
             )
-        raise Exception("model_name not supported")
+        raise ValueError(f"Unknown {model_name=}")
 
 
 @dataclass

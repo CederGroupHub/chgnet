@@ -448,7 +448,7 @@ class Trainer:
     def get_best_model(self):
         """Get best model recorded in the trainer."""
         if self.best_model is None:
-            raise Exception("the model needs to be trained first")
+            raise RuntimeError("the model needs to be trained first")
         print("Best model has val MAE = ", min(self.training_history["e"]["val"]))
         return self.best_model
 
