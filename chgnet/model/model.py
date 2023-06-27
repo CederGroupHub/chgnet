@@ -546,7 +546,7 @@ class CHGNet(nn.Module):
         """Predict from CrustalGraph.
 
         Args:
-            graph (CrystalGraph): Crystal_Graph or a list of CrystalGraphs to predict.
+            graph (CrystalGraph | Sequence[CrystalGraph]): CrystalGraph(s) to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_atom_feas (bool): whether to return atom features.

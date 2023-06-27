@@ -58,7 +58,7 @@ def make_graphs(
 
 
 def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
-    """Convert a structure to a Crystal_Graph and save it."""
+    """Convert a structure to a CrystalGraph and save it."""
     dic = data.data[mp_id].pop(graph_id)
     struct = Structure.from_dict(dic.pop("structure"))
     try:
