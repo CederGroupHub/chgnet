@@ -9,7 +9,7 @@ typedef struct _LongToDirectedEdgeList LongToDirectedEdgeList;
 typedef struct _ReturnElems ReturnElems;
 typedef struct _ReturnElems2 ReturnElems2;
 
-// NOTE: This code was mainly written to replicate the original add_edges method 
+// NOTE: This code was mainly written to replicate the original add_edges method
 // in the graph class in chgnet.graph.graph such that anyone familiar with that code should be able to pick up this
 // code pretty easily.
 
@@ -61,7 +61,7 @@ typedef struct _ReturnElems {
     long* node_index_unraveled;
     long* node_neighbor_index_unraveled;
     long* node_directed_edge_index_unraveled;
-    
+
     long num_undirected_edges;
     long* undirected_center_index_unraveled;
     long* undirected_neighbor_index_unraveled;
@@ -70,7 +70,7 @@ typedef struct _ReturnElems {
     double* undirected_distances_unraveled;
 
     long num_directed_edges;
-    long* directed_undirected_edge_index_unraveled;    
+    long* directed_undirected_edge_index_unraveled;
 } ReturnElems;
 
 
@@ -135,7 +135,7 @@ ReturnElems2* create_graph(
     StructToUndirectedEdgeList* undirected_edges = NULL;
 
     // Pointer to beginning of list of UndirectedEdges corresponding to tmp of current iteration
-    StructToUndirectedEdgeList* corr_undirected_edges_item = NULL; 
+    StructToUndirectedEdgeList* corr_undirected_edges_item = NULL;
 
     // Pointer to NodeIndexPair storing tmp
     NodeIndexPair* tmp = malloc(sizeof(NodeIndexPair));
@@ -144,7 +144,7 @@ ReturnElems2* create_graph(
     bool found = false;
 
     // Flag used to show if we've already processed the current undirected edge
-    bool processed_edge = false; 
+    bool processed_edge = false;
 
     // Pointer used to store the previously added directed edge between two nodes
     DirectedEdge* added_DE;
@@ -176,7 +176,7 @@ ReturnElems2* create_graph(
 
             this_directed_edge->undirected_edge_index = num_undirected_edges;
 
-            //TODO: be careful about double-freeing later. we're re-using a lot of memory space 
+            //TODO: be careful about double-freeing later. we're re-using a lot of memory space
 
             // Create new undirected edge
             UndirectedEdge* this_undirected_edge = malloc(sizeof(UndirectedEdge));
@@ -187,9 +187,9 @@ ReturnElems2* create_graph(
             create_new_undirected_edges_entry(&undirected_edges, tmp, this_undirected_edge);
             append_to_undirected_edges_list(undirected_edges_list, this_undirected_edge, &num_undirected_edges);
             add_neighbors_to_node(&nodes[center_indices[i]], neighbor_indices[i], this_directed_edge);
-            append_to_directed_edges_list(directed_edges_list, this_directed_edge, &num_directed_edges);    
+            append_to_directed_edges_list(directed_edges_list, this_directed_edge, &num_directed_edges);
         } else {
-            // This pair of nodes has been added before. We have to check if it's the other directed edge (but pointed in 
+            // This pair of nodes has been added before. We have to check if it's the other directed edge (but pointed in
             // the different direction) OR it's another totally different undirected edge that has different image and distance
 
             // if found is true, then corr_undirected_edges_item points to self.undirected_edges[tmp]
@@ -224,7 +224,7 @@ ReturnElems2* create_graph(
         }
     }
 
-    
+
     // ReturnElems* returned;
     // returned = get_raw_data(nodes, num_atoms, num_undirected_edges, num_directed_edges, undirected_edges_list, directed_edges_list);
 
@@ -235,7 +235,7 @@ ReturnElems2* create_graph(
     returned2->num_nodes = num_atoms;
     returned2->num_undirected_edges = num_undirected_edges;
     returned2->num_directed_edges = num_directed_edges;
-    
+
     returned2->nodes = nodes;
     returned2->directed_edges_list = directed_edges_list;
     returned2->undirected_edges_list = undirected_edges_list;
@@ -246,8 +246,8 @@ ReturnElems2* create_graph(
 
 // Converts all data into forms that can be digested in cython and used to create a graph python object
 ReturnElems* get_raw_data(
-            Node* nodes, 
-            long num_nodes, 
+            Node* nodes,
+            long num_nodes,
             long num_undirected_edges,
             long num_directed_edges,
             UndirectedEdge** undirected_edges_list,
@@ -294,10 +294,10 @@ ReturnElems* get_raw_data(
 
             unravel_index += 1;
         }
-    } 
+    }
 
     // Directed edges ---------------
-    // center unraveled, neighbor unraveled, image unraveled, distance unraveled for directed edges are all 
+    // center unraveled, neighbor unraveled, image unraveled, distance unraveled for directed edges are all
     // just the inputs to the create graph function
     long* directed_undirected_edge_index_unraveled = malloc(sizeof(long) * num_directed_edges);
     for (long directed_i = 0; directed_i < num_directed_edges; directed_i++) {
@@ -367,7 +367,7 @@ bool is_reversed_directed_edge(DirectedEdge* directed_edge1, DirectedEdge* direc
 }
 
 // If tmp or the reverse of tmp is found in undirected_edges, True is returned and the corresponding StructToUndirectedEdgeList pointer is placed
-// into found_entry. Otherwise, False is returned. 
+// into found_entry. Otherwise, False is returned.
 // NOTE: does not edit the *tmp
 // Assumes *tmp bits have already been 0'd at padding within a struct
 bool find_in_undirected(NodeIndexPair* tmp, StructToUndirectedEdgeList** undirected_edges, StructToUndirectedEdgeList** found_entry) {
@@ -408,7 +408,7 @@ void create_new_undirected_edges_entry(StructToUndirectedEdgeList** undirected_e
     new_entry->num_undirected_edges_in_group = 1;
     new_entry->undirected_edges_list = malloc(sizeof(UndirectedEdge*));
     new_entry->undirected_edges_list[0] = new_undirected_edge;
-    
+
     HASH_ADD(hh, *undirected_edges, key, sizeof(NodeIndexPair), new_entry);
 
 }
@@ -452,7 +452,7 @@ void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, 
 
 void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, UndirectedEdge* to_add, long* num_undirected_edges) {
     // No need to realloc for space since our original alloc should cover everything
-    
+
     // Assign value to next available position
     undirected_edges_list[*num_undirected_edges] = to_add;
     *num_undirected_edges += 1;
@@ -496,7 +496,7 @@ void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* direct
         entry->directed_edges_list = malloc(sizeof(DirectedEdge*));
         entry->directed_edges_list[0] = directed_edge;
         entry->key = neighbor_index;
-        
+
         entry->num_directed_edges_in_group = 1;
         HASH_ADD(hh, node->neighbors, key, sizeof(long), entry);
 

@@ -71,9 +71,9 @@ cdef extern from 'fast_converter_libraries/create_graph.c':
     LongToDirectedEdgeList** get_neighbors(Node* node)
 
 def make_graph(
-        const long[::1] center_index, 
+        const long[::1] center_index,
         const long n_e,
-        const long[::1] neighbor_index, 
+        const long[::1] neighbor_index,
         const long[:, ::1] image,
         const double[::1] distance,
         const long num_atoms
@@ -109,9 +109,9 @@ def make_graph(
             for k in range(this_entry.num_directed_edges_in_group):
                 this_DE = this_entry.directed_edges_list[k]
                 directed_edges.append(this_DE[0].index)
-            
+
             this_py_node.neighbors[this_entry.key] = directed_edges
-        
+
         py_nodes.append(this_py_node)
 
     # Handling directed edges
