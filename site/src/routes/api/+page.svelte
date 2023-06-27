@@ -14,8 +14,4 @@
   :global(hr) {
     border: none;
   }
-  :global(code) {
-    line-height: 1em;
-    border-radius: 4pt;
-  }
 </style>
