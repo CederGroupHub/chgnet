@@ -39,7 +39,9 @@ You can install `chgnet` through `pip`:
 pip install chgnet
 ```
 
-<slot name='docs' />
+## Docs
+
+View [API docs](https://cedergrouphub.github.io/chgnet/api).
 
 ## Usage
 

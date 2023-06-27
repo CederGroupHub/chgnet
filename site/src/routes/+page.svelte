@@ -1,15 +1,9 @@
 <script lang="ts">
-  import { base } from '$app/paths'
   import Readme from '$root/README.md'
 </script>
 
 <main>
-  <Readme>
-    <svelte:fragment slot="docs">
-      <h2>Docs</h2>
-      View&nbsp;<a href="{base}/api">CHGNet API docs</a>
-    </svelte:fragment>
-  </Readme>
+  <Readme />
 </main>
 
 <style>

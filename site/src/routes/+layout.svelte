@@ -45,8 +45,8 @@
 <slot />
 
 <footer>
-  <a href="{repository}/issues">GitHub issues</a>
-  <a href="mailto:bdeng@lbl.gov">Email</a>
+  <a href="{repository}/issues">Issues</a>
+  <a href="{repository}/discussions">Discussions</a>
 </footer>
 
 <style>
