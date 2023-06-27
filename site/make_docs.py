@@ -35,5 +35,9 @@ for path in glob(f"{route}/*.md"):
         'src="https://img.shields.io/badge/-source-cccccc?style=flat-square"',
         'src="https://img.shields.io/badge/source-blue?style=flat" alt="source link"',
     )
+    # remove "Global Variables" section if only contains TYPE_CHECKING
+    markdown = markdown.replace(
+        "\n**Global Variables**\n---------------\n- **TYPE_CHECKING**\n\n", ""
+    )
     with open(path, "w") as file:
         file.write(markdown)
