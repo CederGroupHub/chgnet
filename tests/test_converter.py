@@ -58,9 +58,8 @@ def test_crystal_graph_converter_get_neighbors():
 
     assert list(center_index) == [0] * 14 + [1] * 14
     assert list(neighbor_index) == [
-        # fmt: off
-        1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1
-        # fmt: on
+        *(1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1),
+        *(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1),
     ]
     expected_image = [
         [-1, -1, -1],
