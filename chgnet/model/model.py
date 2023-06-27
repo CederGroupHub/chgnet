@@ -489,7 +489,7 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
-    ) -> dict[str, Tensor]:
+    ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from pymatgen.core.Structure.
 
         Args:
@@ -519,17 +519,17 @@ class CHGNet(nn.Module):
         if self.graph_converter is None:
             raise ValueError("graph_converter cannot be None!")
 
-        if not isinstance(structure, Sequence):
-            structure = [structure]
+        structures = [structure] if isinstance(structure, Structure) else structure
 
-        graphs = [self.graph_converter(struct) for struct in structure]
-        return self.predict_graph(
+        graphs = [self.graph_converter(struct) for struct in structures]
+        predictions = self.predict_graph(
             graphs,
             task=task,
             return_atom_feas=return_atom_feas,
             return_crystal_feas=return_crystal_feas,
             batch_size=batch_size,
         )
+        return predictions[0] if len(structures) == 1 else predictions
 
     def predict_graph(
         self,
@@ -538,7 +538,7 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
-    ) -> dict[str, Tensor]:
+    ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from CrustalGraph.
 
         Args:
@@ -566,16 +566,16 @@ class CHGNet(nn.Module):
             )
 
         model_device = next(self.parameters()).device
-        if isinstance(graph, CrystalGraph):
-            graph = [graph]
+
+        graphs = [graph] if isinstance(graph, CrystalGraph) else graph
         self.eval()
-        predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graph))]
-        n_steps = math.ceil(len(graph) / batch_size)
+        predictions: list[dict[str, Tensor]] = [{} for _ in range(len(graphs))]
+        n_steps = math.ceil(len(graphs) / batch_size)
         for step in range(n_steps):
             prediction = self.forward(
                 [
                     g.to(model_device)
-                    for g in graph[batch_size * step : batch_size * (step + 1)]
+                    for g in graphs[batch_size * step : batch_size * (step + 1)]
                 ],
                 task=task,
                 return_atom_feas=return_atom_feas,
@@ -598,7 +598,8 @@ class CHGNet(nn.Module):
                 elif key == "crystal_fea":
                     for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
                         predictions[step * batch_size + i][key] = crystal_fea
-        return predictions
+
+        return predictions[0] if len(graphs) == 1 else predictions
 
     @staticmethod
     def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
