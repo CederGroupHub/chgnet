@@ -175,9 +175,9 @@ link to our paper:
 Please cite the following:
 
 ```bib
-@article{deng2023_chgnet,
+@article{deng_2023_chgnet,
   title={{CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling}},
-  author={Deng, Bowen and Zhong, Peichen and Jun, KyuJung and Han, Kevin and Bartel, Christopher J and Ceder, Gerbrand},
+  author={Deng, Bowen and Zhong, Peichen and Jun, KyuJung and Riebesell, Janosh and Han, Kevin and Bartel, Christopher J and Ceder, Gerbrand},
   journal={arXiv preprint arXiv:2302.14231},
   year={2023},
   url = {https://arxiv.org/abs/2302.14231}

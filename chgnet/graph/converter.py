@@ -59,7 +59,7 @@ class CrystalGraphConverter(nn.Module):
                 Default = 'error'
 
         Return:
-            Crystal_Graph that is ready to use by CHGNet
+            CrystalGraph that is ready to use by CHGNet
         """
         n_atoms = len(structure)
         atomic_number = torch.tensor(

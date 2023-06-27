@@ -502,7 +502,7 @@ class StructureJsonData(Dataset):
         elif isinstance(data, dict):
             self.data = data
         else:
-            raise Exception("please provide a json path or dictionary")
+            raise ValueError(f"data must be JSON path or dictionary, got {type(data)}")
 
         self.keys = []
         for mp_id, dic in self.data.items():

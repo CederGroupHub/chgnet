@@ -40,6 +40,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # install pymatgen straight from master until next release with
+          # https://github.com/materialsproject/pymatgen/pull/3108 is out
+          pip install -U git+https://github.com/materialsproject/pymatgen # TODO: remove later
           pip install -e .[test]
 
       - name: Run Tests
