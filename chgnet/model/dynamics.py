@@ -59,12 +59,15 @@ class CHGNetCalculator(Calculator):
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
 
         Args:
-            model (CHGNet): instance of a chgnet model
+            model (CHGNet): instance of a chgnet model. If set to None,
+                the pretrained CHGNet is loaded.
+                Default = None
             use_device (str, optional): The device to be used for predictions,
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
+                Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
-                Default = 1/160.21.
+                Default = 1/160.21
             **kwargs: Passed to the Calculator parent class.
         """
         super().__init__(**kwargs)
@@ -136,14 +139,17 @@ class StructOptimizer:
         """Provide a trained CHGNet model and an optimizer to relax crystal structures.
 
         Args:
-            model (CHGNet): instance of a chgnet model
+            model (CHGNet): instance of a chgnet model. If set to None,
+                the pretrained CHGNet is loaded.
+                Default = None
             optimizer_class (Optimizer,str): choose optimizer from ASE.
-                Default = FIRE
+                Default = "FIRE"
             use_device (str, optional): The device to be used for predictions,
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
+                Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
-                Default = 1/160.21.
+                Default = 1/160.21
         """
         if isinstance(optimizer_class, str):
             if optimizer_class in OPTIMIZERS:
@@ -188,8 +194,8 @@ class StructOptimizer:
             **kwargs: Additional parameters for the optimizer.
 
         Returns:
-            dict[str, Structure | TrajectoryObserver]: A dictionary with keys 'final_structure'
-                and 'trajectory'.
+            dict[str, Structure | TrajectoryObserver]:
+                A dictionary with 'final_structure' and 'trajectory'.
         """
         if isinstance(atoms, Structure):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
@@ -453,14 +459,17 @@ class EquationOfState:
         """Initialize a structure optimizer object for calculation of bulk modulus.
 
         Args:
-            model (CHGNet): instance of a chgnet model
+            model (CHGNet): instance of a chgnet model. If set to None,
+                the pretrained CHGNet is loaded.
+                Default = None
             optimizer_class (Optimizer,str): choose optimizer from ASE.
-                Default = FIRE
+                Default = "FIRE"
             use_device (str, optional): The device to be used for predictions,
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
+                Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
-                Default = 1/160.21.
+                Default = 1/160.21
         """
         self.relaxer = StructOptimizer(
             model=model,

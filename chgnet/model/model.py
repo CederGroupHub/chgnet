@@ -71,7 +71,9 @@ class CHGNet(nn.Module):
                 Default = 64
             composition_model (nn.Module, optional): attach a composition model to
                 predict energy or initialize a pretrained linear regression (AtomRef).
-                Default = None
+                The default 'MPtrj' is the atom reference energy linear regression
+                trained on all Materials Project relaxation trajectories
+                Default = 'MPtrj'
             num_radial (int): number of radial basis used in bond basis expansion.
                 Default = 9
             num_angular (int): number of angular basis used in angle basis expansion.
@@ -109,7 +111,9 @@ class CHGNet(nn.Module):
             non_linearity ('silu' | 'relu' | 'tanh' | 'gelu'): The name of the
                 activation function to use in the gated MLP.
                 Default = "silu".
-            mlp_first (bool): whether to apply mlp fist then pooling.
+            mlp_first (bool): whether to apply mlp first then pooling.
+                if set to True, then CHGNet is essentially calculating energy for each
+                atom, them sum them up, this is used for the pretrained model
                 Default = True
             atom_graph_cutoff (float): cutoff radius (A) in creating atom_graph,
                 this need to be consistent with the value in training dataloader
@@ -539,7 +543,9 @@ class CHGNet(nn.Module):
         return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict[str, Tensor]:
-        """Args:
+        """Predict from CrustalGraph.
+
+        Args:
             graph (CrystalGraph): Crystal_Graph or a list of CrystalGraphs to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
@@ -756,6 +762,9 @@ class BatchedGraph:
             directed2undirected.append(graph.directed2undirected + n_undirected)
 
             # Angles
+            # Here we use directed edges to calculate angles, and
+            # keep only the undirected graph index in the bond_graph,
+            # So the number of columns in bond_graph reduce from 5 to 3
             if len(graph.bond_graph) != 0:
                 bond_vecs_i = torch.index_select(
                     bond_vectors, 0, graph.bond_graph[:, 2]

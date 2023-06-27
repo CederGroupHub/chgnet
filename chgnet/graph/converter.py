@@ -16,9 +16,9 @@ datatype = torch.float32
 
 
 class CrystalGraphConverter(nn.Module):
-    """Convert a pymatgen.core.Structure to a CrystalGraph.
-
-    Only the minimal essential information is kept.
+    """Convert a pymatgen.core.Structure to a CrystalGraph
+    The CrystalGraph dataclass stores essential field to make sure that
+    gradients like force and stress can be calculated through back-propagation later.
     """
 
     def __init__(
@@ -31,8 +31,6 @@ class CrystalGraphConverter(nn.Module):
                 atom_graph. Default = 5
             bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
                 Default = 3
-            verbose (bool): whether to print initialization message
-                Default = True
         """
         super().__init__()
         self.atom_graph_cutoff = atom_graph_cutoff
@@ -57,7 +55,8 @@ class CrystalGraphConverter(nn.Module):
             mp_id (str): Materials Project id of this structure
                 Default = None
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms. Default = 'error'
+                with isolated atoms.
+                Default = 'error'
 
         Return:
             Crystal_Graph that is ready to use by CHGNet
