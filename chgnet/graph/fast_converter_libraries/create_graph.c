@@ -423,7 +423,7 @@ void append_to_undirected_edges_tmp(UndirectedEdge* undirected, StructToUndirect
     long num_undirected_edges = this_undirected_edges_item->num_undirected_edges_in_group;
 
     // No need to worry about originally malloc'ing memory for this_undirected_edges_item->undirected_edges_list
-    // this is because, we first call create_new_undirected_edges_entry for all entires. This function already mallocs for us.
+    // this is because, we first call create_new_undirected_edges_entry for all entries. This function already mallocs for us.
 
     // Realloc the space to fit a new pointer to an undirected edge
     UndirectedEdge** new_list = realloc(this_undirected_edges_item->undirected_edges_list, sizeof(UndirectedEdge*) * (num_undirected_edges + 1));
@@ -461,7 +461,7 @@ void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, Und
 void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedEdge* to_add, long* num_directed_edges) {
     // No need to realloc for space since our original alloc should cover everything
 
-    // Assign value to next availabe position
+    // Assign value to next available position
     directed_edges_list[*num_directed_edges] = to_add;
     *num_directed_edges += 1;
 }

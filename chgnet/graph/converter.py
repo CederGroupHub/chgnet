@@ -161,8 +161,10 @@ class CrystalGraphConverter(nn.Module):
 
         Args:
             n_atoms (int): the number of atoms in the structure
-            center_index (np.ndarray): np array of indices of center atoms. Shape: (# of edges, )
-            neighbor_index (np.ndarray): np array of indices of neighbor atoms. Shape: (# of edges, )
+            center_index (np.ndarray): np array of indices of center atoms.
+                Shape: (# of edges, )
+            neighbor_index (np.ndarray): np array of indices of neighbor atoms.
+                Shape: (# of edges, )
             image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
             distance (np.ndarray): np array of distances. Shape: (# of edges, )
 
@@ -189,8 +191,10 @@ class CrystalGraphConverter(nn.Module):
 
         Args:
             n_atoms (int): the number of atoms in the structure
-            center_index (np.ndarray): np array of indices of center atoms. Shape: (# of edges, )
-            neighbor_index (np.ndarray): np array of indices of neighbor atoms. Shape: (# of edges, )
+            center_index (np.ndarray): np array of indices of center atoms.
+                Shape: (# of edges, )
+            neighbor_index (np.ndarray): np array of indices of neighbor atoms.
+                Shape: (# of edges, )
             image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
             distance (np.ndarray): np array of distances. Shape: (# of edges, )
 
