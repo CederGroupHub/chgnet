@@ -1,0 +1,163 @@
+:root {
+  --night: #061e25;
+  --blue: cornflowerblue;
+  --text-color: rgb(208, 208, 208);
+
+  --toc-mobile-bg: #0d1a1d;
+  --toc-mobile-shadow: 0 0 1em 0 black;
+  --toc-title-padding: 0 0 0 3pt;
+  --toc-li-padding: 2pt 1ex;
+  --toc-mobile-btn-color: white;
+  --toc-mobile-btn-bg: teal;
+  --toc-mobile-btn-padding: 1pt 2pt;
+  --toc-desktop-nav-margin: 0 0 0 1em;
+  --toc-min-width: 15em;
+  --toc-active-border: solid cornflowerblue;
+  --toc-active-border-width: 0 0 0 2pt;
+  --toc-active-bg: none;
+  --toc-active-border-radius: 0;
+
+  --zoo-github-corner-color: var(--night);
+  --zoo-github-corner-bg: white;
+
+  --sms-options-bg: rgb(50, 48, 66);
+  --sms-active-color: cornflowerblue;
+}
+body {
+  background: var(--night);
+  font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  color: var(--text-color);
+  line-height: 1.5;
+  margin: 0;
+}
+body > div {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+main {
+  padding: calc(1ex + 2vw);
+  flex: 1;
+  margin: auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 50em;
+}
+button {
+  color: var(--text-color);
+  cursor: pointer;
+  border: none;
+  border-radius: 3pt;
+  background: teal;
+  padding: 2pt 4pt;
+}
+a {
+  color: var(--blue);
+  text-decoration: none;
+  transition: 0.2s;
+}
+a:hover {
+  color: orange;
+}
+a.link {
+  padding: 0 4pt;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3pt;
+  transition: 0.2s;
+}
+a.link[aria-current='page'] {
+  color: mediumseagreen;
+}
+code {
+  overflow-wrap: break-word;
+  padding: 1pt 3pt;
+  border-radius: 2pt;
+  font-size: 1.2em;
+  background-color: rgba(0, 255, 255, 0.1);
+}
+pre code {
+  background-color: transparent;
+  display: inline-block;
+  font-size: 10pt;
+}
+pre {
+  position: relative;
+  border-radius: 4pt;
+  background-color: rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+  padding: 6pt 8pt;
+  margin: 1em auto;
+}
+ul {
+  padding-left: 1em;
+}
+label {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+table :is(td, th) {
+  border: 1px solid gray;
+  padding: 5pt 9pt;
+}
+img {
+  max-width: 100%;
+}
+tbody tr:nth-child(odd) {
+  background: black;
+}
+h1 {
+  text-align: center;
+}
+.hide-in-docs {
+  display: none;
+}
+
+:where(h2, h3, h4, h5, h6) {
+  scroll-margin-top: 50px;
+  transition: 0.3s;
+}
+:where(h2, h3, h4, h5, h6).toc-clicked {
+  color: orange;
+}
+/* style heading anchors added by rehype-autolink-headings, see svelte.config.js */
+:where(h2, h3, h4, h5, h6) a[aria-hidden='true'] {
+  transition: 0.3s;
+  margin-left: 4pt;
+  opacity: 0;
+}
+:where(h2, h3, h4, h5, h6):hover a[aria-hidden='true'] {
+  opacity: 1;
+}
+
+blockquote {
+  border-left: 3pt solid var(--blue);
+  padding: 4pt 2pt 4pt 9pt;
+  margin: 1em auto;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+blockquote p:first-child {
+  margin-top: 0;
+}
+
+/* for /api/[slug] */
+kbd {
+  padding: 0 1ex 0 0;
+}
+aside.toc.desktop {
+  position: fixed;
+  top: 3em;
+  left: calc(50vw + 45em / 2);
+  max-width: 16em;
+}
+
+caption {
+  display: block;
+}

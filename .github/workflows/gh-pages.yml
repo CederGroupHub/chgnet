@@ -1,0 +1,25 @@
+name: GitHub Pages
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# set permissions of GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: janosh/workflows/.github/workflows/nodejs-gh-pages.yml@main
+    with:
+      python-version: "3.11"
+      working-directory: site
+      install-cmd: npm install --force
+      pre-build: |
+        pip install '..[docs]'
+        python make_docs.py

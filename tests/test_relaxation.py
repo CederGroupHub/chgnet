@@ -48,4 +48,4 @@ def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
         assert relaxer.calculator.device == use_device
     except NotImplementedError as exc:
         # TODO: remove try/except once mps is supported
-        assert str(exc) == "mps is not supported yet"  # noqa: PT017
+        assert str(exc) == "'mps' backend is not supported yet"  # noqa: PT017
