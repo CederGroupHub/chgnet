@@ -19,14 +19,8 @@
       return `/` + parts.slice(1, -1).join(`/`)
     })
 
-  const notebooks = Object.keys(
-    import.meta.glob(`$root/examples/*.html`, { eager: true, as: `url` })
-  ).map((path) => {
-    const filename = path.split(`/`).at(-1)?.replace(`.html`, ``)
-    return `/notebooks/${filename}`
-  })
-  const actions = file_routes.concat(notebooks).map((name) => {
-    return { label: name, action: () => goto(name.toLowerCase()) }
+  const actions = file_routes.map((name) => {
+    return { label: name, action: () => goto(`${base}${name.toLowerCase()}`) }
   })
 </script>
 
@@ -37,7 +31,7 @@
 <Toc {headingSelector} breakpoint={1250} warnOnEmpty={false} />
 
 {#if $page.url.pathname !== base}
-  <a href={base} aria-label="Back to index page">&laquo; home</a>
+  <a href="{base}/" aria-label="Back to index page">&laquo; home</a>
 {/if}
 
 <GitHubCorner href={repository} />
