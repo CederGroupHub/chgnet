@@ -10,11 +10,18 @@ from chgnet.graph import CrystalGraphConverter
 
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
+converter_legacy = CrystalGraphConverter(
+    atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="legacy", verbose=True
+)
+converter_fast = CrystalGraphConverter(
+    atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast", verbose=True
+)
 
 
 def test_crystal_graph_legacy():
+    assert converter_legacy.algorithm == "legacy"
     start = perf_counter()
-    graph = converter(structure, graph_converter="legacy")
+    graph = converter_legacy(structure)
     print("Legacy test_crystal_graph time:", perf_counter() - start)
 
     assert graph.composition == "Li2 Mn2 O4"
@@ -38,9 +45,10 @@ def test_crystal_graph_legacy():
 
 
 def test_crystal_graph_fast():
+    assert converter_fast.algorithm == "fast"
     start = perf_counter()
-    graph = converter(structure, graph_converter="fast")
-    print("Fast test_crystal_graph time:", perf_counter() - start)
+    graph = converter_fast(structure)
+    print("Fasttest_crystal_graph time:", perf_counter() - start)
 
     assert graph.composition == "Li2 Mn2 O4"
     assert graph.atomic_number.tolist() == [3, 3, 25, 25, 8, 8, 8, 8]
@@ -63,10 +71,13 @@ def test_crystal_graph_fast():
 
 
 def test_crystal_graph_different_cutoff_legacy():
-    converter = CrystalGraphConverter(atom_graph_cutoff=5.5, bond_graph_cutoff=3.5)
+    converter_legacy_2 = CrystalGraphConverter(
+        atom_graph_cutoff=5.5, bond_graph_cutoff=3.5, algorithm="legacy"
+    )
+    assert converter_legacy_2.algorithm == "legacy"
 
     start = perf_counter()
-    graph = converter(structure, graph_converter="legacy")
+    graph = converter_legacy_2(structure)
     print("Legacy test_crystal_graph_different_cutoff time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -87,10 +98,13 @@ def test_crystal_graph_different_cutoff_legacy():
 
 
 def test_crystal_graph_different_cutoff_fast():
-    converter = CrystalGraphConverter(atom_graph_cutoff=5.5, bond_graph_cutoff=3.5)
+    converter_fast_2 = CrystalGraphConverter(
+        atom_graph_cutoff=5.5, bond_graph_cutoff=3.5, algorithm="fast"
+    )
+    assert converter_fast_2.algorithm == "fast"
 
     start = perf_counter()
-    graph = converter(structure, graph_converter="fast")
+    graph = converter_fast_2(structure)
     print("Fast test_crystal_graph_different_cutoff time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -116,7 +130,7 @@ def test_crystal_graph_perturb_legacy():
     structure_perturbed.perturb(distance=0.1)
 
     start = perf_counter()
-    graph = converter(structure_perturbed, graph_converter="legacy")
+    graph = converter_legacy(structure_perturbed)
     print("Legacy test_crystal_graph_perturb time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -126,7 +140,6 @@ def test_crystal_graph_perturb_legacy():
     assert (graph.atom_graph[:, 1] == 6).sum().item() == 50
 
     assert list(graph.bond_graph.shape) == [688, 5]
-    print(graph.bond_graph[120, :])
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 90
     assert (graph.bond_graph[:, 1] == 36).sum().item() == 17
     assert (graph.bond_graph[:, 3] == 36).sum().item() == 17
@@ -143,7 +156,7 @@ def test_crystal_graph_perturb_fast():
     structure_perturbed.perturb(distance=0.1)
 
     start = perf_counter()
-    graph = converter(structure_perturbed, graph_converter="fast")
+    graph = converter_fast(structure_perturbed)
     print("Fast test_crystal_graph_perturb time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -153,7 +166,6 @@ def test_crystal_graph_perturb_fast():
     assert (graph.atom_graph[:, 1] == 6).sum().item() == 50
 
     assert list(graph.bond_graph.shape) == [688, 5]
-    print(graph.bond_graph[120, :])
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 90
     assert (graph.bond_graph[:, 1] == 36).sum().item() == 17
     assert (graph.bond_graph[:, 3] == 36).sum().item() == 17
@@ -169,7 +181,7 @@ def test_crystal_graph_isotropic_strained_legacy():
     structure_strained.apply_strain([0.1, 0.1, 0.1])
 
     start = perf_counter()
-    graph = converter(structure_strained, graph_converter="legacy")
+    graph = converter_legacy(structure_strained)
     print("Legacy test_crystal_graph_isotropic_strained time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -189,7 +201,7 @@ def test_crystal_graph_isotropic_strained_fast():
     structure_strained.apply_strain([0.1, 0.1, 0.1])
 
     start = perf_counter()
-    graph = converter(structure_strained, graph_converter="fast")
+    graph = converter_fast(structure_strained)
     print("Fast test_crystal_graph_isotropic_strained time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -209,7 +221,7 @@ def test_crystal_graph_anisotropic_strained_legacy():
     structure_strained.apply_strain([0.2, -0.3, 0.5])
 
     start = perf_counter()
-    graph = converter(structure_strained, graph_converter="legacy")
+    graph = converter_legacy(structure_strained)
     print(
         "Legacy test_crystal_graph_anisotropic_strained time:", perf_counter() - start
     )
@@ -231,7 +243,7 @@ def test_crystal_graph_anisotropic_strained_fast():
     structure_strained.apply_strain([0.2, -0.3, 0.5])
 
     start = perf_counter()
-    graph = converter(structure_strained, graph_converter="fast")
+    graph = converter_fast(structure_strained)
     print("Fast test_crystal_graph_anisotropic_strained time:", perf_counter() - start)
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
@@ -251,7 +263,7 @@ def test_crystal_graph_supercell_legacy():
     structure_supercell.make_supercell([2, 3, 4])
 
     start = perf_counter()
-    graph = converter(structure_supercell, graph_converter="legacy")
+    graph = converter_legacy(structure_supercell)
     print("Legacy test_crystal_graph_supercell time:", perf_counter() - start)
 
     assert graph.composition == "Li48 Mn48 O96"
@@ -277,7 +289,7 @@ def test_crystal_graph_supercell_fast():
     structure_supercell.make_supercell([2, 3, 4])
 
     start = perf_counter()
-    graph = converter(structure_supercell, graph_converter="fast")
+    graph = converter_fast(structure_supercell)
     print("Fast test_crystal_graph_supercell time:", perf_counter() - start)
 
     assert graph.composition == "Li48 Mn48 O96"
@@ -299,28 +311,37 @@ def test_crystal_graph_supercell_fast():
 
 
 def test_crystal_graph_stability_legacy():
+    total_time = 0
     for _i in range(20):
         np.random.seed(0)
         structure_perturbed = structure.copy()
         structure_perturbed.make_supercell([2, 2, 2])
         structure_perturbed.perturb(distance=0.5)
-        graph = converter(structure_perturbed, graph_converter="legacy")
+        start = perf_counter()
+        graph = converter_legacy(structure_perturbed)
+        total_time += perf_counter() - start
 
         assert (
             graph.directed2undirected.shape[0] == 2 * graph.undirected2directed.shape[0]
         )
         assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
+    print("Legacy test_crystal_graph_stability time:", total_time)
+
 
 
 def test_crystal_graph_stability_fast():
+    total_time = 0
     for _i in range(20):
         np.random.seed(0)
         structure_perturbed = structure.copy()
         structure_perturbed.make_supercell([2, 2, 2])
         structure_perturbed.perturb(distance=0.5)
-        graph = converter(structure_perturbed, graph_converter="fast")
+        start = perf_counter()
+        graph = converter_fast(structure_perturbed)
+        total_time += perf_counter() - start
 
         assert (
             graph.directed2undirected.shape[0] == 2 * graph.undirected2directed.shape[0]
         )
         assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
+    print("Fast test_crystal_graph_stability time:", total_time)

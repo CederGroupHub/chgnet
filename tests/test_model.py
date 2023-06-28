@@ -37,6 +37,7 @@ def test_model(
         num_angular=num_angular,
         n_conv=n_conv,
         composition_model=composition_model,
+        converter_verbose="True",
     )
     out = model([graph])
     assert list(out) == ["atoms_per_graph", "e"]
@@ -51,6 +52,19 @@ def test_predict_structure() -> None:
     assert sorted(out) == ["e", "f", "m", "s"]
     assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
     assert len(out["f"]) == len(structure)
+    force = np.array(
+        [
+            [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
+            [-4.4703484e-08, -1.4551915e-08, -2.4071217e-02],
+            [-1.7881393e-07, 1.0244548e-08, 2.5402933e-02],
+            [5.9604645e-08, -2.3283064e-08, -2.5402665e-02],
+            [-1.1920929e-07, 6.6356733e-08, -2.1660209e-02],
+            [2.3543835e-06, -8.0077443e-06, 9.5508099e-03],
+            [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
+            [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
+        ]
+    )
+    assert out["f"] == pytest.approx(force, abs=1e-4)
     assert len(out["m"]) == len(structure)
     assert out["m"] == pytest.approx(
         [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538],

@@ -15,10 +15,6 @@ if TYPE_CHECKING:
 
 datatype = torch.float32
 
-try:
-    from chgnet.graph.cygraph import make_graph
-except ImportError:
-    print("Error importing fast graph conversion (cygraph). Reverting to legacy.")
 
 
 class CrystalGraphConverter(nn.Module):
@@ -28,15 +24,29 @@ class CrystalGraphConverter(nn.Module):
     """
 
     def __init__(
-        self, atom_graph_cutoff: float = 5, bond_graph_cutoff: float = 3
+        self,
+        atom_graph_cutoff: float = 5,
+        bond_graph_cutoff: float = 3,
+        algorithm: Literal["legacy", "fast"] = "fast",
+        verbose: bool = False,
     ) -> None:
         """Initialize the Crystal Graph Converter.
 
         Args:
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in
-                atom_graph. Default = 5
-            bond_graph_cutoff (float): bond length threshold to include bond in bond_graph
+                atom_graph.
+                Default = 5
+            bond_graph_cutoff (float): bond length threshold to include bond in
+                bond_graph
                 Default = 3
+            algorithm ('legacy' | 'fast'): algorithm to use for converting graphs.
+                'legacy': python implementation of graph creation
+                'fast': C implementation of graph creation, this is faster,
+                    but will need the cygraph.c file correctly compiled from pip install
+                Default = 'fast'
+            verbose (bool): whether to print the CrystalGraphConverter
+                initialization message
+                Default = False
         """
         super().__init__()
         self.atom_graph_cutoff = atom_graph_cutoff
@@ -45,13 +55,33 @@ class CrystalGraphConverter(nn.Module):
         else:
             self.bond_graph_cutoff = bond_graph_cutoff
 
+        # Set graph conversion algorithm
+        if algorithm == "fast":
+            try:
+                from chgnet.graph.cygraph import make_graph
+
+                self._make_graph = make_graph
+                self.create_graph = self._create_graph_fast
+                self.algorithm = "fast"
+            except ImportError:
+                self.create_graph = self._create_graph_legacy
+                self.algorithm = "legacy"
+        elif algorithm == "legacy":
+            self.create_graph = self._create_graph_legacy
+            self.algorithm = "legacy"
+
+        if verbose:
+            print(
+                f"CrystalGraphConverter-{self.algorithm} initialized with "
+                f"atom_cutoff={atom_graph_cutoff}, bond_cutoff={bond_graph_cutoff}"
+            )
+
     def forward(
         self,
         structure: Structure,
         graph_id=None,
         mp_id=None,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
-        graph_converter: Literal["legacy", "fast"] = "fast",
     ) -> CrystalGraph:
         """Convert a structure, return a CrystalGraph.
 
@@ -62,9 +92,8 @@ class CrystalGraphConverter(nn.Module):
             mp_id (str): Materials Project id of this structure
                 Default = None
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms. Default = 'error'
-            graph_converter ('legacy' | 'fast'): graph converter to use when converting.
-                default = 'fast'
+                with isolated atoms.
+                Default = 'error'
 
         Return:
             CrystalGraph that is ready to use by CHGNet
@@ -82,22 +111,9 @@ class CrystalGraphConverter(nn.Module):
         center_index, neighbor_index, image, distance = self.get_neighbors(structure)
 
         # Make Graph
-        if graph_converter == "fast":
-            try:
-                graph = self._create_graph_fast(
-                    n_atoms, center_index, neighbor_index, image, distance
-                )
-            except Exception:
-                print("Failed to retrieve fast graph converter. Reverting to legacy.")
-                graph = self._create_graph_legacy(
-                    n_atoms, center_index, neighbor_index, image, distance
-                )
-        elif graph_converter == "legacy":
-            graph = self._create_graph_legacy(
-                n_atoms, center_index, neighbor_index, image, distance
-            )
-        else:
-            raise ValueError(f"No graph_converter named {graph_converter}")
+        graph = self.create_graph(
+            n_atoms, center_index, neighbor_index, image, distance
+        )
 
         # Atom Graph
         atom_graph, directed2undirected = graph.adjacency_list()
@@ -148,8 +164,8 @@ class CrystalGraphConverter(nn.Module):
             bond_graph_cutoff=self.bond_graph_cutoff,
         )
 
+    @staticmethod
     def _create_graph_legacy(
-        self,
         n_atoms: int,
         center_index: np.ndarray,
         neighbor_index: np.ndarray,
@@ -157,16 +173,18 @@ class CrystalGraphConverter(nn.Module):
         distance: np.ndarray,
     ) -> Graph:
         """Given structure information, create a Graph structure to be used to
-        create Crystal_Graph.
+        create Crystal_Graph using pure python implementation.
 
         Args:
             n_atoms (int): the number of atoms in the structure
             center_index (np.ndarray): np array of indices of center atoms.
-                Shape: (# of edges, )
+                [num_undirected_bonds]
             neighbor_index (np.ndarray): np array of indices of neighbor atoms.
-                Shape: (# of edges, )
-            image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
-            distance (np.ndarray): np array of distances. Shape: (# of edges, )
+                [num_undirected_bonds]
+            image (np.ndarray): np array of images for each edge.
+                [num_undirected_bonds, 3]
+            distance (np.ndarray): np array of distances.
+                [num_undirected_bonds]
 
         Return:
             Graph data structure used to create Crystal_Graph object
@@ -186,17 +204,21 @@ class CrystalGraphConverter(nn.Module):
         distance: np.ndarray,
     ) -> Graph:
         """Given structure information, create a Graph structure to be used to
-        create Crystal_Graph. NOTE: this is the fast version of _create_graph_legacy optimized
-        in c (~3x speedup).
+        create Crystal_Graph using C implementation.
+
+        NOTE: this is the fast version of _create_graph_legacy optimized
+            in c (~3x speedup).
 
         Args:
             n_atoms (int): the number of atoms in the structure
             center_index (np.ndarray): np array of indices of center atoms.
-                Shape: (# of edges, )
+                [num_undirected_bonds]
             neighbor_index (np.ndarray): np array of indices of neighbor atoms.
-                Shape: (# of edges, )
-            image (np.ndarray): np array of images for each edge. Shape: (# of edges, 3)
-            distance (np.ndarray): np array of distances. Shape: (# of edges, )
+                [num_undirected_bonds]
+            image (np.ndarray): np array of images for each edge.
+                [num_undirected_bonds, 3]
+            distance (np.ndarray): np array of distances.
+                [num_undirected_bonds]
 
         Return:
             Graph data structure used to create Crystal_Graph object
@@ -211,9 +233,10 @@ class CrystalGraphConverter(nn.Module):
             directed_edges_list,
             undirected_edges_list,
             undirected_edges,
-        ) = make_graph(
+        ) = self._make_graph(
             center_index, len(center_index), neighbor_index, image, distance, n_atoms
         )
+
         graph = Graph(nodes=nodes)
         graph.directed_edges_list = directed_edges_list
         graph.undirected_edges_list = undirected_edges_list
@@ -242,6 +265,7 @@ class CrystalGraphConverter(nn.Module):
         return {
             "atom_graph_cutoff": self.atom_graph_cutoff,
             "bond_graph_cutoff": self.bond_graph_cutoff,
+            "algorithm": self.algorithm,
         }
 
     @classmethod

@@ -5,15 +5,15 @@ from pymatgen.core import Structure
 from pytest import approx, mark, param
 
 from chgnet import ROOT
-from chgnet.model import StructOptimizer
+from chgnet.graph import CrystalGraphConverter
+from chgnet.model import CHGNet, StructOptimizer
 
 relaxer = StructOptimizer()
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 
 
-def test_relaxation():
+def test_relaxation_legacy():
     result = relaxer.relax(structure, verbose=True)
-
     assert list(result) == ["final_structure", "trajectory"]
 
     traj = result["trajectory"]
@@ -31,7 +31,35 @@ def test_relaxation():
 
     # make sure final structure is more relaxed than initial one
     assert traj.energies[0] > traj.energies[-1]
+    assert traj.energies[-1] == approx(-58.972927)
 
+
+def test_relaxation_fast_converter():
+    chgnet = CHGNet.load()
+    converter_fast = CrystalGraphConverter(
+        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"
+    )
+    assert converter_fast.algorithm == "fast"
+
+    chgnet.graph_converter = converter_fast
+    result = relaxer.relax(structure, verbose=True)
+    assert list(result) == ["final_structure", "trajectory"]
+
+    traj = result["trajectory"]
+    # make sure trajectory has expected attributes
+    assert list(traj.__dict__) == [
+        "atoms",
+        "energies",
+        "forces",
+        "stresses",
+        "magmoms",
+        "atom_positions",
+        "cells",
+    ]
+    assert len(traj) == 4
+
+    # make sure final structure is more relaxed than initial one
+    assert traj.energies[0] > traj.energies[-1]
     assert traj.energies[-1] == approx(-58.972927)
 
 

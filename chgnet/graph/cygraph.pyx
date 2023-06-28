@@ -3,16 +3,16 @@
 # cython: nonecheck=False
 # cython: boundscheck=False
 # cython: wraparound=False
-# cython: cdivision=False
+# cython: cdivision=True
 # cython: profile=False
 # distutils: language = c
 
-import chgnet.graph.graph
-from cython.operator import dereference
 import numpy as np
-from libc cimport time
-from libc.stdio cimport printf
-from libc.stdlib cimport free
+from libc.stdlib cimport
+
+free
+
+import chgnet.graph.graph
 
 cdef extern from 'fast_converter_libraries/create_graph.c':
     ctypedef struct Node:
@@ -95,7 +95,7 @@ def make_graph(
 
     # Handling nodes + directed edges
     for i in range(returned[0].num_nodes):
-        this_node = dereference(returned).nodes[i]
+        this_node = returned[0].nodes[i]
         this_py_node = chg_Node(index=i)
         this_py_node.neighbors = {}
 
@@ -103,7 +103,7 @@ def make_graph(
 
         # Iterate through all neighbors and populate our py_node.neighbors dict
         for j in range(this_node.num_neighbors):
-            this_entry = dereference(node_neighbors[j])
+            this_entry = node_neighbors[j][0]
             directed_edges = []
 
             for k in range(this_entry.num_directed_edges_in_group):

@@ -15,6 +15,7 @@ dependencies = [
     "numpy>=1.21.6",
     "pymatgen>=2022.4.19",
     "torch>=1.11.0",
+    "cython>=0.29.26"
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
