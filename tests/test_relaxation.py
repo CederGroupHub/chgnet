@@ -29,7 +29,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"]):
 
     traj = result["trajectory"]
     # make sure trajectory has expected attributes
-    assert list(traj.__dict__) == [
+    assert {*traj.__dict__} == {
         "atoms",
         "energies",
         "forces",
@@ -37,7 +37,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"]):
         "magmoms",
         "atom_positions",
         "cells",
-    ]
+    }
     assert len(traj) == 4
 
     # make sure final structure is more relaxed than initial one

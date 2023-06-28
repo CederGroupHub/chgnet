@@ -169,7 +169,7 @@ class CHGNet(nn.Module):
             atom_graph_cutoff=atom_graph_cutoff,
             bond_graph_cutoff=bond_graph_cutoff,
             algorithm=graph_converter_algorithm,
-            verbose=kwargs.pop("converter_verbose", False),
+            verbose=kwargs.pop("converter_verbose"),
         )
 
         # Define embedding layers

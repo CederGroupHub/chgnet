@@ -33,26 +33,22 @@ class CrystalGraphConverter(nn.Module):
 
         Args:
             atom_graph_cutoff (float): cutoff radius to search for neighboring atom in
-                atom_graph.
-                Default = 5
+                atom_graph. Default = 5.
             bond_graph_cutoff (float): bond length threshold to include bond in
-                bond_graph
-                Default = 3
+                bond_graph. Default = 3.
             algorithm ('legacy' | 'fast'): algorithm to use for converting graphs.
                 'legacy': python implementation of graph creation
                 'fast': C implementation of graph creation, this is faster,
                     but will need the cygraph.c file correctly compiled from pip install
                 Default = 'fast'
             verbose (bool): whether to print the CrystalGraphConverter
-                initialization message
-                Default = False
+                initialization message. Default = False.
         """
         super().__init__()
         self.atom_graph_cutoff = atom_graph_cutoff
-        if bond_graph_cutoff is None:
-            self.bond_graph_cutoff = atom_graph_cutoff
-        else:
-            self.bond_graph_cutoff = bond_graph_cutoff
+        self.bond_graph_cutoff = (
+            atom_graph_cutoff if bond_graph_cutoff is None else bond_graph_cutoff
+        )
 
         # Set graph conversion algorithm
         if algorithm == "fast":
@@ -62,7 +58,7 @@ class CrystalGraphConverter(nn.Module):
                 self._make_graph = make_graph
                 self.create_graph = self._create_graph_fast
                 self.algorithm = "fast"
-            except ImportError:
+            except (ImportError, AttributeError):
                 self.create_graph = self._create_graph_legacy
                 self.algorithm = "legacy"
         elif algorithm == "legacy":
@@ -70,10 +66,15 @@ class CrystalGraphConverter(nn.Module):
             self.algorithm = "legacy"
 
         if verbose:
-            print(
-                f"CrystalGraphConverter-{self.algorithm} initialized with "
-                f"atom_cutoff={atom_graph_cutoff}, bond_cutoff={bond_graph_cutoff}"
-            )
+            print(self)
+
+    def __repr__(self) -> str:
+        """String representation of the CrystalGraphConverter."""
+        atom_graph_cutoff = self.atom_graph_cutoff
+        bond_graph_cutoff = self.bond_graph_cutoff
+        algorithm = self.algorithm
+        cls_name = type(self).__name__
+        return f"{cls_name}({algorithm=}, {atom_graph_cutoff=}, {bond_graph_cutoff=})"
 
     def forward(
         self,
