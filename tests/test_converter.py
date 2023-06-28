@@ -15,12 +15,20 @@ NaCl = Structure(lattice, species, coords)
 @pytest.mark.parametrize(
     "atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (5, None), (4, 2)]
 )
-def test_crystal_graph_converter_init(atom_graph_cutoff, bond_graph_cutoff):
+def test_crystal_graph_converter_cutoff(atom_graph_cutoff, bond_graph_cutoff):
     converter = CrystalGraphConverter(
         atom_graph_cutoff=atom_graph_cutoff, bond_graph_cutoff=bond_graph_cutoff
     )
     assert converter.atom_graph_cutoff == atom_graph_cutoff
     assert converter.bond_graph_cutoff == bond_graph_cutoff or atom_graph_cutoff
+
+
+@pytest.mark.parametrize("algorithm", ["legacy", "fast"])
+def test_crystal_graph_converter_algorithm(algorithm):
+    converter = CrystalGraphConverter(
+        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm=algorithm
+    )
+    assert converter.algorithm == algorithm
 
 
 @pytest.mark.parametrize("on_isolated_atoms", ["ignore", "warn", "error"])
@@ -98,4 +106,7 @@ def test_crystal_graph_converter_get_neighbors():
 def test_crystal_graph_converter_as_dict_round_trip():
     expected = {"atom_graph_cutoff": 5, "bond_graph_cutoff": 3}
     converter = CrystalGraphConverter(**expected)
-    assert CrystalGraphConverter.from_dict(converter.as_dict()).as_dict() == expected
+    converter2 = CrystalGraphConverter.from_dict(converter.as_dict())
+    assert converter.atom_graph_cutoff == converter2.atom_graph_cutoff
+    assert converter.bond_graph_cutoff == converter2.bond_graph_cutoff
+    assert converter.algorithm == converter2.algorithm

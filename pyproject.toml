@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=65.0"]
+requires = ["Cython", "setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "chgnet"
-version = "0.1.04"
+version = "0.1.4"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.8"
@@ -12,6 +12,7 @@ readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.22.0",
+    "cython>=0.29.26",
     "numpy>=1.21.6",
     "pymatgen>=2022.4.19",
     "torch>=1.11.0",

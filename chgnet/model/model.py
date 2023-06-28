@@ -52,8 +52,9 @@ class CHGNet(nn.Module):
         mlp_first: bool = True,
         is_intensive: bool = True,
         non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "silu",
-        atom_graph_cutoff: int = 5,
-        bond_graph_cutoff: int = 3,
+        atom_graph_cutoff: float = 5,
+        bond_graph_cutoff: float = 3,
+        graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
         cutoff_coeff: int = 5,
         learnable_rbf: bool = True,
         **kwargs,
@@ -121,6 +122,12 @@ class CHGNet(nn.Module):
             bond_graph_cutoff (float): cutoff radius (A) in creating bond_graph,
                 this need to be consistent with value in training dataloader
                 Default = 3
+            graph_converter_algorithm ('legacy' | 'fast'): algorithm to use
+                for converting pymatgen.core.Structure to CrystalGraph.
+                'legacy': python implementation of graph creation
+                'fast': C implementation of graph creation, this is faster,
+                    but will need the cygraph.c file correctly compiled from pip install
+                default = 'fast'
             cutoff_coeff (float): cutoff strength used in graph smooth cutoff function.
                 the smaller this coeff is, the smoother the basis is
                 Default = 5
@@ -159,7 +166,10 @@ class CHGNet(nn.Module):
 
         # Define Crystal Graph Converter
         self.graph_converter = CrystalGraphConverter(
-            atom_graph_cutoff=atom_graph_cutoff, bond_graph_cutoff=bond_graph_cutoff
+            atom_graph_cutoff=atom_graph_cutoff,
+            bond_graph_cutoff=bond_graph_cutoff,
+            algorithm=graph_converter_algorithm,
+            verbose=kwargs.pop("converter_verbose", False),
         )
 
         # Define embedding layers
@@ -512,24 +522,19 @@ class CHGNet(nn.Module):
                 s: stress of structure [3 * batch_size, 3] in GPa
                 m: magnetic moments of sites [num_batch_atoms, 3] in Bohr magneton mu_B
         """
-        if not isinstance(structure, (Structure, Sequence)):
-            raise ValueError(
-                f"structure should be a Structure or list of structures, got {type(structure)}"
-            )
         if self.graph_converter is None:
             raise ValueError("graph_converter cannot be None!")
 
         structures = [structure] if isinstance(structure, Structure) else structure
 
         graphs = [self.graph_converter(struct) for struct in structures]
-        predictions = self.predict_graph(
+        return self.predict_graph(
             graphs,
             task=task,
             return_atom_feas=return_atom_feas,
             return_crystal_feas=return_crystal_feas,
             batch_size=batch_size,
         )
-        return predictions[0] if len(structures) == 1 else predictions
 
     def predict_graph(
         self,
@@ -551,7 +556,7 @@ class CHGNet(nn.Module):
                 only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100.
+                Default = 100
 
         Returns:
             prediction (dict): containing the fields:
