@@ -8,9 +8,7 @@
 # distutils: language = c
 
 import numpy as np
-from libc.stdlib cimport
-
-free
+from libc.stdlib cimport free
 
 import chgnet.graph.graph
 
