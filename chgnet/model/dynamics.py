@@ -154,7 +154,7 @@ class StructOptimizer:
                 optimizer_class = OPTIMIZERS[optimizer_class]
             else:
                 raise ValueError(
-                    f"Optimizer instance not found. Select one from {list(OPTIMIZERS)}"
+                    f"Optimizer instance not found. Select from {list(OPTIMIZERS)}"
                 )
 
         self.optimizer_class: Optimizer = optimizer_class

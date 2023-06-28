@@ -3,10 +3,6 @@ name: Tests
 on:
   push:
     branches: [main]
-  # Needed to allow secrets access to forked PRs, consider breaking up workflow
-  # by running tests on pull_request, saving artifacts, and then running another
-  # workflow on pull_request_target to allow only minimal access to secrets
-  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
   pull_request:
     branches: [main]
   release:
@@ -40,9 +36,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # install pymatgen straight from master until next release with
-          # https://github.com/materialsproject/pymatgen/pull/3108 is out
-          pip install -U git+https://github.com/materialsproject/pymatgen # TODO: remove later
           pip install -e .[test]
 
       - name: Run Tests
