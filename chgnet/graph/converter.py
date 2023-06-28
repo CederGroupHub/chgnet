@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 datatype = torch.float32
 
 
-
 class CrystalGraphConverter(nn.Module):
     """Convert a pymatgen.core.Structure to a CrystalGraph
     The CrystalGraph dataclass stores essential field to make sure that

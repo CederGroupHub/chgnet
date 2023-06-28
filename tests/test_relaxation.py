@@ -8,11 +8,18 @@ from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
 
-relaxer = StructOptimizer()
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 
 
-def test_relaxation_legacy():
+def test_relaxation_legacy_converter():
+    chgnet = CHGNet.load()
+    converter_legacy = CrystalGraphConverter(
+        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="legacy"
+    )
+    assert converter_legacy.algorithm == "legacy"
+
+    chgnet.graph_converter = converter_legacy
+    relaxer = StructOptimizer(model=chgnet)
     result = relaxer.relax(structure, verbose=True)
     assert list(result) == ["final_structure", "trajectory"]
 
@@ -42,6 +49,7 @@ def test_relaxation_fast_converter():
     assert converter_fast.algorithm == "fast"
 
     chgnet.graph_converter = converter_fast
+    relaxer = StructOptimizer(model=chgnet)
     result = relaxer.relax(structure, verbose=True)
     assert list(result) == ["final_structure", "trajectory"]
 

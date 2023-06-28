@@ -569,7 +569,7 @@ class CHGNet(nn.Module):
                 only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100.
+                Default = 100
 
         Returns:
             prediction (dict): containing the fields:

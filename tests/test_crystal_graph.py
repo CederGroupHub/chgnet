@@ -328,7 +328,6 @@ def test_crystal_graph_stability_legacy():
     print("Legacy test_crystal_graph_stability time:", total_time)
 
 
-
 def test_crystal_graph_stability_fast():
     total_time = 0
     for _i in range(20):
