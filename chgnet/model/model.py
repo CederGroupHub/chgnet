@@ -522,32 +522,19 @@ class CHGNet(nn.Module):
                 s: stress of structure [3 * batch_size, 3] in GPa
                 m: magnetic moments of sites [num_batch_atoms, 3] in Bohr magneton mu_B
         """
-        assert (
-            self.graph_converter is not None
-        ), "self.algorithm needs to be initialized first!"
-        if type(structure) == Structure:
-            graph = self.graph_converter(structure)
-            return self.predict_graph(
-                graph,
-                task=task,
-                return_atom_feas=return_atom_feas,
-                return_crystal_feas=return_crystal_feas,
-                batch_size=batch_size,
-            )
         if self.graph_converter is None:
             raise ValueError("graph_converter cannot be None!")
 
         structures = [structure] if isinstance(structure, Structure) else structure
 
         graphs = [self.graph_converter(struct) for struct in structures]
-        predictions = self.predict_graph(
+        return self.predict_graph(
             graphs,
             task=task,
             return_atom_feas=return_atom_feas,
             return_crystal_feas=return_crystal_feas,
             batch_size=batch_size,
         )
-        return predictions[0] if len(structures) == 1 else predictions
 
     def predict_graph(
         self,
