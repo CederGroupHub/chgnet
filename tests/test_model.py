@@ -28,7 +28,9 @@ def test_model(
     num_angular: int,
     n_conv: int,
     composition_model: str,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
+    converter_verbose = False
     model = CHGNet(
         atom_fea_dim=atom_fea_dim,
         bond_fea_dim=bond_fea_dim,
@@ -37,12 +39,20 @@ def test_model(
         num_angular=num_angular,
         n_conv=n_conv,
         composition_model=composition_model,
-        converter_verbose="True",
+        converter_verbose=converter_verbose,
     )
     out = model([graph])
     assert list(out) == ["atoms_per_graph", "e"]
     assert out["atoms_per_graph"].shape == (1,)
     assert out["e"] < 0
+
+    stdout, stderr = capsys.readouterr()
+    if converter_verbose:
+        assert repr(model.graph_converter) in stdout
+    else:
+        assert "CHGNet initialized with" in stdout
+
+    assert stderr == ""
 
 
 def test_predict_structure() -> None:
