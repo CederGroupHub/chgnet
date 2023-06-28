@@ -55,13 +55,15 @@ def test_model(
     assert stderr == ""
 
 
+model = CHGNet.load()
+
+
 def test_predict_structure() -> None:
-    model = CHGNet.load()
     out = model.predict_structure(structure)
 
     assert sorted(out) == ["e", "f", "m", "s"]
     assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
-    assert len(out["f"]) == len(structure)
+
     force = np.array(
         [
             [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
@@ -75,12 +77,7 @@ def test_predict_structure() -> None:
         ]
     )
     assert out["f"] == pytest.approx(force, abs=1e-4)
-    assert len(out["m"]) == len(structure)
-    assert out["m"] == pytest.approx(
-        [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538],
-        abs=1e-4,
-    )
-    assert len(out["s"]) == 3
+
     stress = np.array(
         [
             [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
@@ -89,3 +86,119 @@ def test_predict_structure() -> None:
         ]
     )
     assert out["s"] == pytest.approx(stress, abs=1e-4)
+
+    magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    assert out["m"] == pytest.approx(magmom, abs=1e-4)
+
+
+def test_predict_structure_rotated() -> None:
+    from pymatgen.transformations.standard_transformations import RotationTransformation
+
+    rotation_transformation = RotationTransformation(axis=[0, 0, 1], angle=30)
+    rotated_structure = rotation_transformation.apply_transformation(structure)
+    out = model.predict_structure(rotated_structure)
+
+    assert sorted(out) == ["e", "f", "m", "s"]
+    assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
+
+    # Define a rotation matrix for rotation about Z-axis by 90 degrees
+    theta = np.radians(30)  # Convert angle to radians
+    c, s = np.cos(theta), np.sin(theta)
+
+    rotation_matrix = np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+
+    force = np.array(
+        [
+            [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
+            [-4.4703484e-08, -1.4551915e-08, -2.4071217e-02],
+            [-1.7881393e-07, 1.0244548e-08, 2.5402933e-02],
+            [5.9604645e-08, -2.3283064e-08, -2.5402665e-02],
+            [-1.1920929e-07, 6.6356733e-08, -2.1660209e-02],
+            [2.3543835e-06, -8.0077443e-06, 9.5508099e-03],
+            [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
+            [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
+        ]
+    )
+    rotated_force = force @ rotation_matrix
+    assert out["f"] == pytest.approx(rotated_force, abs=1e-4)
+
+    magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    assert out["m"] == pytest.approx(magmom, abs=1e-4)
+
+
+def test_predict_structure_supercell() -> None:
+    supercell = structure.copy()
+    supercell.make_supercell([2, 2, 1])
+    out = model.predict_structure(supercell)
+
+    assert sorted(out) == ["e", "f", "m", "s"]
+    assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
+
+    force = np.array(
+        [
+            [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
+            [-4.4703484e-08, -1.4551915e-08, -2.4071217e-02],
+            [-1.7881393e-07, 1.0244548e-08, 2.5402933e-02],
+            [5.9604645e-08, -2.3283064e-08, -2.5402665e-02],
+            [-1.1920929e-07, 6.6356733e-08, -2.1660209e-02],
+            [2.3543835e-06, -8.0077443e-06, 9.5508099e-03],
+            [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
+            [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
+        ]
+    )
+    for index, f in enumerate(force):
+        for cell_number in range(4):
+            assert out["f"][index * 4 + cell_number] == pytest.approx(f, abs=1e-4)
+
+    stress = np.array(
+        [
+            [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
+            [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
+            [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
+        ]
+    )
+    assert out["s"] == pytest.approx(stress, abs=1e-4)
+
+    magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    for index, m in enumerate(magmom):
+        for cell_number in range(4):
+            assert out["m"][index * 4 + cell_number] == pytest.approx(m, abs=1e-4)
+
+
+def test_predict_batched_structures() -> None:
+    out = model.predict_structure([structure, structure, structure])
+    assert out[0]["e"] == pytest.approx(-7.37159, abs=1e-4)
+    assert out[1]["e"] == pytest.approx(-7.37159, abs=1e-4)
+    assert out[2]["e"] == pytest.approx(-7.37159, abs=1e-4)
+
+    force = np.array(
+        [
+            [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
+            [-4.4703484e-08, -1.4551915e-08, -2.4071217e-02],
+            [-1.7881393e-07, 1.0244548e-08, 2.5402933e-02],
+            [5.9604645e-08, -2.3283064e-08, -2.5402665e-02],
+            [-1.1920929e-07, 6.6356733e-08, -2.1660209e-02],
+            [2.3543835e-06, -8.0077443e-06, 9.5508099e-03],
+            [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
+            [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
+        ]
+    )
+    assert out[0]["f"] == pytest.approx(force, abs=1e-4)
+    assert out[1]["f"] == pytest.approx(force, abs=1e-4)
+    assert out[2]["f"] == pytest.approx(force, abs=1e-4)
+
+    stress = np.array(
+        [
+            [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
+            [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
+            [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
+        ]
+    )
+    assert out[0]["s"] == pytest.approx(stress, abs=1e-4)
+    assert out[1]["s"] == pytest.approx(stress, abs=1e-4)
+    assert out[2]["s"] == pytest.approx(stress, abs=1e-4)
+
+    magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    assert out[0]["m"] == pytest.approx(magmom, abs=1e-4)
+    assert out[1]["m"] == pytest.approx(magmom, abs=1e-4)
+    assert out[2]["m"] == pytest.approx(magmom, abs=1e-4)
