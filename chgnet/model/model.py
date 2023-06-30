@@ -605,18 +605,6 @@ class CHGNet(nn.Module):
 
         return predictions[0] if len(graphs) == 1 else predictions
 
-    @staticmethod
-    def split(x: Tensor, n: Tensor) -> Sequence[Tensor]:
-        """Split a batched result Tensor into a list of Tensors."""
-        print(x, n)
-        start = 0
-        result = []
-        for i in n:
-            result.append(x[start : start + i])
-            start += i
-        assert start == len(x), "Error: source tensor not correctly split!"
-        return result
-
     def as_dict(self):
         """Return the CHGNet weights and args in a dictionary."""
         return {"state_dict": self.state_dict(), "model_args": self.model_args}
