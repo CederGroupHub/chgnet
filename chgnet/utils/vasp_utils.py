@@ -36,7 +36,7 @@ def parse_vasp_dir(file_root):
     header = []
     all_lines = []
 
-    for line in reverse_readfile(outcar_filename):  # filename : self.filenaem
+    for line in reverse_readfile(outcar_filename):  # filename : self.filename
         clean = line.strip()
         all_lines.append(clean)
 
@@ -60,16 +60,16 @@ def parse_vasp_dir(file_root):
             else:
                 m = re.match(r"\s*(\d+)\s+(([\d\.\-]+)\s+)+", clean)
                 if m:
-                    toks = [float(i) for i in re.findall(r"[\d\.\-]+", clean)]
-                    toks.pop(0)
+                    tokens = [float(token) for token in re.findall(r"[\d\.\-]+", clean)]
+                    tokens.pop(0)
                     if read_charge:
-                        charge.append(dict(zip(header, toks)))
+                        charge.append(dict(zip(header, tokens)))
                     elif read_mag_x:
-                        mag_x.append(dict(zip(header, toks)))
+                        mag_x.append(dict(zip(header, tokens)))
                     elif read_mag_y:
-                        mag_y.append(dict(zip(header, toks)))
+                        mag_y.append(dict(zip(header, tokens)))
                     elif read_mag_z:
-                        mag_z.append(dict(zip(header, toks)))
+                        mag_z.append(dict(zip(header, tokens)))
                 elif clean.startswith("tot"):
                     if ion_step_count == (len(mag_x_all) + 1):
                         mag_x_all.append(mag_x)
@@ -108,16 +108,18 @@ def parse_vasp_dir(file_root):
 
     n_atoms = len(vasprun_orig.ionic_steps[0]["structure"])
     dataset = {
-        "structure": [i["structure"] for i in vasprun_orig.ionic_steps],
-        "uncorrected_total_energy": [i["e_0_energy"] for i in vasprun_orig.ionic_steps],
-        "energy_per_atom": [
-            i["e_0_energy"] / n_atoms for i in vasprun_orig.ionic_steps
+        "structure": [step["structure"] for step in vasprun_orig.ionic_steps],
+        "uncorrected_total_energy": [
+            step["e_0_energy"] for step in vasprun_orig.ionic_steps
         ],
-        "force": [i["forces"] for i in vasprun_orig.ionic_steps],
-        "magmom": [[i["tot"] for i in j] for j in mag_x_all],
+        "energy_per_atom": [
+            step["e_0_energy"] / n_atoms for step in vasprun_orig.ionic_steps
+        ],
+        "force": [step["forces"] for step in vasprun_orig.ionic_steps],
+        "magmom": [[step["tot"] for step in j] for j in mag_x_all],
     }
     if "stress" in vasprun_orig.ionic_steps[0]:
-        dataset["stress"] = [i["stress"] for i in vasprun_orig.ionic_steps]
+        dataset["stress"] = [step["stress"] for step in vasprun_orig.ionic_steps]
     else:
         dataset["stress"] = None
 

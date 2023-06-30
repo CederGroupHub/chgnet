@@ -136,7 +136,9 @@ class AtomRef(nn.Module):
         ):
             if isinstance(structure, Structure):
                 atomic_number = torch.tensor(
-                    [i.specie.Z for i in structure], dtype=int, requires_grad=False
+                    [site.specie.Z for site in structure],
+                    dtype=int,
+                    requires_grad=False,
                 )
             else:
                 atomic_number = structure.atomic_number

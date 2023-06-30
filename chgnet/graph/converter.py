@@ -100,7 +100,7 @@ class CrystalGraphConverter(nn.Module):
         """
         n_atoms = len(structure)
         atomic_number = torch.tensor(
-            [i.specie.Z for i in structure], dtype=int, requires_grad=False
+            [site.specie.Z for site in structure], dtype=int, requires_grad=False
         )
         atom_frac_coord = torch.tensor(
             structure.frac_coords, dtype=datatype, requires_grad=True
@@ -189,7 +189,7 @@ class CrystalGraphConverter(nn.Module):
         Return:
             Graph data structure used to create Crystal_Graph object
         """
-        graph = Graph([Node(index=i) for i in range(n_atoms)])
+        graph = Graph([Node(index=idx) for idx in range(n_atoms)])
         for ii, jj, img, dist in zip(center_index, neighbor_index, image, distance):
             graph.add_edge(center_index=ii, neighbor_index=jj, image=img, distance=dist)
 

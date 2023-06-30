@@ -269,8 +269,8 @@ class Trainer:
         data_time = AverageMeter()
         losses = AverageMeter()
         mae_errors = {}
-        for i in self.targets:
-            mae_errors[i] = AverageMeter()
+        for target in self.targets:
+            mae_errors[target] = AverageMeter()
 
         # switch to train mode
         self.model.train()
