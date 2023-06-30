@@ -36,9 +36,17 @@ def test_md_nvt_legacy_converter(tmp_path: Path, monkeypatch: MonkeyPatch):
     # cd into the temporary directory
     monkeypatch.chdir(tmp_path)
 
+    chgnet_legacy = CHGNet.load()
+    converter_legacy = CrystalGraphConverter(
+        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="legacy"
+    )
+    assert converter_legacy.algorithm == "legacy"
+
+    chgnet_legacy.graph_converter = converter_legacy
+
     md = MolecularDynamics(
         atoms=structure,
-        model=chgnet,
+        model=chgnet_legacy,
         ensemble="nvt",
         temperature=1000,  # in k
         timestep=2,  # in fs
@@ -66,17 +74,10 @@ def test_md_nvt_fast_converter(tmp_path: Path, monkeypatch: MonkeyPatch):
     # cd into the temporary directory
     monkeypatch.chdir(tmp_path)
 
-    chgnet_fast = CHGNet.load()
-    converter_fast = CrystalGraphConverter(
-        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"
-    )
-    assert converter_fast.algorithm == "fast"
-
-    chgnet_fast.graph_converter = converter_fast
-
+    assert chgnet.graph_converter.algorithm == "fast"
     md = MolecularDynamics(
         atoms=structure,
-        model=chgnet_fast,
+        model=chgnet,
         ensemble="nvt",
         temperature=1000,  # in k
         timestep=2,  # in fs
