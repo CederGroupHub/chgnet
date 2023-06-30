@@ -12,7 +12,7 @@ from libc.stdlib cimport free
 
 import chgnet.graph.graph
 
-cdef extern from 'fast_converter_libraries/create_graph.c':
+cdef extern from "fast_converter_libraries/create_graph.c":
     ctypedef struct Node:
         long index
         LongToDirectedEdgeList* neighbors
@@ -92,9 +92,9 @@ def make_graph(
     cdef DirectedEdge* this_DE
 
     # Handling nodes + directed edges
-    for i in range(returned[0].num_nodes):
-        this_node = returned[0].nodes[i]
-        this_py_node = chg_Node(index=i)
+    for idx in range(returned[0].num_nodes):
+        this_node = returned[0].nodes[idx]
+        this_py_node = chg_Node(index=idx)
         this_py_node.neighbors = {}
 
         node_neighbors = get_neighbors(&this_node)
@@ -115,8 +115,8 @@ def make_graph(
     # Handling directed edges
     py_directed_edges_list = []
 
-    for i in range(returned[0].num_directed_edges):
-        this_DE = returned[0].directed_edges_list[i]
+    for idx in range(returned[0].num_directed_edges):
+        this_DE = returned[0].directed_edges_list[idx]
         py_DE = chg_DirectedEdge(nodes = [this_DE[0].nodes.center, this_DE[0].nodes.neighbor], index=this_DE[0].index, info = {"distance": this_DE[0].distance, "image": image_np[this_DE[0].index], "undirected_edge_index": this_DE[0].undirected_edge_index})
 
         py_directed_edges_list.append(py_DE)
@@ -126,8 +126,8 @@ def make_graph(
     py_undirected_edges_list = []
     cdef UndirectedEdge* UDE
 
-    for i in range(returned[0].num_undirected_edges):
-        UDE = returned[0].undirected_edges_list[i]
+    for idx in range(returned[0].num_undirected_edges):
+        UDE = returned[0].undirected_edges_list[idx]
         py_undirected_edge = chg_UndirectedEdge([UDE[0].nodes.center, UDE[0].nodes.neighbor], index = UDE[0].index, info =  {"distance": UDE[0].distance, "directed_edge_index": []})
 
         for j in range(UDE[0].num_directed_edges):
@@ -154,11 +154,11 @@ def make_graph(
 
 
     # Free everything unneeded
-    for i in range(returned[0].num_directed_edges):
-        free(returned[0].directed_edges_list[i])
+    for idx in range(returned[0].num_directed_edges):
+        free(returned[0].directed_edges_list[idx])
 
-    for i in range(returned[0].num_undirected_edges):
-        free(returned[0].undirected_edges_list[i])
+    for idx in range(returned[0].num_undirected_edges):
+        free(returned[0].undirected_edges_list[idx])
 
     free(returned[0].directed_edges_list)
     free(returned[0].undirected_edges_list)

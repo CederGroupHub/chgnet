@@ -219,7 +219,7 @@ class StructOptimizer:
         for k in struct.site_properties:
             struct.remove_site_property(property_name=k)
         struct.add_site_property(
-            "magmom", [float(i) for i in atoms.get_magnetic_moments()]
+            "magmom", [float(magmom) for magmom in atoms.get_magnetic_moments()]
         )
         return {"final_structure": struct, "trajectory": obs}
 
@@ -502,9 +502,9 @@ class EquationOfState:
         if isinstance(atoms, Atoms):
             atoms = AseAtomsAdaptor.get_structure(atoms)
         volumes, energies = [], []
-        for i in np.linspace(-0.1, 0.1, n_points):
+        for idx in np.linspace(-0.1, 0.1, n_points):
             structure_strained = atoms.copy()
-            structure_strained.apply_strain([i, i, i])
+            structure_strained.apply_strain([idx, idx, idx])
             result = self.relaxer.relax(
                 structure_strained,
                 relax_cell=False,

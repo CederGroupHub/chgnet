@@ -472,8 +472,7 @@ class CHGNet(nn.Module):
             force = torch.autograd.grad(
                 energy.sum(), g.atom_positions, create_graph=True, retain_graph=True
             )
-            force = [-1 * i for i in force]
-            prediction["f"] = force
+            prediction["f"] = [-1 * force_dim for force_dim in force]
 
         # Compute stress
         if compute_stress:
