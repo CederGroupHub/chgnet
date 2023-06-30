@@ -519,7 +519,7 @@ class EquationOfState:
         self.bm.fit()
         self.fitted = True
 
-    def get_bulk_mudulus(self, unit: str = "eV/A^3"):
+    def get_bulk_modulus(self, unit: str = "eV/A^3"):
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
 
         Args:
