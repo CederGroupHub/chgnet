@@ -319,10 +319,10 @@ class Graph:
         """The index map from undirected_edge index to one of its directed_edge
         index.
         """
-        out = []
-        for undirected_edge in self.undirected_edges_list:
-            out.append(undirected_edge.info["directed_edge_index"][0])
-        return out
+        return [
+            undirected_edge.info["directed_edge_index"][0]
+            for undirected_edge in self.undirected_edges_list
+        ]
 
     def as_dict(self):
         """Return dictionary serialization of a Graph."""
