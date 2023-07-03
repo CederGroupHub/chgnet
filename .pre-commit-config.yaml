@@ -4,7 +4,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.275
+    rev: v0.0.276
     hooks:
       - id: ruff
         args: [--fix]
@@ -31,12 +31,6 @@ repos:
     hooks:
       - id: codespell
         stages: [commit, commit-msg]
-
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.7.0
-    hooks:
-      - id: nbqa-ruff
-        args: [--fix]
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
