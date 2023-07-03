@@ -8,6 +8,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2302.14231-blue)](https://arxiv.org/abs/2302.14231)
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet)
 [![PyPI](https://img.shields.io/pypi/v/chgnet?logo=pypi&logoColor=white)](https://pypi.org/project/chgnet?logo=pypi&logoColor=white)
+[![Docs](https://img.shields.io/badge/API-Docs-blue)](https://chgnet.lbl.gov)
 
 </h4>
 
