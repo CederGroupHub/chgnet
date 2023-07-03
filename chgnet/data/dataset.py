@@ -276,9 +276,9 @@ class GraphData(Dataset):
             self.excluded_graph = []
 
         self.keys = []
-        for mp_id, dic in self.labels.items():
-            for graph_id in dic:
-                self.keys.append((mp_id, graph_id))
+        self.keys = [
+            (mp_id, graph_id) for mp_id, dic in self.labels.items() for graph_id in dic
+        ]
         random.shuffle(self.keys)
         print(f"{len(self.labels)} mp_ids, {len(self)} frames imported")
         if self.excluded_graph is not None:
@@ -389,10 +389,8 @@ class GraphData(Dataset):
             val_key = mp_ids[n_train : n_train + n_val]
             test_key = mp_ids[n_train + n_val :]
         for mp_id in train_key:
-            try:
+            if mp_id in self.labels:
                 train_labels[mp_id] = self.labels.pop(mp_id)
-            except KeyError:
-                continue
         train_dataset = GraphData(
             graph_path=self.graph_path,
             labels=train_labels,
@@ -411,10 +409,8 @@ class GraphData(Dataset):
 
         # Val
         for mp_id in val_key:
-            try:
+            if mp_id in self.labels:
                 val_labels[mp_id] = self.labels.pop(mp_id)
-            except KeyError:
-                continue
         val_dataset = GraphData(
             graph_path=self.graph_path,
             labels=val_labels,
@@ -434,10 +430,8 @@ class GraphData(Dataset):
         # Test
         if test_key is not None:
             for mp_id in test_key:
-                try:
+                if mp_id in self.labels:
                     test_labels[mp_id] = self.labels.pop(mp_id)
-                except KeyError:
-                    continue
             test_dataset = GraphData(
                 graph_path=self.graph_path,
                 labels=test_labels,
@@ -505,9 +499,9 @@ class StructureJsonData(Dataset):
             raise ValueError(f"data must be JSON path or dictionary, got {type(data)}")
 
         self.keys = []
-        for mp_id, dic in self.data.items():
-            for graph_id in dic:
-                self.keys.append((mp_id, graph_id))
+        self.keys = [
+            (mp_id, graph_id) for mp_id, dic in self.data.items() for graph_id in dic
+        ]
         random.shuffle(self.keys)
         print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
         self.graph_converter = graph_converter
@@ -682,14 +676,17 @@ def collate_graphs(batch_data: list):
             s (Tensor): stresses of the structures [3*batch_size, 3]
             m (Tensor): magmom of the structures [n_batch_atoms]
     """
-    graphs = []
+    graphs = [graph for graph, _ in batch_data]
     all_targets = {key: [] for key in batch_data[0][1]}
-    for graph, targets in batch_data:
-        graphs.append(graph)
+    all_targets["e"] = torch.tensor(
+        [targets["e"] for _, targets in batch_data], dtype=datatype
+    )
+
+    for _, targets in batch_data:
         for target, value in targets.items():
-            all_targets[target].append(value)
-    if "e" in all_targets:
-        all_targets["e"] = torch.tensor(all_targets["e"], dtype=datatype)
+            if target != "e":
+                all_targets[target].append(value)  # noqa: PERF401
+
     return graphs, all_targets
 
 

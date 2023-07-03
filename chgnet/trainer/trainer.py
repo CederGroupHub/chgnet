@@ -252,8 +252,7 @@ class Trainer:
                 test_mae = self._validate(
                     test_loader, is_test=True, test_result_save_path=None
                 )
-            for key in self.targets:
-                self.training_history[key]["test"].append(test_mae[key])
+            self.training_history[key]["test"] = [test_mae[key] for key in self.targets]
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
         """Train all data for one epoch.

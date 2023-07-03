@@ -200,21 +200,20 @@ class CHGNet(nn.Module):
         # Define convolutional layers
         conv_norm = kwargs.pop("conv_norm", None)
         gMLP_norm = kwargs.pop("gMLP_norm", None)
-        atom_graph_layers = []
-        for _i in range(n_conv):
-            atom_graph_layers.append(
-                AtomConv(
-                    atom_fea_dim=atom_fea_dim,
-                    bond_fea_dim=bond_fea_dim,
-                    hidden_dim=atom_conv_hidden_dim,
-                    dropout=conv_dropout,
-                    activation=non_linearity,
-                    norm=conv_norm,
-                    gMLP_norm=gMLP_norm,
-                    use_mlp_out=True,
-                    resnet=True,
-                )
+        atom_graph_layers = [
+            AtomConv(
+                atom_fea_dim=atom_fea_dim,
+                bond_fea_dim=bond_fea_dim,
+                hidden_dim=atom_conv_hidden_dim,
+                dropout=conv_dropout,
+                activation=non_linearity,
+                norm=conv_norm,
+                gMLP_norm=gMLP_norm,
+                use_mlp_out=True,
+                resnet=True,
             )
+            for _ in range(n_conv)
+        ]
         self.atom_conv_layers = nn.ModuleList(atom_graph_layers)
 
         if update_bond is True:
