@@ -42,6 +42,7 @@
   "prettier": {
     "semi": false,
     "singleQuote": true,
+    "trailingComma": "all",
     "overrides": [
       {
         "files": "*.svelte",

@@ -685,7 +685,7 @@ def collate_graphs(batch_data: list):
     for _, targets in batch_data:
         for target, value in targets.items():
             if target != "e":
-                all_targets[target].append(value)  # noqa: PERF401
+                all_targets[target].append(value)
 
     return graphs, all_targets
 

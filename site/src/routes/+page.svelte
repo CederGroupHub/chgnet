@@ -14,4 +14,7 @@
     place-content: center;
     gap: 6pt;
   }
+  :global(a:has(img[alt='Docs'])) {
+    display: none;
+  }
 </style>

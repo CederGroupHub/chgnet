@@ -30,7 +30,7 @@
 
 <Toc {headingSelector} breakpoint={1250} warnOnEmpty={false} />
 
-{#if $page.url.pathname !== base}
+{#if ![base, `/`].includes($page.url.pathname)}
   <a href="{base}/" aria-label="Back to index page">&laquo; home</a>
 {/if}
 
