@@ -21,6 +21,8 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
+Pretrained CHGNet achieves SOTA performance in [Matbench Discovery](https://matbench-discovery.materialsproject.org/)
+
 ## Example notebooks
 
 | Notebooks                                                                                                                | Links&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;                                                                                                     | Descriptions                                                                                                                        |
