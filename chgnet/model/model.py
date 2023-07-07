@@ -640,15 +640,15 @@ class BatchedGraph:
         atomic_numbers (Tensor): atomic numbers vector
             [num_batch_atoms]
         bond_bases_ag (Tensor): bond bases vector for atom_graph
-            [num_batch_bonds, num_radial]
+            [num_batch_bonds_ag, num_radial]
         bond_bases_bg (Tensor): bond bases vector for atom_graph
-            [num_batch_bonds, num_radial]
+            [num_batch_bonds_bg, num_radial]
         angle_bases (Tensor): angle bases vector
             [num_batch_angles, num_angular]
         batched_atom_graph (Tensor) : batched atom graph adjacency list
             [num_batch_bonds, 2]
         batched_bond_graph (Tensor) : bond graph adjacency list
-            [num_batch_angles, 2]
+            [num_batch_angles, 3]
         atom_owners (Tensor): graph indices for each atom, used aggregate batched
             graph back to single graph
             [num_batch_atoms]
@@ -657,9 +657,9 @@ class BatchedGraph:
             [num_directed]
         atom_positions (list[Tensor]): cartesian coordinates of the atoms
             from structures
-            [num_batch_atoms]
+            [[num_atoms_1, 3], [num_atoms_2, 3], ...]
         strains (list[Tensor]): a list of strains that's initialized to be zeros
-            [batch_size]
+            [[3, 3], [3, 3], ...]
         volumes (Tensor): the volume of each structure in the batch
             [batch_size]
     """
