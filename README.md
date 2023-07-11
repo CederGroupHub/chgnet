@@ -71,6 +71,9 @@ Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` thr
 from chgnet.model.model import CHGNet
 from chgnet.model.dynamics import MolecularDynamics
 from pymatgen.core import Structure
+import warnings
+warnings.filterwarnings("ignore", module="pymatgen")
+warnings.filterwarnings("ignore", module="ase")
 
 structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
 chgnet = CHGNet.load()
@@ -79,7 +82,6 @@ md = MolecularDynamics(
     atoms=structure,
     model=chgnet,
     ensemble="nvt",
-    compressibility_au=1.6,
     temperature=1000,  # in K
     timestep=2,  # in femto-seconds
     trajectory="md_out.traj",

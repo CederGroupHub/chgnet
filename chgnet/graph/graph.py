@@ -256,7 +256,7 @@ class Graph:
                 the second column specifies 1st undirected edge(left bond) index,
                 the third column specifies 1st directed edge(left bond) index,
                 the fourth column specifies 2nd undirected edge(right bond) index,
-                the fifth column specifies 2snd directed edge(right bond) index,.
+                the fifth column specifies 2nd directed edge(right bond) index,.
             undirected2directed:
                 [32, 45, ...]
                 a list of length = num_undirected_edge that
