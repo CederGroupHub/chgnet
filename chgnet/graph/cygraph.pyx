@@ -148,12 +148,12 @@ def make_graph(
 
 
     # Free everything unneeded
-    for i in range(returned[0].num_directed_edges):
-        free(returned[0].directed_edges_list[i])
+    for idx in range(returned[0].num_directed_edges):
+        free(returned[0].directed_edges_list[idx])
 
-    for i in range(returned[0].num_undirected_edges):
-        free(returned[0].undirected_edges_list[i].directed_edge_indices)
-        free(returned[0].undirected_edges_list[i])
+    for idx in range(returned[0].num_undirected_edges):
+        free(returned[0].undirected_edges_list[idx].directed_edge_indices)
+        free(returned[0].undirected_edges_list[idx])
 
 
     # Free node LongToDirectedEdgeList
