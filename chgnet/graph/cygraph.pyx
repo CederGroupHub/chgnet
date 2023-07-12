@@ -3,7 +3,7 @@
 # cython: nonecheck=False
 # cython: boundscheck=False
 # cython: wraparound=False
-# cython: cdivision=False
+# cython: cdivision=True
 # cython: profile=False
 # distutils: language = c
 
