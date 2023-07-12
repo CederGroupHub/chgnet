@@ -3,16 +3,18 @@
 # cython: nonecheck=False
 # cython: boundscheck=False
 # cython: wraparound=False
-# cython: cdivision=True
+# cython: cdivision=False
 # cython: profile=False
 # distutils: language = c
 
+import chgnet.chgnet.graph
+from cython.operator import dereference
 import numpy as np
+from libc cimport time
+from libc.stdio cimport printf
 from libc.stdlib cimport free
 
-import chgnet.graph.graph
-
-cdef extern from "fast_converter_libraries/create_graph.c":
+cdef extern from 'fast_converter_libraries/create_graph.c':
     ctypedef struct Node:
         long index
         LongToDirectedEdgeList* neighbors
@@ -41,21 +43,13 @@ cdef extern from "fast_converter_libraries/create_graph.c":
         DirectedEdge** directed_edges_list
         int num_directed_edges_in_group
 
-    ctypedef struct StructToUndirectedEdgeList:
-        NodeIndexPair key
-        UndirectedEdge** undirected_edges_list
-        int num_undirected_edges_in_group
-
-
     ctypedef struct ReturnElems2:
         long num_nodes
         long num_directed_edges
         long num_undirected_edges
-
         Node* nodes
         UndirectedEdge** undirected_edges_list
         DirectedEdge** directed_edges_list
-        StructToUndirectedEdgeList* undirected_edges
 
     ReturnElems2* create_graph(
         long* center_index,
@@ -65,13 +59,15 @@ cdef extern from "fast_converter_libraries/create_graph.c":
         double* distance,
         long num_atoms)
 
+    void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes)
+
 
     LongToDirectedEdgeList** get_neighbors(Node* node)
 
 def make_graph(
-        const long[::1] center_index,
+        const long[::1] center_index, 
         const long n_e,
-        const long[::1] neighbor_index,
+        const long[::1] neighbor_index, 
         const long[:, ::1] image,
         const double[::1] distance,
         const long num_atoms
@@ -83,6 +79,7 @@ def make_graph(
     chg_Node = chgnet.graph.graph.Node
     chg_UndirectedEdge = chgnet.graph.graph.UndirectedEdge
 
+
     image_np = np.asarray(image)
 
     cdef LongToDirectedEdgeList** node_neighbors
@@ -92,31 +89,31 @@ def make_graph(
     cdef DirectedEdge* this_DE
 
     # Handling nodes + directed edges
-    for idx in range(returned[0].num_nodes):
-        this_node = returned[0].nodes[idx]
-        this_py_node = chg_Node(index=idx)
+    for i in range(returned[0].num_nodes):
+        this_node = dereference(returned).nodes[i]
+        this_py_node = chg_Node(index=i)
         this_py_node.neighbors = {}
 
         node_neighbors = get_neighbors(&this_node)
 
         # Iterate through all neighbors and populate our py_node.neighbors dict
         for j in range(this_node.num_neighbors):
-            this_entry = node_neighbors[j][0]
+            this_entry = dereference(node_neighbors[j])
             directed_edges = []
 
             for k in range(this_entry.num_directed_edges_in_group):
                 this_DE = this_entry.directed_edges_list[k]
                 directed_edges.append(this_DE[0].index)
-
+            
             this_py_node.neighbors[this_entry.key] = directed_edges
-
+        
         py_nodes.append(this_py_node)
 
     # Handling directed edges
     py_directed_edges_list = []
 
-    for idx in range(returned[0].num_directed_edges):
-        this_DE = returned[0].directed_edges_list[idx]
+    for i in range(returned[0].num_directed_edges):
+        this_DE = returned[0].directed_edges_list[i]
         py_DE = chg_DirectedEdge(nodes = [this_DE[0].nodes.center, this_DE[0].nodes.neighbor], index=this_DE[0].index, info = {"distance": this_DE[0].distance, "image": image_np[this_DE[0].index], "undirected_edge_index": this_DE[0].undirected_edge_index})
 
         py_directed_edges_list.append(py_DE)
@@ -126,8 +123,8 @@ def make_graph(
     py_undirected_edges_list = []
     cdef UndirectedEdge* UDE
 
-    for idx in range(returned[0].num_undirected_edges):
-        UDE = returned[0].undirected_edges_list[idx]
+    for i in range(returned[0].num_undirected_edges):
+        UDE = returned[0].undirected_edges_list[i]
         py_undirected_edge = chg_UndirectedEdge([UDE[0].nodes.center, UDE[0].nodes.neighbor], index = UDE[0].index, info =  {"distance": UDE[0].distance, "directed_edge_index": []})
 
         for j in range(UDE[0].num_directed_edges):
@@ -154,14 +151,22 @@ def make_graph(
 
 
     # Free everything unneeded
-    for idx in range(returned[0].num_directed_edges):
-        free(returned[0].directed_edges_list[idx])
+    for i in range(returned[0].num_directed_edges):
+        free(returned[0].directed_edges_list[i])
 
-    for idx in range(returned[0].num_undirected_edges):
-        free(returned[0].undirected_edges_list[idx])
+    for i in range(returned[0].num_undirected_edges):
+        free(returned[0].undirected_edges_list[i].directed_edge_indices)
+        free(returned[0].undirected_edges_list[i])
+
+
+    # Free node LongToDirectedEdgeList
+    free_LongToDirectedEdgeList_in_nodes(returned[0].nodes, returned[0].num_nodes)
 
     free(returned[0].directed_edges_list)
     free(returned[0].undirected_edges_list)
     free(returned[0].nodes)
 
+    free(returned)
+
     return py_nodes, py_directed_edges_list, py_undirected_edges_list, py_undirected_edges
+
