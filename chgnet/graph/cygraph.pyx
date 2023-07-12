@@ -7,7 +7,7 @@
 # cython: profile=False
 # distutils: language = c
 
-import chgnet.chgnet.graph
+import chgnet.graph.graph
 import numpy as np
 from libc.stdlib cimport free
 
