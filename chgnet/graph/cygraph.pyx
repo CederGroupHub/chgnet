@@ -7,12 +7,11 @@
 # cython: profile=False
 # distutils: language = c
 
+import chgnet.graph.graph
 import numpy as np
 from libc.stdlib cimport free
 
-import chgnet.graph.graph
-
-cdef extern from "fast_converter_libraries/create_graph.c":
+cdef extern from 'fast_converter_libraries/create_graph.c':
     ctypedef struct Node:
         long index
         LongToDirectedEdgeList* neighbors
@@ -41,21 +40,13 @@ cdef extern from "fast_converter_libraries/create_graph.c":
         DirectedEdge** directed_edges_list
         int num_directed_edges_in_group
 
-    ctypedef struct StructToUndirectedEdgeList:
-        NodeIndexPair key
-        UndirectedEdge** undirected_edges_list
-        int num_undirected_edges_in_group
-
-
     ctypedef struct ReturnElems2:
         long num_nodes
         long num_directed_edges
         long num_undirected_edges
-
         Node* nodes
         UndirectedEdge** undirected_edges_list
         DirectedEdge** directed_edges_list
-        StructToUndirectedEdgeList* undirected_edges
 
     ReturnElems2* create_graph(
         long* center_index,
@@ -64,6 +55,8 @@ cdef extern from "fast_converter_libraries/create_graph.c":
         long* image,
         double* distance,
         long num_atoms)
+
+    void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes)
 
 
     LongToDirectedEdgeList** get_neighbors(Node* node)
@@ -82,6 +75,7 @@ def make_graph(
     chg_DirectedEdge = chgnet.graph.graph.DirectedEdge
     chg_Node = chgnet.graph.graph.Node
     chg_UndirectedEdge = chgnet.graph.graph.UndirectedEdge
+
 
     image_np = np.asarray(image)
 
@@ -158,10 +152,17 @@ def make_graph(
         free(returned[0].directed_edges_list[idx])
 
     for idx in range(returned[0].num_undirected_edges):
+        free(returned[0].undirected_edges_list[idx].directed_edge_indices)
         free(returned[0].undirected_edges_list[idx])
+
+
+    # Free node LongToDirectedEdgeList
+    free_LongToDirectedEdgeList_in_nodes(returned[0].nodes, returned[0].num_nodes)
 
     free(returned[0].directed_edges_list)
     free(returned[0].undirected_edges_list)
     free(returned[0].nodes)
+
+    free(returned)
 
     return py_nodes, py_directed_edges_list, py_undirected_edges_list, py_undirected_edges

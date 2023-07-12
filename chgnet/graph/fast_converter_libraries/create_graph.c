@@ -6,7 +6,6 @@ typedef struct _DirectedEdge DirectedEdge;
 typedef struct _Node Node;
 typedef struct _NodeIndexPair NodeIndexPair;
 typedef struct _LongToDirectedEdgeList LongToDirectedEdgeList;
-typedef struct _ReturnElems ReturnElems;
 typedef struct _ReturnElems2 ReturnElems2;
 
 // NOTE: This code was mainly written to replicate the original add_edges method
@@ -56,23 +55,6 @@ typedef struct _LongToDirectedEdgeList {
     UT_hash_handle hh;
 } LongToDirectedEdgeList;
 
-typedef struct _ReturnElems {
-    long num_nodes;
-    long* node_index_unraveled;
-    long* node_neighbor_index_unraveled;
-    long* node_directed_edge_index_unraveled;
-
-    long num_undirected_edges;
-    long* undirected_center_index_unraveled;
-    long* undirected_neighbor_index_unraveled;
-    long* undirected_index_unraveled;
-    long* undirected_directed_edge_indices_unraveled;
-    double* undirected_distances_unraveled;
-
-    long num_directed_edges;
-    long* directed_undirected_edge_index_unraveled;
-} ReturnElems;
-
 
 typedef struct _ReturnElems2 {
     long num_nodes;
@@ -81,7 +63,6 @@ typedef struct _ReturnElems2 {
     Node* nodes;
     UndirectedEdge** undirected_edges_list;
     DirectedEdge** directed_edges_list;
-    StructToUndirectedEdgeList* undirected_edges;
 } ReturnElems2;
 
 bool find_in_undirected(NodeIndexPair* tmp, StructToUndirectedEdgeList** undirected_edges, StructToUndirectedEdgeList** found_entry);
@@ -94,7 +75,8 @@ void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* direct
 void print_neighbors(Node* node);
 void append_to_directed_edge_indices(UndirectedEdge* undirected_edge, long directed_edge_index);
 bool is_reversed_directed_edge(DirectedEdge* directed_edge1, DirectedEdge* directed_edge2);
-ReturnElems* get_raw_data(Node* nodes, long num_nodes, long num_undirected_edges, long num_directed_edges, UndirectedEdge** undirected_edges_list, DirectedEdge** directed_edges_list);
+void free_undirected_edges(StructToUndirectedEdgeList** undirected_edges);
+void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes);
 
 
 Node* create_nodes(long num_nodes) {
@@ -148,13 +130,14 @@ ReturnElems2* create_graph(
 
     // Pointer used to store the previously added directed edge between two nodes
     DirectedEdge* added_DE;
+    DirectedEdge* this_directed_edge;
 
     // Add all edges to graph information
     for (long i = 0; i < num_edges; i++) {
         // Haven't processed the edge yet
         processed_edge = false;
         // Create the current directed edge -------------------
-        DirectedEdge* this_directed_edge = calloc(1, sizeof(DirectedEdge));
+        this_directed_edge = calloc(1, sizeof(DirectedEdge));
         this_directed_edge->nodes.center = center_indices[i];
         this_directed_edge->nodes.neighbor = neighbor_indices[i];
         this_directed_edge->distance = distances[i];
@@ -172,11 +155,7 @@ ReturnElems2* create_graph(
 
         if (!found) {
             // Never seen this edge combination before
-            // printf("C: new edge combo: %lu and %lu. Dist: %.15lf. Img: [%ld, %ld, %ld]\n", tmp->center, tmp->neighbor, distances[i], *(this_directed_edge->image), *(this_directed_edge->image + 1), *(this_directed_edge->image + 2));
-
             this_directed_edge->undirected_edge_index = num_undirected_edges;
-
-            //TODO: be careful about double-freeing later. we're re-using a lot of memory space
 
             // Create new undirected edge
             UndirectedEdge* this_undirected_edge = malloc(sizeof(UndirectedEdge));
@@ -224,13 +203,6 @@ ReturnElems2* create_graph(
         }
     }
 
-
-    // ReturnElems* returned;
-    // returned = get_raw_data(nodes, num_atoms, num_undirected_edges, num_directed_edges, undirected_edges_list, directed_edges_list);
-
-    // printf("From returned struct: %lu\n", returned->num_directed_edges);
-    // return returned;
-
     ReturnElems2* returned2 = malloc(sizeof(ReturnElems2));
     returned2->num_nodes = num_atoms;
     returned2->num_undirected_edges = num_undirected_edges;
@@ -239,110 +211,41 @@ ReturnElems2* create_graph(
     returned2->nodes = nodes;
     returned2->directed_edges_list = directed_edges_list;
     returned2->undirected_edges_list = undirected_edges_list;
-    returned2->undirected_edges = undirected_edges;
+
+    free(tmp);
+    free_undirected_edges(&undirected_edges);
+
     return returned2;
-}
-
-
-// Converts all data into forms that can be digested in cython and used to create a graph python object
-ReturnElems* get_raw_data(
-            Node* nodes,
-            long num_nodes,
-            long num_undirected_edges,
-            long num_directed_edges,
-            UndirectedEdge** undirected_edges_list,
-            DirectedEdge** directed_edges_list
-        ) {
-    // NODES ---------------------------
-    // allocate memory to store node information
-    long* node_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long* node_neighbor_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long* node_directed_edge_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long unravel_index  = 0;
-
-    LongToDirectedEdgeList *tmp, *neighbor;
-
-    for (long node_i = 0; node_i < num_nodes; node_i++) {
-        HASH_ITER(hh, nodes[node_i].neighbors, neighbor, tmp) {
-            for (long edge_i = 0; edge_i < neighbor->num_directed_edges_in_group; edge_i++) {
-                node_index_unraveled[unravel_index] = nodes[node_i].index;
-                node_neighbor_index_unraveled[unravel_index] = neighbor->key;
-                node_directed_edge_index_unraveled[unravel_index] = neighbor->directed_edges_list[edge_i]->index;
-                unravel_index += 1;
-            }
-        }
-    }
-
-    // Undirected edges --------------
-    long* undirected_center_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long* undirected_neighbor_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long* undirected_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    long* undirected_directed_edge_indices_unraveled = malloc(sizeof(long) * num_directed_edges);
-    double* undirected_distances_unraveled = malloc(sizeof(double) * num_directed_edges);
-    unravel_index = 0;
-
-    UndirectedEdge* curr_undirected;
-
-    for (long undirected_i = 0; undirected_i < num_undirected_edges; undirected_i++) {
-        curr_undirected = undirected_edges_list[undirected_i];
-        for (long directed_i = 0; directed_i < curr_undirected->num_directed_edges; directed_i++) {
-            undirected_center_index_unraveled[unravel_index] = curr_undirected->nodes.center;
-            undirected_neighbor_index_unraveled[unravel_index] = curr_undirected->nodes.neighbor;
-            undirected_index_unraveled[unravel_index] = curr_undirected->index;
-            undirected_directed_edge_indices_unraveled[unravel_index] = curr_undirected->directed_edge_indices[directed_i];
-            undirected_distances_unraveled[unravel_index] = curr_undirected->distance;
-
-            unravel_index += 1;
-        }
-    }
-
-    // Directed edges ---------------
-    // center unraveled, neighbor unraveled, image unraveled, distance unraveled for directed edges are all
-    // just the inputs to the create graph function
-    long* directed_undirected_edge_index_unraveled = malloc(sizeof(long) * num_directed_edges);
-    for (long directed_i = 0; directed_i < num_directed_edges; directed_i++) {
-        directed_undirected_edge_index_unraveled[directed_i] = directed_edges_list[directed_i]->undirected_edge_index;
-    }
-
-    ReturnElems* returned = malloc(sizeof(ReturnElems));
-    returned->node_index_unraveled = node_index_unraveled;
-    returned->node_neighbor_index_unraveled = node_neighbor_index_unraveled;
-    returned->node_directed_edge_index_unraveled = node_directed_edge_index_unraveled;
-
-    returned->undirected_center_index_unraveled = undirected_center_index_unraveled;
-    returned->undirected_neighbor_index_unraveled = undirected_neighbor_index_unraveled;
-    returned->undirected_index_unraveled = undirected_index_unraveled;
-    returned->undirected_directed_edge_indices_unraveled = undirected_directed_edge_indices_unraveled;
-    returned->undirected_distances_unraveled = undirected_distances_unraveled;
-
-    returned->directed_undirected_edge_index_unraveled = directed_undirected_edge_index_unraveled;
-
-    returned->num_nodes = num_nodes;
-    returned->num_directed_edges = num_directed_edges;
-    returned->num_undirected_edges = num_undirected_edges;
-
-    return returned;
-}
-
-// Returns a list of LongToDirectedEdgeList pointers which are entries for the neighbors of the inputted node
-LongToDirectedEdgeList** get_neighbors(Node* node) {
-    long num_neighbors = HASH_COUNT(node->neighbors);
-    LongToDirectedEdgeList** entries = malloc(sizeof(LongToDirectedEdgeList*) * num_neighbors);
-
-    LongToDirectedEdgeList* entry;
-    long counter = 0;
-    for (entry = node->neighbors; entry != NULL; entry = entry->hh.next) {
-        entries[counter] = entry;
-        counter += 1;
-    }
-
-    return entries;
 }
 
 void print_neighbors(Node* node) {
     LongToDirectedEdgeList *tmp, *neighbor;
     HASH_ITER(hh, node->neighbors, neighbor, tmp) {
         printf("C:neighboring atom: %lu\n", neighbor->key);
+    }
+}
+
+void free_undirected_edges(StructToUndirectedEdgeList** undirected_edges) {
+    StructToUndirectedEdgeList* current;
+    StructToUndirectedEdgeList* tmp;
+
+    HASH_ITER(hh, *undirected_edges, current, tmp) {
+        HASH_DEL(*undirected_edges, current);
+        free(current->undirected_edges_list);
+        free(current);
+    }
+}
+
+void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes) {
+    LongToDirectedEdgeList* current;
+    LongToDirectedEdgeList* tmp;
+
+    for (long node_i = 0; node_i < num_nodes; node_i++) {
+        HASH_ITER(hh, nodes[node_i].neighbors, current, tmp) {
+            HASH_DEL(nodes[node_i].neighbors, current);
+            free(current->directed_edges_list);
+            free(current);
+        }
     }
 }
 
@@ -502,4 +405,19 @@ void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* direct
 
         node->num_neighbors += 1;
     }
+}
+
+// Returns a list of LongToDirectedEdgeList pointers which are entries for the neighbors of the inputted node
+LongToDirectedEdgeList** get_neighbors(Node* node) {
+    long num_neighbors = HASH_COUNT(node->neighbors);
+    LongToDirectedEdgeList** entries = malloc(sizeof(LongToDirectedEdgeList*) * num_neighbors);
+
+    LongToDirectedEdgeList* entry;
+    long counter = 0;
+    for (entry = node->neighbors; entry != NULL; entry = entry->hh.next) {
+        entries[counter] = entry;
+        counter += 1;
+    }
+
+    return entries;
 }
