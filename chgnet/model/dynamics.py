@@ -216,8 +216,8 @@ class StructOptimizer:
         if isinstance(atoms, ExpCellFilter):
             atoms = atoms.atoms
         struct = AseAtomsAdaptor.get_structure(atoms)
-        for k in struct.site_properties:
-            struct.remove_site_property(property_name=k)
+        for key in struct.site_properties:
+            struct.remove_site_property(property_name=key)
         struct.add_site_property(
             "magmom", [float(magmom) for magmom in atoms.get_magnetic_moments()]
         )
