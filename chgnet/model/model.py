@@ -612,7 +612,7 @@ class CHGNet(nn.Module):
         """Needed for ASE JSON serialization when saving CHGNet potential to
         trajectory file (https://github.com/CederGroupHub/chgnet/issues/48).
         """
-        return {"model_name": "CHGNet", "model_args": self.model_args}
+        return {"model_name": type(self).__name__, "model_args": self.model_args}
 
     @classmethod
     def from_dict(cls, dict, **kwargs):
