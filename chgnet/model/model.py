@@ -608,6 +608,12 @@ class CHGNet(nn.Module):
         """Return the CHGNet weights and args in a dictionary."""
         return {"state_dict": self.state_dict(), "model_args": self.model_args}
 
+    def todict(self):
+        """Needed for ASE JSON serialization when saving CHGNet potential to
+        trajectory file (https://github.com/CederGroupHub/chgnet/issues/48).
+        """
+        return {"model_name": type(self).__name__, "model_args": self.model_args}
+
     @classmethod
     def from_dict(cls, dict, **kwargs):
         """Build a CHGNet from a saved dictionary."""

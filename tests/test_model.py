@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 from pymatgen.core import Structure
 from pytest import mark
 
@@ -11,6 +12,7 @@ from chgnet.model.model import CHGNet
 
 structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
 graph = CrystalGraphConverter()(structure, graph_id="test-model")
+model = CHGNet.load()
 
 
 @mark.parametrize("atom_fea_dim", [1, 64])
@@ -53,9 +55,6 @@ def test_model(
         assert "CHGNet initialized with" in stdout
 
     assert stderr == ""
-
-
-model = CHGNet.load()
 
 
 def test_predict_structure() -> None:
@@ -146,19 +145,19 @@ def test_predict_structure_supercell() -> None:
     ]
     for idx, force in enumerate(forces):
         for cell_idx in range(4):
-            assert np.allclose(out["f"][idx * 4 + cell_idx], force, atol=1e-4)
+            assert_allclose(out["f"][idx * 4 + cell_idx], force, atol=1e-4)
 
     stress = [
         [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
         [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
         [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
     ]
-    assert np.allclose(out["s"], stress, atol=1e-4)
+    assert_allclose(out["s"], stress, atol=1e-4)
 
     magmoms = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
     for idx, magmom in enumerate(magmoms):
         for cell_idx in range(4):
-            assert np.allclose(out["m"][idx * 4 + cell_idx], magmom, atol=1e-4)
+            assert_allclose(out["m"][idx * 4 + cell_idx], magmom, atol=1e-4)
 
 
 def test_predict_batched_structures() -> None:
@@ -178,14 +177,38 @@ def test_predict_batched_structures() -> None:
         [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
         [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
     ]
-    assert all(np.allclose(preds["f"], forces, atol=1e-4) for preds in out)
-
     stress = [
         [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
         [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
         [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
     ]
-    assert all(np.allclose(preds["s"], stress, atol=1e-4) for preds in out)
-
     magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
-    assert all(preds["m"] == pytest.approx(magmom, abs=1e-4) for preds in out)
+    for preds in out:
+        assert_allclose(preds["f"], forces, atol=1e-4)
+        assert_allclose(preds["s"], stress, atol=1e-4)
+        assert preds["m"] == pytest.approx(magmom, abs=1e-4)
+
+
+model_arg_keys = frozenset(
+    "atom_fea_dim bond_fea_dim angle_fea_dim composition_model num_radial num_angular n_conv "
+    "atom_conv_hidden_dim update_bond bond_conv_hidden_dim update_angle angle_layer_hidden_dim"
+    " conv_dropout read_out mlp_hidden_dims mlp_dropout mlp_first is_intensive non_linearity "
+    "atom_graph_cutoff bond_graph_cutoff graph_converter_algorithm cutoff_coeff learnable_rbf "
+    "skip_connection conv_norm gMLP_norm readout_norm".split()
+)
+
+
+def test_as_to_from_dict() -> None:
+    dct = model.as_dict()
+    assert {*dct} == {"model_args", "state_dict"}
+    assert {*dct["model_args"]} >= model_arg_keys
+
+    model_2 = CHGNet.from_dict(dct)
+    assert model_2.as_dict()["model_args"] == dct["model_args"]
+
+    to_dict = model.todict()
+    assert {*to_dict} == {"model_name", "model_args"}
+    assert {*to_dict["model_args"]} >= model_arg_keys
+
+    model_3 = CHGNet(**to_dict["model_args"])
+    assert model_3.todict() == to_dict

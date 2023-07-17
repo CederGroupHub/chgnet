@@ -48,9 +48,7 @@ def test_trainer(tmp_path) -> None:
     trainer.train(train_loader, val_loader, save_dir=test_dir)
     assert test_dir.is_dir(), "Training dir was not created"
 
-    saved_weight = [f for f in test_dir.iterdir() if f.name.startswith("epoch")]
-    best_e_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestE")]
-    best_f_weight = [f for f in test_dir.iterdir() if f.name.startswith("bestF")]
-    assert len(saved_weight) == 1
-    assert len(best_e_weight) == 1
-    assert len(best_f_weight) == 1
+    output_files = list(test_dir.iterdir())
+    for prefix in ("epoch", "bestE", "bestF"):
+        n_matches = sum(file.name.startswith(prefix) for file in output_files)
+        assert n_matches == 1
