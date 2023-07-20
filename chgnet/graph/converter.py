@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import sys
 from typing import TYPE_CHECKING, Literal
 
@@ -9,7 +10,6 @@ from torch import Tensor, nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
-import gc
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
