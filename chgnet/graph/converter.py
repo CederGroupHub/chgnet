@@ -9,6 +9,7 @@ from torch import Tensor, nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
+import gc
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
@@ -227,7 +228,8 @@ class CrystalGraphConverter(nn.Module):
         neighbor_index = np.ascontiguousarray(neighbor_index)
         image = np.ascontiguousarray(image, dtype=np.int_)
         distance = np.ascontiguousarray(distance)
-
+        gc_saved = gc.get_threshold()
+        gc.set_threshold(0)
         (
             nodes,
             directed_edges_list,
@@ -236,11 +238,11 @@ class CrystalGraphConverter(nn.Module):
         ) = self._make_graph(
             center_index, len(center_index), neighbor_index, image, distance, n_atoms
         )
-
         graph = Graph(nodes=nodes)
         graph.directed_edges_list = directed_edges_list
         graph.undirected_edges_list = undirected_edges_list
         graph.undirected_edges = undirected_edges
+        gc.set_threshold(gc_saved[0])
 
         return graph
 
