@@ -54,7 +54,7 @@ class CHGNet(nn.Module):
         non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "silu",
         atom_graph_cutoff: float = 5,
         bond_graph_cutoff: float = 3,
-        graph_converter_algorithm: Literal["legacy", "fast"] = "legacy",
+        graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
         cutoff_coeff: int = 5,
         learnable_rbf: bool = True,
         **kwargs,
