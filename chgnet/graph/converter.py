@@ -243,7 +243,7 @@ class CrystalGraphConverter(nn.Module):
         graph.undirected_edges_list = undirected_edges_list
         graph.undirected_edges = undirected_edges
         gc.set_threshold(gc_saved[0])
-
+        
         return graph
 
     def get_neighbors(

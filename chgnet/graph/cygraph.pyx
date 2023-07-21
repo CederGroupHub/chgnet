@@ -85,12 +85,12 @@ def make_graph(
     py_nodes = []
     cdef DirectedEdge* this_DE
 
+
     # Handling nodes + directed edges
     for idx in range(returned[0].num_nodes):
         this_node = returned[0].nodes[idx]
         this_py_node = chg_Node(index=idx)
-        this_py_node.neighbors = {}
-
+        
         node_neighbors = get_neighbors(&this_node)
 
         # Iterate through all neighbors and populate our py_node.neighbors dict
@@ -105,6 +105,8 @@ def make_graph(
             this_py_node.neighbors[this_entry.key] = directed_edges
 
         py_nodes.append(this_py_node)
+
+        free(node_neighbors)
 
     # Handling directed edges
     py_directed_edges_list = []
