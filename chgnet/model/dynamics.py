@@ -316,12 +316,13 @@ class MolecularDynamics:
                 Default = 2
             pressure (float): pressure in eV/A^3
                 Default = 1.01325 * units.bar
-            taut (float): time constant for Berendsen temperature coupling
-                Default = None
-            taup (float): time constant for pressure coupling
-                Default = None
-            compressibility_au (float): compressibility of the material in A^3/eV,
-                this value is needed for npt ensemble
+            taut (float): time constant for Berendsen temperature coupling in fs
+                Default = 100 * timestep
+            taup (float): time constant for pressure coupling in fs
+                Default = 1000 * timestep
+            compressibility_au (float): compressibility of the material in A^3/eV
+                for npt ensemble, if not provided, it will be calculated by CHGNet
+                through Birch Murnaghan equation of state
                 Default = None
             trajectory (str or Trajectory): Attach trajectory object
                 Default = None
@@ -353,7 +354,7 @@ class MolecularDynamics:
                 atoms=self.atoms,
                 timestep=timestep * units.fs,
                 temperature_K=temperature,
-                taut=taut,
+                taut=taut * units.fs,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
@@ -384,8 +385,8 @@ class MolecularDynamics:
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
                     pressure_au=pressure,
-                    taut=taut,
-                    taup=taup,
+                    taut=taut * units.fs,
+                    taup=taup * units.fs,
                     compressibility_au=compressibility_au,
                     trajectory=trajectory,
                     logfile=logfile,
@@ -405,8 +406,8 @@ class MolecularDynamics:
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
                     pressure_au=pressure,
-                    taut=taut,
-                    taup=taup,
+                    taut=taut * units.fs,
+                    taup=taup * units.fs,
                     compressibility_au=compressibility_au,
                     trajectory=trajectory,
                     logfile=logfile,
