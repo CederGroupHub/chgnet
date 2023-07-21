@@ -13,7 +13,7 @@
 
 A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
-![chgnet](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
+![Logo](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
 

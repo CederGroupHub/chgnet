@@ -39,11 +39,27 @@
 <slot />
 
 <footer>
-  <a href="{repository}/issues">Issues</a>
-  <a href="{repository}/discussions">Discussions</a>
+  <img
+    src="https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png"
+    alt="Logo"
+    width="300px"
+  />
+  <a href="{repository}/issues" rel="external">Issues</a>
+  <a href="{repository}/discussions" rel="external">Discussions</a>
+  <a href="/api">API</a>
 </footer>
 
 <style>
+  footer {
+    background: #00061a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3ex;
+    place-content: center;
+    place-items: center;
+    margin: 2em 0 0;
+    padding: 3vh 3vw;
+  }
   a[aria-label] {
     font-size: 15pt;
     position: absolute;
@@ -56,14 +72,5 @@
   }
   a[aria-label]:hover {
     background-color: rgba(255, 255, 255, 0.2);
-  }
-  footer {
-    display: flex;
-    gap: 3ex;
-    place-content: center;
-    place-items: center;
-    margin: 2em 0 0;
-    padding: 3vh 3vw;
-    background: #00061a;
   }
 </style>
