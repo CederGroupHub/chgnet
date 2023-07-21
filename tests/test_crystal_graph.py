@@ -8,7 +8,7 @@ from pymatgen.core import Structure
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 
-structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
 converter_legacy = CrystalGraphConverter(
     atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="legacy", verbose=True

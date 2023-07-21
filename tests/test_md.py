@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 relaxer = StructOptimizer()
-structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 chgnet = CHGNet.load()
 
 

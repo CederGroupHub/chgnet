@@ -448,7 +448,8 @@ class Trainer:
         """Get best model recorded in the trainer."""
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
-        print("Best model has val MAE = ", min(self.training_history["e"]["val"]))
+        MAE = min(self.training_history["e"]["val"])
+        print(f"Best model has val {MAE = :.4}")
         return self.best_model
 
     @property
@@ -477,7 +478,7 @@ class Trainer:
 
         Args:
             epoch (int): the epoch number
-            mae_error (dict): dictionary that stores the mae errors
+            mae_error (dict): dictionary that stores the MAEs
             save_dir (str): the directory to save trained weights
         """
         for fname in os.listdir(save_dir):
