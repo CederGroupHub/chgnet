@@ -57,7 +57,7 @@ from chgnet.model.model import CHGNet
 from pymatgen.core import Structure
 
 chgnet = CHGNet.load()
-structure = Structure.from_file('examples/o-LiMnO2_unit.cif')
+structure = Structure.from_file('examples/mp-18767-LiMnO2.cif')
 prediction = chgnet.predict_structure(structure)
 for key in ("energy", "forces", "stress", "magmom"):
     print(f"CHGNet-predicted {key}={prediction[key[0]]}\n")
@@ -75,7 +75,7 @@ import warnings
 warnings.filterwarnings("ignore", module="pymatgen")
 warnings.filterwarnings("ignore", module="ase")
 
-structure = Structure.from_file("examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file("examples/mp-18767-LiMnO2.cif")
 chgnet = CHGNet.load()
 
 md = MolecularDynamics(

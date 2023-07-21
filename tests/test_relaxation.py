@@ -11,7 +11,7 @@ from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
 
-structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])

@@ -10,7 +10,7 @@ from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model.model import CHGNet
 
-structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 graph = CrystalGraphConverter()(structure, graph_id="test-model")
 model = CHGNet.load()
 
