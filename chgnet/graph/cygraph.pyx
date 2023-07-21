@@ -90,7 +90,7 @@ def make_graph(
     for idx in range(returned[0].num_nodes):
         this_node = returned[0].nodes[idx]
         this_py_node = chg_Node(index=idx)
-        
+
         node_neighbors = get_neighbors(&this_node)
 
         # Iterate through all neighbors and populate our py_node.neighbors dict
