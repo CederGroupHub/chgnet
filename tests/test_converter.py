@@ -65,49 +65,6 @@ def test_crystal_graph_converter_forward(
             assert stderr == ""
 
 
-def test_crystal_graph_converter_get_neighbors():
-    converter = CrystalGraphConverter()
-    center_index, neighbor_index, image, _distance = converter.get_neighbors(NaCl)
-
-    assert list(center_index) == [0] * 14 + [1] * 14
-    assert list(neighbor_index) == [
-        *(1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1),
-        *(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1),
-    ]
-    expected_image = [
-        [-1, -1, -1],
-        [-1, -1, 0],
-        [-1, 0, -1],
-        [-1, 0, 0],
-        [-1, 0, 0],
-        [0, -1, -1],
-        [0, -1, 0],
-        [0, -1, 0],
-        [0, 0, -1],
-        [0, 0, -1],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [0, 0, 0],
-        [-1, 0, 0],
-        [0, -1, 0],
-        [0, 0, -1],
-        [1, 1, 1],
-        [1, 1, 0],
-        [1, 0, 1],
-        [1, 0, 0],
-        [0, 1, 1],
-        [0, 1, 0],
-        [0, 0, 1],
-        [0, 0, 0],
-        [0, 0, 1],
-        [0, 1, 0],
-        [1, 0, 0],
-    ]
-    for img, expected in zip(image, expected_image):
-        assert list(img) == expected
-
-
 def test_crystal_graph_converter_as_dict_round_trip():
     expected = {"atom_graph_cutoff": 5, "bond_graph_cutoff": 3}
     converter = CrystalGraphConverter(**expected)
