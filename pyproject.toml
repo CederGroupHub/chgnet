@@ -33,7 +33,7 @@ classifiers = [
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
 # needed to run interactive example notebooks
-crystal-toolkit = ["crystal-toolkit"]
+examples = ["crystal-toolkit", "pandas"]
 docs = ["lazydocs"]
 
 [project.urls]

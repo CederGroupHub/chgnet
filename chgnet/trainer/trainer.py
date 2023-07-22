@@ -19,7 +19,7 @@ from torch.optim.lr_scheduler import (
 )
 
 from chgnet.model.model import CHGNet
-from chgnet.utils import AverageMeter, get_sorted_cuda_devices, mae, write_json
+from chgnet.utils import AverageMeter, cuda_devices_sorted_by_free_mem, mae, write_json
 
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader
@@ -184,8 +184,8 @@ class Trainer:
             self.device = "cpu"
         if self.device == "cuda":
             # Determine cuda device with most available memory
-            cuda_with_most_available_memory = get_sorted_cuda_devices()[0]
-            self.device = f"cuda:{cuda_with_most_available_memory}"
+            device_with_most_available_memory = cuda_devices_sorted_by_free_mem()[0]
+            self.device = f"cuda:{device_with_most_available_memory}"
 
         self.print_freq = print_freq
         self.training_history: dict[
