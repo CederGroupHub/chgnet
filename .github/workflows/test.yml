@@ -36,6 +36,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip install cython
+          python setup.py build_ext --inplace
           pip install -e .[test]
 
       - name: Run Tests
