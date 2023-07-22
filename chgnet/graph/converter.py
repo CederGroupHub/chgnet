@@ -14,6 +14,11 @@ from chgnet.graph.graph import Graph, Node
 if TYPE_CHECKING:
     from pymatgen.core import Structure
 
+try:
+    from chgnet.graph.cygraph import make_graph
+except (ImportError, AttributeError):
+    make_graph = None
+
 datatype = torch.float32
 
 
@@ -22,6 +27,8 @@ class CrystalGraphConverter(nn.Module):
     The CrystalGraph dataclass stores essential field to make sure that
     gradients like force and stress can be calculated through back-propagation later.
     """
+
+    make_graph = None
 
     def __init__(
         self,
@@ -52,19 +59,17 @@ class CrystalGraphConverter(nn.Module):
         )
 
         # Set graph conversion algorithm
-        if algorithm == "fast":
-            try:
-                from chgnet.graph.cygraph import make_graph
-
-                self._make_graph = make_graph
-                self.create_graph = self._create_graph_fast
-                self.algorithm = "fast"
-            except (ImportError, AttributeError):
-                self.create_graph = self._create_graph_legacy
-                self.algorithm = "legacy"
+        self._make_graph = None
+        if algorithm == "fast" and make_graph is not None:
+            self.create_graph = self._create_graph_fast
+            self.algorithm = "fast"
         elif algorithm == "legacy":
             self.create_graph = self._create_graph_legacy
             self.algorithm = "legacy"
+        else:
+            raise ValueError(
+                f"Unknown algorithm {algorithm}, choose from ['legacy', 'fast']"
+            )
 
         if verbose:
             print(self)
@@ -196,8 +201,8 @@ class CrystalGraphConverter(nn.Module):
 
         return graph
 
+    @staticmethod
     def _create_graph_fast(
-        self,
         n_atoms: int,
         center_index: np.ndarray,
         neighbor_index: np.ndarray,
@@ -235,7 +240,7 @@ class CrystalGraphConverter(nn.Module):
             directed_edges_list,
             undirected_edges_list,
             undirected_edges,
-        ) = self._make_graph(
+        ) = make_graph(
             center_index, len(center_index), neighbor_index, image, distance, n_atoms
         )
         graph = Graph(nodes=nodes)
