@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gc
 import sys
+import warnings
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -59,13 +60,18 @@ class CrystalGraphConverter(nn.Module):
         )
 
         # Set graph conversion algorithm
-        self._make_graph = None
-        if algorithm == "fast" and make_graph is not None:
-            self.create_graph = self._create_graph_fast
-            self.algorithm = "fast"
-        else:
-            self.create_graph = self._create_graph_legacy
-            self.algorithm = "legacy"
+        self.create_graph = self._create_graph_legacy
+        self.algorithm = "legacy"
+        if algorithm == "fast":
+            if make_graph is not None:
+                self.create_graph = self._create_graph_fast
+                self.algorithm = "fast"
+            else:
+                warnings.warn(
+                    "`fast` algorithm is not available, using `legacy`", UserWarning
+                )
+        elif algorithm != "legacy":
+            warnings.warn(f"Unknown algorithm {algorithm}, using `legacy`", UserWarning)
 
         if verbose:
             print(self)
