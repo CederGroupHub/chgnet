@@ -63,13 +63,9 @@ class CrystalGraphConverter(nn.Module):
         if algorithm == "fast" and make_graph is not None:
             self.create_graph = self._create_graph_fast
             self.algorithm = "fast"
-        elif algorithm == "legacy":
+        else:
             self.create_graph = self._create_graph_legacy
             self.algorithm = "legacy"
-        else:
-            raise ValueError(
-                f"Unknown algorithm {algorithm}, choose from ['legacy', 'fast']"
-            )
 
         if verbose:
             print(self)
