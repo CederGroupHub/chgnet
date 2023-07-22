@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import torch
-from torch import Tensor, nn
+from torch import nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
