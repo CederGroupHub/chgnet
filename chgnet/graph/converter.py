@@ -114,7 +114,9 @@ class CrystalGraphConverter(nn.Module):
         lattice = torch.tensor(
             structure.lattice.matrix, dtype=datatype, requires_grad=True
         )
-        center_index, neighbor_index, image, distance = self.get_neighbors(structure)
+        center_index, neighbor_index, image, distance = structure.get_neighbor_list(
+            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
+        )
 
         # Make Graph
         graph = self.create_graph(
@@ -250,22 +252,6 @@ class CrystalGraphConverter(nn.Module):
         gc.set_threshold(gc_saved[0])
 
         return graph
-
-    def get_neighbors(
-        self, structure: Structure
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        """Get neighbor information from pymatgen utility function.
-
-        Args:
-            structure(pymatgen.core.Structure): a structure to compute
-
-        Returns:
-            center_index, neighbor_index, image, distance
-        """
-        center_index, neighbor_index, image, distance = structure.get_neighbor_list(
-            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
-        )
-        return center_index, neighbor_index, image, distance
 
     def as_dict(self) -> dict[str, float]:
         """Save the args of the graph converter."""
