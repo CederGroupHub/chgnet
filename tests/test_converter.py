@@ -38,6 +38,7 @@ def test_crystal_graph_converter_warns():
         )
     with pytest.warns(UserWarning):
         from chgnet.graph import converter
+
         converter.make_graph = None  # force make_graph to be None
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"

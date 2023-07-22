@@ -68,10 +68,16 @@ class CrystalGraphConverter(nn.Module):
                 self.algorithm = "fast"
             else:
                 warnings.warn(
-                    "`fast` algorithm is not available, using `legacy`", UserWarning
+                    "`fast` algorithm is not available, using `legacy`",
+                    UserWarning,
+                    stacklevel=1,
                 )
         elif algorithm != "legacy":
-            warnings.warn(f"Unknown algorithm {algorithm}, using `legacy`", UserWarning)
+            warnings.warn(
+                f"Unknown algorithm {algorithm}, using `legacy`",
+                UserWarning,
+                stacklevel=1,
+            )
 
         if verbose:
             print(self)
