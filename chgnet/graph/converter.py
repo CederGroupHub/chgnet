@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import gc
 import sys
+import warnings
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import torch
-from torch import Tensor, nn
+from torch import nn
 
 from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
+
+try:
+    from chgnet.graph.cygraph import make_graph
+except (ImportError, AttributeError):
+    make_graph = None
 
 datatype = torch.float32
 
@@ -22,6 +28,8 @@ class CrystalGraphConverter(nn.Module):
     The CrystalGraph dataclass stores essential field to make sure that
     gradients like force and stress can be calculated through back-propagation later.
     """
+
+    make_graph = None
 
     def __init__(
         self,
@@ -52,19 +60,24 @@ class CrystalGraphConverter(nn.Module):
         )
 
         # Set graph conversion algorithm
+        self.create_graph = self._create_graph_legacy
+        self.algorithm = "legacy"
         if algorithm == "fast":
-            try:
-                from chgnet.graph.cygraph import make_graph
-
-                self._make_graph = make_graph
+            if make_graph is not None:
                 self.create_graph = self._create_graph_fast
                 self.algorithm = "fast"
-            except (ImportError, AttributeError):
-                self.create_graph = self._create_graph_legacy
-                self.algorithm = "legacy"
-        elif algorithm == "legacy":
-            self.create_graph = self._create_graph_legacy
-            self.algorithm = "legacy"
+            else:
+                warnings.warn(
+                    "`fast` algorithm is not available, using `legacy`",
+                    UserWarning,
+                    stacklevel=1,
+                )
+        elif algorithm != "legacy":
+            warnings.warn(
+                f"Unknown {algorithm=}, using `legacy`",
+                UserWarning,
+                stacklevel=1,
+            )
 
         if verbose:
             print(self)
@@ -109,7 +122,9 @@ class CrystalGraphConverter(nn.Module):
         lattice = torch.tensor(
             structure.lattice.matrix, dtype=datatype, requires_grad=True
         )
-        center_index, neighbor_index, image, distance = self.get_neighbors(structure)
+        center_index, neighbor_index, image, distance = structure.get_neighbor_list(
+            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
+        )
 
         # Make Graph
         graph = self.create_graph(
@@ -196,8 +211,8 @@ class CrystalGraphConverter(nn.Module):
 
         return graph
 
+    @staticmethod
     def _create_graph_fast(
-        self,
         n_atoms: int,
         center_index: np.ndarray,
         neighbor_index: np.ndarray,
@@ -235,7 +250,7 @@ class CrystalGraphConverter(nn.Module):
             directed_edges_list,
             undirected_edges_list,
             undirected_edges,
-        ) = self._make_graph(
+        ) = make_graph(
             center_index, len(center_index), neighbor_index, image, distance, n_atoms
         )
         graph = Graph(nodes=nodes)
@@ -245,22 +260,6 @@ class CrystalGraphConverter(nn.Module):
         gc.set_threshold(gc_saved[0])
 
         return graph
-
-    def get_neighbors(
-        self, structure: Structure
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        """Get neighbor information from pymatgen utility function.
-
-        Args:
-            structure(pymatgen.core.Structure): a structure to compute
-
-        Returns:
-            center_index, neighbor_index, image, distance
-        """
-        center_index, neighbor_index, image, distance = structure.get_neighbor_list(
-            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
-        )
-        return center_index, neighbor_index, image, distance
 
     def as_dict(self) -> dict[str, float]:
         """Save the args of the graph converter."""
