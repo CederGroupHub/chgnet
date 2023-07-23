@@ -12,6 +12,16 @@ coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 
 
+@pytest.fixture
+def set_make_graph():
+    # fixture to force make_graph to be None and then restore it after test
+    from chgnet.graph import converter
+    make_graph = converter.make_graph  # save original value
+    converter.make_graph = None  # force make_graph to be None
+    yield  # allows us to have cleanup after the test
+    converter.make_graph = make_graph  # restore original value
+
+
 @pytest.mark.parametrize(
     "atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (5, None), (4, 2)]
 )
@@ -31,15 +41,12 @@ def test_crystal_graph_converter_algorithm(algorithm):
     assert converter.algorithm == algorithm
 
 
-def test_crystal_graph_converter_warns():
+def test_crystal_graph_converter_warns(set_make_graph):
     with pytest.warns(UserWarning):
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="foobar"
         )
     with pytest.warns(UserWarning):
-        from chgnet.graph import converter
-
-        converter.make_graph = None  # force make_graph to be None
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"
         )
