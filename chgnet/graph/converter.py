@@ -74,7 +74,7 @@ class CrystalGraphConverter(nn.Module):
                 )
         elif algorithm != "legacy":
             warnings.warn(
-                f"Unknown algorithm {algorithm}, using `legacy`",
+                f"Unknown {algorithm=}, using `legacy`",
                 UserWarning,
                 stacklevel=1,
             )
