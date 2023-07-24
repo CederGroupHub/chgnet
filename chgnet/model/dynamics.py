@@ -24,6 +24,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from chgnet.model.model import CHGNet
+from chgnet.utils.common_utils import get_sorted_cuda_devices
 
 if TYPE_CHECKING:
     from ase.io import Trajectory
@@ -77,8 +78,12 @@ class CHGNetCalculator(Calculator):
             raise NotImplementedError("'mps' backend is not supported yet")
         # elif torch.backends.mps.is_available():
         #     self.device = 'mps'
+
         # Determine the device to use
         self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
+        if self.device == "cuda":
+            cuda_with_most_availeble_memory = get_sorted_cuda_devices()[0]
+            self.device = f"cuda:{cuda_with_most_availeble_memory}"
 
         # Move the model to the specified device
         self.model = (model or CHGNet.load()).to(self.device)

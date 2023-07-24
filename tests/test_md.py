@@ -56,7 +56,6 @@ def test_md_nvt(
         trajectory="md_out.traj",
         logfile="md_out.log",
         loginterval=100,
-        use_device="cpu",
     )
     md.run(10)
 
