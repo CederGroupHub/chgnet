@@ -82,6 +82,7 @@ class CHGNetCalculator(Calculator):
         # Determine the device to use
         self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
         if self.device == "cuda":
+            # Determine cuda device with most available memory
             cuda_with_most_availeble_memory = get_sorted_cuda_devices()[0]
             self.device = f"cuda:{cuda_with_most_availeble_memory}"
 

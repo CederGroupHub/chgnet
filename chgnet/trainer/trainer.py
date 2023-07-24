@@ -19,7 +19,7 @@ from torch.optim.lr_scheduler import (
 )
 
 from chgnet.model.model import CHGNet
-from chgnet.utils import AverageMeter, mae, write_json
+from chgnet.utils import AverageMeter, get_sorted_cuda_devices, mae, write_json
 
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader
@@ -80,7 +80,8 @@ class Trainer:
                 Default = None
             data_seed (int): random seed for random
                 Default = None
-            use_device (str, optional): device name to train the CHGNet. Can be "cuda", "cpu"
+            use_device (str, optional): device name to train the CHGNet.
+                Can be "cuda", "cpu"
                 Default = None
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
@@ -171,6 +172,7 @@ class Trainer:
         self.epochs = epochs
         self.starting_epoch = starting_epoch
 
+        # Determine the device to use
         if use_device is not None:
             self.device = use_device
         elif torch.cuda.is_available():
@@ -180,6 +182,10 @@ class Trainer:
         #     self.device = "mps"
         else:
             self.device = "cpu"
+        if self.device == "cuda":
+            # Determine cuda device with most available memory
+            cuda_with_most_availeble_memory = get_sorted_cuda_devices()[0]
+            self.device = f"cuda:{cuda_with_most_availeble_memory}"
 
         self.print_freq = print_freq
         self.training_history: dict[

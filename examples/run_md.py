@@ -1,6 +1,11 @@
+import warnings
+
 from pymatgen.core import Structure
 
 from chgnet.model.dynamics import MolecularDynamics
+
+warnings.filterwarnings("ignore", module="ase")
+
 
 struct = Structure.from_file("./mp-18767-LiMnO2.cif")
 ensemble = "npt"
