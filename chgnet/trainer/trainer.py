@@ -200,6 +200,7 @@ class Trainer:
         test_loader: DataLoader | None = None,
         save_dir: str | None = None,
         save_test_result: bool = False,
+        train_composition_model: bool = False,
     ) -> None:
         """Train the model using torch data_loaders.
 
@@ -207,10 +208,16 @@ class Trainer:
             train_loader (DataLoader): train loader to update CHGNet weights
             val_loader (DataLoader): val loader to test accuracy after each epoch
             test_loader (DataLoader):  test loader to test accuracy at end of training.
-                Can be None. Default = None.
+                Can be None.
+                Default = None
             save_dir (str): the dir name to save the trained weights
                 Default = None
             save_test_result (bool): whether to save the test set prediction in a json file
+            train_composition_model (bool): whether to train the composition model
+                (AtomRef), this is suggested when the fine-tuning dataset has large
+                elemental energy shift from the pretrained CHGNet, which typically comes
+                from different DFT pseudo-potentials.
+                Default = False
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
@@ -222,6 +229,10 @@ class Trainer:
         print(f"Begin Training: using {self.device} device")
         print(f"training targets: {self.targets}")
         self.model.to(self.device)
+
+        # Turn composition model training on / off
+        for param in self.model.composition_model.parameters():
+            param.requires_grad = train_composition_model
 
         for epoch in range(self.starting_epoch, self.epochs):
             # train

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import torch
 from pymatgen.core import Lattice, Structure
 
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
@@ -52,3 +53,42 @@ def test_trainer(tmp_path) -> None:
     for prefix in ("epoch", "bestE", "bestF"):
         n_matches = sum(file.name.startswith(prefix) for file in output_files)
         assert n_matches == 1
+
+
+def test_trainer_composition_model(tmp_path) -> None:
+    chgnet = CHGNet.load()
+    for param in chgnet.composition_model.parameters():
+        assert param.requires_grad is False
+    train_loader, val_loader, test_loader = get_train_val_test_loader(
+        data, batch_size=16, train_ratio=0.9, val_ratio=0.05
+    )
+    trainer = Trainer(
+        model=chgnet,
+        targets="efsm",
+        optimizer="Adam",
+        criterion="MSE",
+        learning_rate=1e-2,
+        epochs=5,
+    )
+    dir_name = "test_tmp_dir2"
+    test_dir = tmp_path / dir_name
+    initial_weights = chgnet.composition_model.state_dict()["fc.weight"].clone()
+    trainer.train(
+        train_loader, val_loader, save_dir=test_dir, train_composition_model=True
+    )
+    for param in chgnet.composition_model.parameters():
+        assert param.requires_grad is True
+
+    output_files = list(test_dir.iterdir())
+    weights_path = next(file for file in output_files if file.name.startswith("epoch"))
+    new_chgnet = CHGNet.from_file(weights_path)
+    for param in new_chgnet.composition_model.parameters():
+        assert param.requires_grad is False
+    comparison = (
+        new_chgnet.composition_model.state_dict()["fc.weight"] == initial_weights
+    )
+    expect = torch.ones_like(comparison)
+    # Only Na and Cl should have updated
+    expect[0][10] = 0
+    expect[0][16] = 0
+    assert torch.all(comparison == expect)
