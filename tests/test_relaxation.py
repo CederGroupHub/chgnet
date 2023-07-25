@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 import pytest
@@ -55,10 +56,7 @@ no_mps = mark.skipif(not hasattr(torch.backends, "mps"), reason="No MPS device")
 def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
     try:
         relaxer = StructOptimizer(use_device=use_device)
-        if use_device == "cuda":
-            assert relaxer.calculator.device[:4] == use_device
-        else:
-            assert relaxer.calculator.device == use_device
+        assert re.match(rf"{use_device}(:\d+)?", relaxer.calculator.device)
     except NotImplementedError as exc:
         # TODO: remove try/except once mps is supported
         assert str(exc) == "'mps' backend is not supported yet"  # noqa: PT017

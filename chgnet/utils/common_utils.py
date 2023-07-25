@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 
+import nvidia_smi
 import torch
 from torch import Tensor
 
@@ -12,8 +13,17 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
 
     To get the device with the most free memory, use the last list item.
     """
+    free_memories = []
+    nvidia_smi.nvmlInit()
+    deviceCount = nvidia_smi.nvmlDeviceGetCount()
+    for i in range(deviceCount):
+        handle = nvidia_smi.nvmlDeviceGetHandleByIndex(i)
+        info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
+        free_memories.append(info.free)
+    nvidia_smi.nvmlShutdown()
+
     return sorted(
-        range(torch.cuda.device_count()), key=lambda x: torch.cuda.mem_get_info(x)[0]
+        range(len(free_memories)), key=lambda x: free_memories[x], reverse=True
     )
 
 
