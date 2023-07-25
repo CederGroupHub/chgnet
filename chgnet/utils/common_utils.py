@@ -22,9 +22,7 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
         free_memories.append(info.free)
     nvidia_smi.nvmlShutdown()
 
-    return sorted(
-        range(len(free_memories)), key=lambda x: free_memories[x], reverse=True
-    )
+    return sorted(range(len(free_memories)), key=lambda x: free_memories[x])
 
 
 class AverageMeter:
