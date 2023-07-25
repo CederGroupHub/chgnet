@@ -47,6 +47,8 @@ def test_trainer(tmp_path) -> None:
     dir_name = "test_tmp_dir"
     test_dir = tmp_path / dir_name
     trainer.train(train_loader, val_loader, save_dir=test_dir)
+    for param in chgnet.composition_model.parameters():
+        assert param.requires_grad is False
     assert test_dir.is_dir(), "Training dir was not created"
 
     output_files = list(test_dir.iterdir())
