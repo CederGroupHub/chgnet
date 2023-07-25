@@ -24,7 +24,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from chgnet.model.model import CHGNet
-from chgnet.utils.common_utils import get_sorted_cuda_devices
+from chgnet.utils import cuda_devices_sorted_by_free_mem
 
 if TYPE_CHECKING:
     from ase.io import Trajectory
@@ -82,9 +82,7 @@ class CHGNetCalculator(Calculator):
         # Determine the device to use
         self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
         if self.device == "cuda":
-            # Determine cuda device with most available memory
-            cuda_with_most_available_memory = get_sorted_cuda_devices()[0]
-            self.device = f"cuda:{cuda_with_most_available_memory}"
+            self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
 
         # Move the model to the specified device
         self.model = (model or CHGNet.load()).to(self.device)

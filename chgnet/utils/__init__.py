@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from chgnet.utils.common_utils import (
     AverageMeter,
-    get_sorted_cuda_devices,
+    cuda_devices_sorted_by_free_mem,
     mae,
     mkdir,
     read_json,
@@ -11,7 +11,7 @@ from chgnet.utils.common_utils import (
 from chgnet.utils.vasp_utils import parse_vasp_dir, solve_charge_by_mag
 
 __all__ = [
-    "get_sorted_cuda_devices",
+    "cuda_devices_sorted_by_free_mem",
     "AverageMeter",
     "mae",
     "read_json",

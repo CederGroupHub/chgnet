@@ -7,12 +7,14 @@ import torch
 from torch import Tensor
 
 
-def get_sorted_cuda_devices():
-    """Get a list of available CUDA devices sorted by decreasing available memory."""
-    num_devices = torch.cuda.device_count()
-    devices = list(range(num_devices))
-    device_memory = [torch.cuda.mem_get_info(device_id)[0] for device_id in devices]
-    return sorted(devices, key=lambda x: device_memory[x], reverse=True)
+def cuda_devices_sorted_by_free_mem() -> list[int]:
+    """List available CUDA devices sorted by increasing available memory.
+
+    To get the device with the most free memory, use the last list item.
+    """
+    return sorted(
+        range(torch.cuda.device_count()), key=lambda x: torch.cuda.mem_get_info(x)[0]
+    )
 
 
 class AverageMeter:
