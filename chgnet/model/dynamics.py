@@ -133,7 +133,7 @@ class StructOptimizer:
 
     def __init__(
         self,
-        model: CHGNet | None = None,
+        model: CHGNet | CHGNetCalculator | None = None,
         optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
@@ -141,8 +141,8 @@ class StructOptimizer:
         """Provide a trained CHGNet model and an optimizer to relax crystal structures.
 
         Args:
-            model (CHGNet): instance of a chgnet model. If set to None,
-                the pretrained CHGNet is loaded.
+            model (CHGNet): instance of a CHGNet model or CHGNetCalculator.
+                If set to None, the pretrained CHGNet is loaded.
                 Default = None
             optimizer_class (Optimizer,str): choose optimizer from ASE.
                 Default = "FIRE"
@@ -162,9 +162,13 @@ class StructOptimizer:
                 )
 
         self.optimizer_class: Optimizer = optimizer_class
-        self.calculator = CHGNetCalculator(
-            model=model, stress_weight=stress_weight, use_device=use_device
-        )
+
+        if isinstance(model, CHGNetCalculator):
+            self.calculator = model
+        else:
+            self.calculator = CHGNetCalculator(
+                model=model, stress_weight=stress_weight, use_device=use_device
+            )
 
     def relax(
         self,
@@ -293,7 +297,7 @@ class MolecularDynamics:
     def __init__(
         self,
         atoms: Atoms | Structure,
-        model: CHGNet | None = None,
+        model: CHGNet | CHGNetCalculator | None = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 2.0,
@@ -311,7 +315,9 @@ class MolecularDynamics:
 
         Args:
             atoms (Atoms): atoms to run the MD
-            model (CHGNet): model
+            model (CHGNet): instance of a CHGNet model or CHGNetCalculator.
+                If set to None, the pretrained CHGNet is loaded.
+                Default = None
             ensemble (str): choose from 'nvt' or 'npt'
                 Default = "nvt"
             temperature (float): temperature for MD simulation, in K
@@ -334,7 +340,8 @@ class MolecularDynamics:
                 Default = None
             loginterval (int): write to log file every interval steps
                 Default = 1
-            append_trajectory (bool): Whether to append to prev trajectory
+            append_trajectory (bool): Whether to append to prev trajectory.
+                If false, previous trajectory gets overwritten
                 Default = False
             use_device (str): the device for the MD run
                 Default = None
@@ -343,7 +350,10 @@ class MolecularDynamics:
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
         self.atoms = atoms
-        self.atoms.calc = CHGNetCalculator(model, use_device=use_device)
+        if isinstance(model, CHGNetCalculator):
+            self.atoms.calc = model
+        else:
+            self.atoms.calc = CHGNetCalculator(model=model, use_device=use_device)
 
         if taut is None:
             taut = 100 * timestep * units.fs
@@ -366,10 +376,7 @@ class MolecularDynamics:
             )
         else:
             if compressibility_au is None:
-                eos = EquationOfState(
-                    model=model,
-                    use_device=use_device,
-                )
+                eos = EquationOfState(model=self.atoms.calc)
                 eos.fit(atoms=atoms, steps=500, fmax=0.1)
                 compressibility_au = eos.get_compressibility(unit="A^3/eV")
                 print(
@@ -454,7 +461,7 @@ class EquationOfState:
 
     def __init__(
         self,
-        model: CHGNet | None = None,
+        model: CHGNet | CHGNetCalculator | None = None,
         optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
@@ -462,8 +469,8 @@ class EquationOfState:
         """Initialize a structure optimizer object for calculation of bulk modulus.
 
         Args:
-            model (CHGNet): instance of a chgnet model. If set to None,
-                the pretrained CHGNet is loaded.
+            model (CHGNet): instance of a CHGNet model or CHGNetCalculator.
+                If set to None, the pretrained CHGNet is loaded.
                 Default = None
             optimizer_class (Optimizer,str): choose optimizer from ASE.
                 Default = "FIRE"
