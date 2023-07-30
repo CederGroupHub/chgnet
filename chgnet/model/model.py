@@ -464,7 +464,7 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Structure | Sequence[Structure],
-        task: Sequence[str] = ("e",),
+        task: Sequence[str] = tuple("efsm"),
         batch_size: int = 100,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from pymatgen.core.Structure.
@@ -494,7 +494,7 @@ class CHGNet(nn.Module):
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
-        task: Sequence[str] = ("e",),
+        task: Sequence[str] = tuple("efsm"),
         batch_size: int = 100,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from CrustalGraph.
