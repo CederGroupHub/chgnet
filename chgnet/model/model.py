@@ -23,7 +23,7 @@ from chgnet.model.layers import (
 )
 
 # What things to return in a CHGNet prediction
-PRED_TASK = frozenset(["e", "f", "s", "m", "atom_fea", "crystal_fea"])
+PRED_TASK = frozenset(("e", "f", "s", "m", "atom_fea", "crystal_fea"))
 
 
 class CHGNet(nn.Module):
@@ -309,7 +309,7 @@ class CHGNet(nn.Module):
         Args:
             graphs (List): a list of CrystalGraphs
             task (dict[str, bool]): What things to return from the forward pass.
-                Must be a subset of {"e", "f", "s", "m", "atom_fea", "crystal_fea"}.
+                Must be a subset of ("e", "f", "s", "m", "atom_fea", "crystal_fea").
 
         Raises:
             ValueError: if task is not a valid subset.
@@ -345,7 +345,7 @@ class CHGNet(nn.Module):
         Args:
             g (BatchedGraph): batched graph
             task (Sequence[str]): What things to return from the forward pass.
-                Must be a subset of {"e", "f", "s", "m", "atom_fea", "crystal_fea"}.
+                Must be a subset of ("e", "f", "s", "m", "atom_fea", "crystal_fea").
 
         Returns:
             prediction (dict): containing the fields:
@@ -472,8 +472,8 @@ class CHGNet(nn.Module):
         Args:
             structure (Structure | Sequence[Structure]): structure or a list of structures
                 to predict.
-            task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
-                "atom_fea", "crystal_fea"}.
+            task (str): What things to return. Must be a subset of ("e", "f", "s", "m",
+                "atom_fea", "crystal_fea").
             batch_size (int): batch_size for predict structures. Default = 100.
 
         Returns:
@@ -501,8 +501,8 @@ class CHGNet(nn.Module):
 
         Args:
             graph (CrystalGraph | Sequence[CrystalGraph]): CrystalGraph(s) to predict.
-            task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
-                "atom_fea", "crystal_fea"}.
+            task (str): What things to return. Must be a subset of ("e", "f", "s", "m",
+                "atom_fea", "crystal_fea").
             batch_size (int): batch_size for predict structures. Default = 100.
 
         Returns:

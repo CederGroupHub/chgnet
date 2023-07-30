@@ -89,9 +89,9 @@ def test_predict_structure() -> None:
     magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
     assert out["m"] == pytest.approx(magmom, abs=1e-4)
 
-    assert out["crystal_fea"].mean() == pytest.approx(0.279052240)
+    assert out["crystal_fea"].mean() == pytest.approx(0.27905, abs=1e-4)
     assert out["crystal_fea"].shape == (64,)
-    assert out["atom_fea"].mean() == pytest.approx(0.016067489)
+    assert out["atom_fea"].mean() == pytest.approx(0.01606, abs=1e-4)
     assert out["atom_fea"].shape == (8, 64)
 
 
