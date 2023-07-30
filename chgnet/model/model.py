@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Sequence
+from typing import Literal, Sequence
 
 import torch
 from pymatgen.core import Structure
@@ -22,8 +22,8 @@ from chgnet.model.layers import (
     GraphPooling,
 )
 
-if TYPE_CHECKING:
-    from chgnet import PredTask
+# What things to return in a CHGNet prediction
+PRED_TASK = frozenset(["e", "f", "s", "m", "atom_fea", "crystal_fea"])
 
 
 class CHGNet(nn.Module):
@@ -302,31 +302,28 @@ class CHGNet(nn.Module):
         )
 
     def forward(
-        self,
-        graphs: Sequence[CrystalGraph],
-        task: PredTask = "e",
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
+        self, graphs: Sequence[CrystalGraph], task: Sequence[str] = ("e",)
     ) -> dict:
         """Get prediction associated with input graphs.
 
         Args:
             graphs (List): a list of CrystalGraphs
-            task (str): the prediction task. E.g. 'e', 'em', 'ef', 'efs', 'efsm'.
-                Default = 'e'
+            task (dict[str, bool]): What things to return from the forward pass.
+                Must be a subset of {"e", "f", "s", "m", "atom_fea", "crystal_fea"}.
             return_atom_feas (bool): whether to return the atom features before last
                 conv layer
                 Default = False
             return_crystal_feas (bool): whether to return crystal feature
                 Default = False.
 
+        Raises:
+            ValueError: if task is not a valid subset.
+
         Returns:
             dict[str, Tensor]: model outputs
         """
-        compute_force = "f" in task
-        compute_stress = "s" in task
-        site_wise = "m" in task
-
+        if not set(task) <= PRED_TASK:
+            raise ValueError(f"{task=} must be a subset of {set(PRED_TASK)}")
         # Optionally, make composition model prediction
         comp_energy = (
             0 if self.composition_model is None else self.composition_model(graphs)
@@ -337,47 +334,23 @@ class CHGNet(nn.Module):
             graphs,
             bond_basis_expansion=self.bond_basis_expansion,
             angle_basis_expansion=self.angle_basis_expansion,
-            compute_stress=compute_stress,
+            compute_stress="s" in task,
         )
 
         # Pass to model
-        prediction = self._compute(
-            batched_graph,
-            site_wise=site_wise,
-            compute_force=compute_force,
-            compute_stress=compute_stress,
-            return_atom_feas=return_atom_feas,
-            return_crystal_feas=return_crystal_feas,
-        )
+        prediction = self._compute(batched_graph, task=task)
         prediction["e"] += comp_energy
         return prediction
 
-    def _compute(
-        self,
-        g,
-        site_wise: bool = False,
-        compute_force: bool = False,
-        compute_stress: bool = False,
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
-    ) -> dict:
+    def _compute(self, g, task: Sequence[str] = ("e",)) -> dict:
         """Get Energy, Force, Stress, Magmom associated with input graphs
         force = - d(Energy)/d(atom_positions)
         stress = 1/V * d(Energy)/d(strain).
 
         Args:
             g (BatchedGraph): batched graph
-            site_wise (bool): whether to compute magmom.
-                Default = False
-            compute_force (bool): whether to compute force.
-                Default = False
-            compute_stress (bool): whether to compute stress.
-                Default = False
-            return_atom_feas (bool): whether to return atom features
-                Default = False
-            return_crystal_feas (bool): whether to return crystal features,
-                only available if self.mlp_first is False
-                Default = False
+            task (Sequence[str]): What things to return from the forward pass.
+                Must be a subset of {"e", "f", "s", "m", "atom_fea", "crystal_fea"}.
 
         Returns:
             prediction (dict): containing the fields:
@@ -432,12 +405,12 @@ class CHGNet(nn.Module):
                         bond_graph=g.batched_bond_graph,
                     )
             if idx == self.n_conv - 2:
-                if return_atom_feas:
+                if "atom_fea" in task:
                     prediction["atom_fea"] = torch.split(
                         atom_feas, atoms_per_graph.tolist()
                     )
                 # Compute site-wise magnetic moments
-                if site_wise:
+                if "m" in task:
                     magmom = torch.abs(self.site_wise(atom_feas))
                     prediction["m"] = list(
                         torch.split(magmom.view(-1), atoms_per_graph.tolist())
@@ -458,16 +431,16 @@ class CHGNet(nn.Module):
         if self.mlp_first:
             energies = self.mlp(atom_feas)
             energy = self.pooling(energies, g.atom_owners).view(-1)
-            if return_crystal_feas:
+            if "crystal_fea" in task:
                 prediction["crystal_fea"] = self.pooling(atom_feas, g.atom_owners)
         else:  # ave or attn to create crystal_fea first
             crystal_feas = self.pooling(atom_feas, g.atom_owners)
             energy = self.mlp(crystal_feas).view(-1) * atoms_per_graph
-            if return_crystal_feas:
+            if "crystal_fea" in task:
                 prediction["crystal_fea"] = crystal_feas
 
         # Compute force
-        if compute_force:
+        if "f" in task:
             # Need to retain_graph here, because energy is used in loss function,
             # so its gradient need to be calculated later
             # The graphs of force and stress need to be created for same reason.
@@ -477,7 +450,7 @@ class CHGNet(nn.Module):
             prediction["f"] = [-1 * force_dim for force_dim in force]
 
         # Compute stress
-        if compute_stress:
+        if "s" in task:
             stress = torch.autograd.grad(
                 energy.sum(), g.strains, create_graph=True, retain_graph=True
             )
@@ -496,7 +469,7 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Structure | Sequence[Structure],
-        task: PredTask = "efsm",
+        task: Sequence[str] = ("e",),
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
@@ -506,8 +479,8 @@ class CHGNet(nn.Module):
         Args:
             structure (Structure | Sequence[Structure]): structure or a list of structures
                 to predict.
-            task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
-                Default = "efsm"
+            task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
+                "atom_fea", "crystal_fea"}.
             return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
@@ -540,7 +513,7 @@ class CHGNet(nn.Module):
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
-        task: PredTask = "efsm",
+        task: Sequence[str] = ("e",),
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
         batch_size: int = 100,
@@ -549,8 +522,8 @@ class CHGNet(nn.Module):
 
         Args:
             graph (CrystalGraph | Sequence[CrystalGraph]): CrystalGraph(s) to predict.
-            task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
-                Default = "efsm"
+            task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
+                "atom_fea", "crystal_fea"}.
             return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
@@ -699,7 +672,7 @@ class BatchedGraph:
             graphs (list[Tensor]): a list of CrystalGraphs
             bond_basis_expansion (nn.Module): bond basis expansion layer in CHGNet
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
-            compute_stress (bool): whether to compute stress
+            compute_stress (bool): whether to compute stress. Default = False
 
         Returns:
             assembled batch_graph that is ready for batched forward pass in CHGNet
