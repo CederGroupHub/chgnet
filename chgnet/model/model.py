@@ -216,7 +216,7 @@ class CHGNet(nn.Module):
         ]
         self.atom_conv_layers = nn.ModuleList(atom_graph_layers)
 
-        if update_bond is True:
+        if update_bond:
             bond_graph_layers = [
                 BondConv(
                     atom_fea_dim=atom_fea_dim,
@@ -236,7 +236,7 @@ class CHGNet(nn.Module):
         else:
             self.bond_conv_layers = [None for _ in range(n_conv - 1)]
 
-        if update_angle is True:
+        if update_angle:
             angle_layers = [
                 AngleUpdate(
                     atom_fea_dim=atom_fea_dim,
@@ -308,19 +308,20 @@ class CHGNet(nn.Module):
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
     ) -> dict:
-        """Get prediction associated with input graphs
+        """Get prediction associated with input graphs.
+
         Args:
             graphs (List): a list of CrystalGraphs
-            task (str): the prediction task
-                        eg: 'e', 'em', 'ef', 'efs', 'efsm'
+            task (str): the prediction task. E.g. 'e', 'em', 'ef', 'efs', 'efsm'.
                 Default = 'e'
             return_atom_feas (bool): whether to return the atom features before last
                 conv layer
                 Default = False
             return_crystal_feas (bool): whether to return crystal feature
-                Default = False
+                Default = False.
+
         Returns:
-            model output (dict).
+            dict[str, Tensor]: model outputs
         """
         compute_force = "f" in task
         compute_stress = "s" in task
@@ -431,7 +432,7 @@ class CHGNet(nn.Module):
                         bond_graph=g.batched_bond_graph,
                     )
             if idx == self.n_conv - 2:
-                if return_atom_feas is True:
+                if return_atom_feas:
                     prediction["atom_fea"] = torch.split(
                         atom_feas, atoms_per_graph.tolist()
                     )
@@ -457,12 +458,12 @@ class CHGNet(nn.Module):
         if self.mlp_first:
             energies = self.mlp(atom_feas)
             energy = self.pooling(energies, g.atom_owners).view(-1)
-            if return_crystal_feas is True:
+            if return_crystal_feas:
                 prediction["crystal_fea"] = self.pooling(atom_feas, g.atom_owners)
         else:  # ave or attn to create crystal_fea first
             crystal_feas = self.pooling(atom_feas, g.atom_owners)
             energy = self.mlp(crystal_feas).view(-1) * atoms_per_graph
-            if return_crystal_feas is True:
+            if return_crystal_feas:
                 prediction["crystal_fea"] = crystal_feas
 
         # Compute force
