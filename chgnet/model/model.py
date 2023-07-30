@@ -457,6 +457,8 @@ class CHGNet(nn.Module):
         if self.mlp_first:
             energies = self.mlp(atom_feas)
             energy = self.pooling(energies, g.atom_owners).view(-1)
+            if return_crystal_feas is True:
+                prediction["crystal_fea"] = self.pooling(atom_feas, g.atom_owners)
         else:  # ave or attn to create crystal_fea first
             crystal_feas = self.pooling(atom_feas, g.atom_owners)
             energy = self.mlp(crystal_feas).view(-1) * atoms_per_graph
