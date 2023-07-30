@@ -310,11 +310,6 @@ class CHGNet(nn.Module):
             graphs (List): a list of CrystalGraphs
             task (dict[str, bool]): What things to return from the forward pass.
                 Must be a subset of {"e", "f", "s", "m", "atom_fea", "crystal_fea"}.
-            return_atom_feas (bool): whether to return the atom features before last
-                conv layer
-                Default = False
-            return_crystal_feas (bool): whether to return crystal feature
-                Default = False.
 
         Raises:
             ValueError: if task is not a valid subset.
@@ -470,8 +465,6 @@ class CHGNet(nn.Module):
         self,
         structure: Structure | Sequence[Structure],
         task: Sequence[str] = ("e",),
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from pymatgen.core.Structure.
@@ -481,13 +474,7 @@ class CHGNet(nn.Module):
                 to predict.
             task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
                 "atom_fea", "crystal_fea"}.
-            return_atom_feas (bool): whether to return atom features.
-                Default = False
-            return_crystal_feas (bool): whether to return crystal features.
-                only available if self.mlp_first is False
-                Default = False
-            batch_size (int): batch_size for predict structures.
-                Default = 100
+            batch_size (int): batch_size for predict structures. Default = 100.
 
         Returns:
             prediction (dict[str, Tensor]): containing the keys:
@@ -502,20 +489,12 @@ class CHGNet(nn.Module):
         structures = [structure] if isinstance(structure, Structure) else structure
 
         graphs = [self.graph_converter(struct) for struct in structures]
-        return self.predict_graph(
-            graphs,
-            task=task,
-            return_atom_feas=return_atom_feas,
-            return_crystal_feas=return_crystal_feas,
-            batch_size=batch_size,
-        )
+        return self.predict_graph(graphs, task=task, batch_size=batch_size)
 
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
         task: Sequence[str] = ("e",),
-        return_atom_feas: bool = False,
-        return_crystal_feas: bool = False,
         batch_size: int = 100,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from CrustalGraph.
@@ -524,13 +503,7 @@ class CHGNet(nn.Module):
             graph (CrystalGraph | Sequence[CrystalGraph]): CrystalGraph(s) to predict.
             task (str): What things to return. Must be a subset of {"e", "f", "s", "m",
                 "atom_fea", "crystal_fea"}.
-            return_atom_feas (bool): whether to return atom features.
-                Default = False
-            return_crystal_feas (bool): whether to return crystal features.
-                only available if self.mlp_first is False
-                Default = False
-            batch_size (int): batch_size for predict structures.
-                Default = 100
+            batch_size (int): batch_size for predict structures. Default = 100.
 
         Returns:
             prediction (dict): containing the fields:
@@ -557,8 +530,6 @@ class CHGNet(nn.Module):
                     for g in graphs[batch_size * step : batch_size * (step + 1)]
                 ],
                 task=task,
-                return_atom_feas=return_atom_feas,
-                return_crystal_feas=return_crystal_feas,
             )
             for key, pred in prediction.items():
                 if key in ["e"]:

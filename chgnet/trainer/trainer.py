@@ -94,7 +94,7 @@ class Trainer:
         self.trainer_args.update(kwargs)
 
         self.model = model
-        self.targets = targets
+        self.targets = tuple(targets)
 
         if torch_seed is not None:
             torch.manual_seed(torch_seed)

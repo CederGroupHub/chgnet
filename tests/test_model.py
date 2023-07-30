@@ -58,9 +58,7 @@ def test_model(
 
 
 def test_predict_structure() -> None:
-    out = model.predict_structure(
-        structure, return_atom_feas=True, return_crystal_feas=True
-    )
+    out = model.predict_structure(structure, task=(*"efsm", "crystal_fea", "atom_fea"))
 
     assert sorted(out) == ["atom_fea", "crystal_fea", "e", "f", "m", "s"]
     assert out["e"] == pytest.approx(-7.37159, abs=1e-4)

@@ -115,7 +115,9 @@ class CHGNetCalculator(Calculator):
         # Run CHGNet
         structure = AseAtomsAdaptor.get_structure(atoms)
         graph = self.model.graph_converter(structure)
-        model_prediction = self.model.predict_graph(graph.to(self.device), task="efsm")
+        model_prediction = self.model.predict_graph(
+            graph.to(self.device), task=tuple("efsm")
+        )
 
         # Convert Result
         factor = 1 if not self.model.is_intensive else structure.composition.num_atoms
