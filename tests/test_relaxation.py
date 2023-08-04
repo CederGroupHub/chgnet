@@ -31,13 +31,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"]):
     traj = result["trajectory"]
     # make sure trajectory has expected attributes
     assert {*traj.__dict__} == {
-        "atoms",
-        "energies",
-        "forces",
-        "stresses",
-        "magmoms",
-        "atom_positions",
-        "cells",
+        *"atoms energies forces stresses magmoms atom_positions cells".split()
     }
     assert len(traj) == 4
 
