@@ -10,24 +10,24 @@ if TYPE_CHECKING:
     from pymatgen.core import Structure
 
 
-def parse_vasp_dir(file_root):
+def parse_vasp_dir(file_root: str) -> dict[str, list]:
     """Parse VASP output files into structures and labels
     By default, the magnetization is read from mag_x from VASP,
     plz modify the code if magnetization is for (y) and (z).
 
     Args:
-        file_root: the directory of the VASP calculation outputs
+        file_root (str): the directory of the VASP calculation outputs
     """
     try:
-        oszicar = Oszicar(file_root + "/OSZICAR")
-        vasprun_orig = Vasprun(file_root + "/vasprun.xml", exception_on_bad_xml=False)
-        outcar_filename = file_root + "/OUTCAR"
+        oszicar = Oszicar(f"{file_root}/OSZICAR")
+        vasprun_orig = Vasprun(f"{file_root}/vasprun.xml", exception_on_bad_xml=False)
+        outcar_filename = f"{file_root}/OUTCAR"
     except Exception:
-        oszicar = Oszicar(file_root + "/OSZICAR.gz")
+        oszicar = Oszicar(f"{file_root}/OSZICAR.gz")
         vasprun_orig = Vasprun(
-            file_root + "/vasprun.xml.gz", exception_on_bad_xml=False
+            f"{file_root}/vasprun.xml.gz", exception_on_bad_xml=False
         )
-        outcar_filename = file_root + "/OUTCAR.gz"
+        outcar_filename = f"{file_root}/OUTCAR.gz"
 
     charge = []
     mag_x = []
@@ -36,7 +36,7 @@ def parse_vasp_dir(file_root):
     header = []
     all_lines = []
 
-    for line in reverse_readfile(outcar_filename):  # filename : self.filename
+    for line in reverse_readfile(outcar_filename):
         clean = line.strip()
         all_lines.append(clean)
 
@@ -100,10 +100,9 @@ def parse_vasp_dir(file_root):
                 False,
             )
 
-    if len(oszicar.ionic_steps) == len(mag_x_all):  ## unfinished VASP job
+    if len(oszicar.ionic_steps) == len(mag_x_all):  # unfinished VASP job
         print("Unfinished OUTCAR")
-        mag_x_all = mag_x_all
-    elif len(oszicar.ionic_steps) == (len(mag_x_all) - 1):  ## finished job
+    elif len(oszicar.ionic_steps) == (len(mag_x_all) - 1):  # finished job
         mag_x_all.pop(-1)
 
     n_atoms = len(vasprun_orig.ionic_steps[0]["structure"])
@@ -130,7 +129,7 @@ def solve_charge_by_mag(
     structure: Structure,
     default_ox: dict[str, float] | None = None,
     ox_ranges: dict[str, dict[tuple[float, float], int]] | None = None,
-):
+) -> Structure | None:
     """Solve oxidation states by magmom.
 
     Args:
@@ -162,9 +161,9 @@ def solve_charge_by_mag(
     for idx, site in enumerate(structure):
         assigned = False
         if site.species_string in ox_ranges:
-            for (minmag, maxmag), magox in ox_ranges[site.species_string].items():
-                if mag[idx] >= minmag and mag[idx] < maxmag:
-                    ox_list.append(magox)
+            for (min_mag, max_mag), mag_ox in ox_ranges[site.species_string].items():
+                if mag[idx] >= min_mag and mag[idx] < max_mag:
+                    ox_list.append(mag_ox)
                     assigned = True
                     break
         elif site.species_string in default_ox:
