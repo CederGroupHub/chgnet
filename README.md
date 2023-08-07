@@ -65,7 +65,8 @@ for key in ("energy", "forces", "stress", "magmom"):
 
 ### Molecular Dynamics
 
-Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through `ASE` environment
+Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through `ASE` python interface (see below),
+or through [LAMMPS](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Jun2022/src/ML-CHGNET).
 
 ```python
 from chgnet.model.model import CHGNet
