@@ -322,10 +322,6 @@ class CHGNet(nn.Module):
         Returns:
             model output (dict).
         """
-        compute_force = "f" in task
-        compute_stress = "s" in task
-        site_wise = "m" in task
-
         # Optionally, make composition model prediction
         comp_energy = (
             0 if self.composition_model is None else self.composition_model(graphs)
@@ -336,15 +332,15 @@ class CHGNet(nn.Module):
             graphs,
             bond_basis_expansion=self.bond_basis_expansion,
             angle_basis_expansion=self.angle_basis_expansion,
-            compute_stress=compute_stress,
+            compute_stress="s" in task,
         )
 
         # Pass to model
         prediction = self._compute(
             batched_graph,
-            site_wise=site_wise,
-            compute_force=compute_force,
-            compute_stress=compute_stress,
+            site_wise="m" in task,
+            compute_force="f" in task,
+            compute_stress="s" in task,
             return_atom_feas=return_atom_feas,
             return_crystal_feas=return_crystal_feas,
         )
@@ -584,23 +580,11 @@ class CHGNet(nn.Module):
                 return_atom_feas=return_atom_feas,
                 return_crystal_feas=return_crystal_feas,
             )
-            for key, pred in prediction.items():
-                if key in ["e"]:
-                    for i, e in enumerate(pred.cpu().detach().numpy()):
-                        predictions[step * batch_size + i][key] = e
-                elif key in ["f", "s", "m"]:
-                    for i, tmp in enumerate(pred):
-                        predictions[step * batch_size + i][key] = (
-                            tmp.cpu().detach().numpy()
-                        )
-                elif key == "atom_fea":
-                    for i, atom_fea in enumerate(pred):
-                        predictions[step * batch_size + i][key] = (
-                            atom_fea.cpu().detach().numpy()
-                        )
-                elif key == "crystal_fea":
-                    for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
-                        predictions[step * batch_size + i][key] = crystal_fea
+            for key in {"e", "f", "s", "m", "atom_fea", "crystal_fea"} & {*prediction}:
+                for idx, tensor in enumerate(prediction[key]):
+                    predictions[step * batch_size + idx][key] = (
+                        tensor.cpu().detach().numpy()
+                    )
 
         return predictions[0] if len(graphs) == 1 else predictions
 
