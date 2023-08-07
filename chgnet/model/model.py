@@ -498,7 +498,7 @@ class CHGNet(nn.Module):
         task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
-        batch_size: int = 100,
+        batch_size: int = 16,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from pymatgen.core.Structure.
 
@@ -513,7 +513,7 @@ class CHGNet(nn.Module):
                 only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100
+                Default = 16
 
         Returns:
             prediction (dict[str, Tensor]): containing the keys:
@@ -542,7 +542,7 @@ class CHGNet(nn.Module):
         task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
-        batch_size: int = 100,
+        batch_size: int = 16,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from CrustalGraph.
 
@@ -556,14 +556,14 @@ class CHGNet(nn.Module):
                 only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100
+                Default = 16
 
         Returns:
-            prediction (dict): containing the fields:
-                e (Tensor) : energy of structures [batch_size, 1]
-                f (Tensor) : force on atoms [num_batch_atoms, 3]
-                s (Tensor) : stress of structure [3 * batch_size, 3]
-                m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
+            prediction (dict): dict or list of dict containing the fields:
+                e (Tensor) : energy of structures float in eV/atom
+                f (Tensor) : force on atoms [num_atoms, 3] in eV/A
+                s (Tensor) : stress of structure [3, 3] in GPa
+                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr magneton mu_B
         """
         if not isinstance(graph, (CrystalGraph, Sequence)):
             raise ValueError(
