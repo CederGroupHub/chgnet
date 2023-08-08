@@ -115,7 +115,7 @@ class CHGNetCalculator(Calculator):
         # Run CHGNet
         structure = AseAtomsAdaptor.get_structure(atoms)
         graph = self.model.graph_converter(structure)
-        model_prediction = self.model.predict_graph(graph.to(self.device), task="efsm")
+        model_prediction = self.model.predict_graph(graph.to(self.device), task="efsm", return_crystal_feas=True)
 
         # Convert Result
         factor = 1 if not self.model.is_intensive else structure.composition.num_atoms
@@ -125,6 +125,7 @@ class CHGNetCalculator(Calculator):
             free_energy=model_prediction["e"] * factor,
             magmoms=model_prediction["m"],
             stress=model_prediction["s"] * self.stress_weight,
+            crystal_fea=model_prediction["crystal_fea"]
         )
 
 
@@ -177,7 +178,8 @@ class StructOptimizer:
         steps: int | None = 500,
         relax_cell: bool | None = True,
         save_path: str | None = None,
-        trajectory_save_interval: int | None = 1,
+        loginterval: int | None = 1,
+        crystal_feas_save_path: str | None = None,
         verbose: bool = True,
         **kwargs,
     ) -> dict[str, Structure | TrajectoryObserver]:
@@ -193,8 +195,11 @@ class StructOptimizer:
                 Default = True
             save_path (str | None): The path to save the trajectory.
                 Default = None
-            trajectory_save_interval (int | None): Trajectory save interval.
+            loginterval (int | None): Interval for logging trajectory and crystal feas
                 Default = 1
+            crystal_feas_save_path (str | None): Path to save crystal feature vectors
+                which are logged at a loginterval rage
+                Default = None
             verbose (bool): Whether to print the output of the ASE optimizer.
                 Default = True
             **kwargs: Additional parameters for the optimizer.
@@ -211,15 +216,26 @@ class StructOptimizer:
         stream = sys.stdout if verbose else io.StringIO()
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
+            
+            if crystal_feas_save_path:
+                cry_obs = CrystalFeasObserver(atoms)
+
             if relax_cell:
                 atoms = ExpCellFilter(atoms)
             optimizer = self.optimizer_class(atoms, **kwargs)
-            optimizer.attach(obs, interval=trajectory_save_interval)
+            optimizer.attach(obs, interval=loginterval)
+            
+            if crystal_feas_save_path:
+                optimizer.attach(cry_obs, interval=loginterval)
+
             optimizer.run(fmax=fmax, steps=steps)
             obs()
 
         if save_path is not None:
             obs.save(save_path)
+        
+        if crystal_feas_save_path:
+            cry_obs.save(crystal_feas_save_path)
 
         if isinstance(atoms, ExpCellFilter):
             atoms = atoms.atoms
@@ -291,6 +307,28 @@ class TrajectoryObserver:
             pickle.dump(out_pkl, file)
 
 
+class CrystalFeasObserver:
+    """CrystalFeasObserver is a hook in the relaxation and MD process that saves the
+    intermediate crystal feature structures.
+    """
+    def __init__(self, atoms):
+        self.atoms = atoms
+        self.crystal_feature_vectors: list[np.ndarray] = []
+
+    def __call__(self):
+        self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])
+
+    def __len__(self):
+        return len(self.crystal_feature_vectors)
+    
+    def save(self, filename: str):
+        out_pkl = {
+            "crystal_feas": self.crystal_feature_vectors
+        }
+        with open(filename, "wb") as file:
+            pickle.dump(out_pkl, file)
+
+
 class MolecularDynamics:
     """Molecular dynamics class."""
 
@@ -308,6 +346,7 @@ class MolecularDynamics:
         trajectory: str | Trajectory | None = None,
         logfile: str | None = None,
         loginterval: int = 1,
+        crystal_feas_logfile: str = None,
         append_trajectory: bool = False,
         use_device: str | None = None,
     ) -> None:
@@ -340,6 +379,8 @@ class MolecularDynamics:
                 Default = None
             loginterval (int): write to log file every interval steps
                 Default = 1
+            crystal_feas_logfile (str): open this file for recording crystal features during MD
+                Default = None
             append_trajectory (bool): Whether to append to prev trajectory.
                 If false, previous trajectory gets overwritten
                 Default = False
@@ -433,6 +474,7 @@ class MolecularDynamics:
         self.logfile = logfile
         self.loginterval = loginterval
         self.timestep = timestep
+        self.crystal_feas_logfile = crystal_feas_logfile
 
     def run(self, steps: int):
         """Thin wrapper of ase MD run.
@@ -441,7 +483,15 @@ class MolecularDynamics:
             steps (int): number of MD steps
         Returns:
         """
+        if self.crystal_feas_logfile:
+            obs = CrystalFeasObserver(self.atoms)
+            self.dyn.attach(obs, interval=self.loginterval)
+        
+
         self.dyn.run(steps)
+
+        if self.crystal_feas_logfile:
+            obs.save(self.crystal_feas_logfile)
 
     def set_atoms(self, atoms: Atoms):
         """Set new atoms to run MD.
