@@ -396,7 +396,7 @@ class GraphData(Dataset):
             labels=train_labels,
             targets=self.targets,
             exclude=self.excluded_graph,
-            energy_str=self.energy_str,
+            energy_key=self.energy_key,
         )
         train_loader = DataLoader(
             train_dataset,
@@ -416,7 +416,7 @@ class GraphData(Dataset):
             labels=val_labels,
             targets=self.targets,
             exclude=self.excluded_graph,
-            energy_str=self.energy_str,
+            energy_key=self.energy_key,
         )
         val_loader = DataLoader(
             val_dataset,
@@ -437,7 +437,7 @@ class GraphData(Dataset):
                 labels=test_labels,
                 targets=self.targets,
                 exclude=self.excluded_graph,
-                energy_str=self.energy_str,
+                energy_key=self.energy_key,
             )
             test_loader = DataLoader(
                 test_dataset,
@@ -615,7 +615,7 @@ class StructureJsonData(Dataset):
             data=train_data,
             graph_converter=self.graph_converter,
             targets=self.targets,
-            energy_str=self.energy_str,
+            energy_key=self.energy_key,
         )
         train_loader = DataLoader(
             train_dataset,
@@ -631,7 +631,7 @@ class StructureJsonData(Dataset):
             data=val_data,
             graph_converter=self.graph_converter,
             targets=self.targets,
-            energy_str=self.energy_str,
+            energy_key=self.energy_key,
         )
         val_loader = DataLoader(
             val_dataset,
@@ -648,7 +648,7 @@ class StructureJsonData(Dataset):
                 data=test_data,
                 graph_converter=self.graph_converter,
                 targets=self.targets,
-                energy_str=self.energy_str,
+                energy_key=self.energy_key,
             )
             test_loader = DataLoader(
                 test_dataset,
