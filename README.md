@@ -59,8 +59,14 @@ from pymatgen.core import Structure
 chgnet = CHGNet.load()
 structure = Structure.from_file('examples/mp-18767-LiMnO2.cif')
 prediction = chgnet.predict_structure(structure)
-for key in ("energy", "forces", "stress", "magmom"):
-    print(f"CHGNet-predicted {key}={prediction[key[0]]}\n")
+
+for key, unit in [
+    ("energy", "eV/atom"),
+    ("forces", "eV/A"),
+    ("stress", "GPa"),
+    ("magmom", "mu_B"),
+]:
+    print(f"CHGNet-predicted {key} ({unit}):\n{prediction[key[0]]}\n")
 ```
 
 ### Molecular Dynamics
