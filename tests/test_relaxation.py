@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 import pytest
@@ -11,7 +12,7 @@ from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
 
-structure = Structure.from_file(f"{ROOT}/examples/o-LiMnO2_unit.cif")
+structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])
@@ -30,13 +31,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"]):
     traj = result["trajectory"]
     # make sure trajectory has expected attributes
     assert {*traj.__dict__} == {
-        "atoms",
-        "energies",
-        "forces",
-        "stresses",
-        "magmoms",
-        "atom_positions",
-        "cells",
+        *"atoms energies forces stresses magmoms atom_positions cells".split()
     }
     assert len(traj) == 4
 
@@ -55,7 +50,7 @@ no_mps = mark.skipif(not hasattr(torch.backends, "mps"), reason="No MPS device")
 def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
     try:
         relaxer = StructOptimizer(use_device=use_device)
-        assert relaxer.calculator.device == use_device
+        assert re.match(rf"{use_device}(:\d+)?", relaxer.calculator.device)
     except NotImplementedError as exc:
         # TODO: remove try/except once mps is supported
         assert str(exc) == "'mps' backend is not supported yet"  # noqa: PT017

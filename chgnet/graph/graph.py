@@ -18,7 +18,8 @@ class Node:
         self.neighbors: dict[int, list[DirectedEdge | UndirectedEdge]] = {}
 
     def add_neighbor(self, index, edge):
-        """Draw an directed edge between self and the node specified by index
+        """Draw an directed edge between self and the node specified by index.
+
         Args:
             index (int): the index of neighboring node
             edge (DirectedEdge): an DirectedEdge object pointing from self to the node.

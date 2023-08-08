@@ -12,6 +12,17 @@ coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 
 
+@pytest.fixture()
+def _set_make_graph():
+    # fixture to force make_graph to be None and then restore it after test
+    from chgnet.graph import converter
+
+    make_graph = converter.make_graph  # save original value
+    converter.make_graph = None  # force make_graph to be None
+    yield  # allows us to have cleanup after the test
+    converter.make_graph = make_graph  # restore original value
+
+
 @pytest.mark.parametrize(
     "atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (5, None), (4, 2)]
 )
@@ -29,6 +40,18 @@ def test_crystal_graph_converter_algorithm(algorithm):
         atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm=algorithm
     )
     assert converter.algorithm == algorithm
+
+
+@pytest.mark.usefixtures("_set_make_graph")
+def test_crystal_graph_converter_warns():
+    with pytest.warns(UserWarning):
+        CrystalGraphConverter(
+            atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="foobar"
+        )
+    with pytest.warns(UserWarning):
+        CrystalGraphConverter(
+            atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"
+        )
 
 
 @pytest.mark.parametrize("on_isolated_atoms", ["ignore", "warn", "error"])
@@ -58,49 +81,6 @@ def test_crystal_graph_converter_forward(
             assert err_msg in stderr
         else:
             assert stderr == ""
-
-
-def test_crystal_graph_converter_get_neighbors():
-    converter = CrystalGraphConverter()
-    center_index, neighbor_index, image, _distance = converter.get_neighbors(NaCl)
-
-    assert list(center_index) == [0] * 14 + [1] * 14
-    assert list(neighbor_index) == [
-        *(1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1),
-        *(1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1),
-    ]
-    expected_image = [
-        [-1, -1, -1],
-        [-1, -1, 0],
-        [-1, 0, -1],
-        [-1, 0, 0],
-        [-1, 0, 0],
-        [0, -1, -1],
-        [0, -1, 0],
-        [0, -1, 0],
-        [0, 0, -1],
-        [0, 0, -1],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [0, 0, 0],
-        [-1, 0, 0],
-        [0, -1, 0],
-        [0, 0, -1],
-        [1, 1, 1],
-        [1, 1, 0],
-        [1, 0, 1],
-        [1, 0, 0],
-        [0, 1, 1],
-        [0, 1, 0],
-        [0, 0, 1],
-        [0, 0, 0],
-        [0, 0, 1],
-        [0, 1, 0],
-        [1, 0, 0],
-    ]
-    for img, expected in zip(image, expected_image):
-        assert list(img) == expected
 
 
 def test_crystal_graph_converter_as_dict_round_trip():

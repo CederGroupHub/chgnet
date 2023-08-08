@@ -19,7 +19,7 @@ from torch.optim.lr_scheduler import (
 )
 
 from chgnet.model.model import CHGNet
-from chgnet.utils import AverageMeter, mae, write_json
+from chgnet.utils import AverageMeter, cuda_devices_sorted_by_free_mem, mae, write_json
 
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader
@@ -80,7 +80,8 @@ class Trainer:
                 Default = None
             data_seed (int): random seed for random
                 Default = None
-            use_device (str, optional): device name to train the CHGNet. Can be "cuda", "cpu"
+            use_device (str, optional): device name to train the CHGNet.
+                Can be "cuda", "cpu"
                 Default = None
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
@@ -171,6 +172,7 @@ class Trainer:
         self.epochs = epochs
         self.starting_epoch = starting_epoch
 
+        # Determine the device to use
         if use_device is not None:
             self.device = use_device
         elif torch.cuda.is_available():
@@ -180,6 +182,10 @@ class Trainer:
         #     self.device = "mps"
         else:
             self.device = "cpu"
+        if self.device == "cuda":
+            # Determine cuda device with most available memory
+            device_with_most_available_memory = cuda_devices_sorted_by_free_mem()[0]
+            self.device = f"cuda:{device_with_most_available_memory}"
 
         self.print_freq = print_freq
         self.training_history: dict[
@@ -194,6 +200,7 @@ class Trainer:
         test_loader: DataLoader | None = None,
         save_dir: str | None = None,
         save_test_result: bool = False,
+        train_composition_model: bool = False,
     ) -> None:
         """Train the model using torch data_loaders.
 
@@ -201,10 +208,16 @@ class Trainer:
             train_loader (DataLoader): train loader to update CHGNet weights
             val_loader (DataLoader): val loader to test accuracy after each epoch
             test_loader (DataLoader):  test loader to test accuracy at end of training.
-                Can be None. Default = None.
+                Can be None.
+                Default = None
             save_dir (str): the dir name to save the trained weights
                 Default = None
             save_test_result (bool): whether to save the test set prediction in a json file
+            train_composition_model (bool): whether to train the composition model
+                (AtomRef), this is suggested when the fine-tuning dataset has large
+                elemental energy shift from the pretrained CHGNet, which typically comes
+                from different DFT pseudo-potentials.
+                Default = False
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
@@ -216,6 +229,10 @@ class Trainer:
         print(f"Begin Training: using {self.device} device")
         print(f"training targets: {self.targets}")
         self.model.to(self.device)
+
+        # Turn composition model training on / off
+        for param in self.model.composition_model.parameters():
+            param.requires_grad = train_composition_model
 
         for epoch in range(self.starting_epoch, self.epochs):
             # train
@@ -448,7 +465,8 @@ class Trainer:
         """Get best model recorded in the trainer."""
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
-        print("Best model has val MAE = ", min(self.training_history["e"]["val"]))
+        MAE = min(self.training_history["e"]["val"])
+        print(f"Best model has val {MAE = :.4}")
         return self.best_model
 
     @property
@@ -477,7 +495,7 @@ class Trainer:
 
         Args:
             epoch (int): the epoch number
-            mae_error (dict): dictionary that stores the mae errors
+            mae_error (dict): dictionary that stores the MAEs
             save_dir (str): the directory to save trained weights
         """
         for fname in os.listdir(save_dir):

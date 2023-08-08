@@ -216,7 +216,7 @@ class CHGNet(nn.Module):
         ]
         self.atom_conv_layers = nn.ModuleList(atom_graph_layers)
 
-        if update_bond is True:
+        if update_bond:
             bond_graph_layers = [
                 BondConv(
                     atom_fea_dim=atom_fea_dim,
@@ -236,7 +236,7 @@ class CHGNet(nn.Module):
         else:
             self.bond_conv_layers = [None for _ in range(n_conv - 1)]
 
-        if update_angle is True:
+        if update_angle:
             angle_layers = [
                 AngleUpdate(
                     atom_fea_dim=atom_fea_dim,
@@ -322,10 +322,6 @@ class CHGNet(nn.Module):
         Returns:
             model output (dict).
         """
-        compute_force = "f" in task
-        compute_stress = "s" in task
-        site_wise = "m" in task
-
         # Optionally, make composition model prediction
         comp_energy = (
             0 if self.composition_model is None else self.composition_model(graphs)
@@ -336,15 +332,15 @@ class CHGNet(nn.Module):
             graphs,
             bond_basis_expansion=self.bond_basis_expansion,
             angle_basis_expansion=self.angle_basis_expansion,
-            compute_stress=compute_stress,
+            compute_stress="s" in task,
         )
 
         # Pass to model
         prediction = self._compute(
             batched_graph,
-            site_wise=site_wise,
-            compute_force=compute_force,
-            compute_stress=compute_stress,
+            site_wise="m" in task,
+            compute_force="f" in task,
+            compute_stress="s" in task,
             return_atom_feas=return_atom_feas,
             return_crystal_feas=return_crystal_feas,
         )
@@ -431,7 +427,7 @@ class CHGNet(nn.Module):
                         bond_graph=g.batched_bond_graph,
                     )
             if idx == self.n_conv - 2:
-                if return_atom_feas is True:
+                if return_atom_feas:
                     prediction["atom_fea"] = torch.split(
                         atom_feas, atoms_per_graph.tolist()
                     )
@@ -457,10 +453,12 @@ class CHGNet(nn.Module):
         if self.mlp_first:
             energies = self.mlp(atom_feas)
             energy = self.pooling(energies, g.atom_owners).view(-1)
+            if return_crystal_feas:
+                prediction["crystal_fea"] = self.pooling(atom_feas, g.atom_owners)
         else:  # ave or attn to create crystal_fea first
             crystal_feas = self.pooling(atom_feas, g.atom_owners)
             energy = self.mlp(crystal_feas).view(-1) * atoms_per_graph
-            if return_crystal_feas is True:
+            if return_crystal_feas:
                 prediction["crystal_fea"] = crystal_feas
 
         # Compute force
@@ -496,7 +494,7 @@ class CHGNet(nn.Module):
         task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
-        batch_size: int = 100,
+        batch_size: int = 16,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from pymatgen.core.Structure.
 
@@ -508,17 +506,16 @@ class CHGNet(nn.Module):
             return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
-                only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100
+                Default = 16
 
         Returns:
-            prediction (dict[str, Tensor]): containing the keys:
-                e: energy of structures [batch_size, 1] in eV/atom
-                f: force on atoms [num_batch_atoms, 3] in eV/A
-                s: stress of structure [3 * batch_size, 3] in GPa
-                m: magnetic moments of sites [num_batch_atoms, 3] in Bohr magneton mu_B
+            prediction (dict): dict or list of dict containing the fields:
+                e (Tensor) : energy of structures float in eV/atom
+                f (Tensor) : force on atoms [num_atoms, 3] in eV/A
+                s (Tensor) : stress of structure [3, 3] in GPa
+                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr magneton mu_B
         """
         if self.graph_converter is None:
             raise ValueError("graph_converter cannot be None!")
@@ -540,7 +537,7 @@ class CHGNet(nn.Module):
         task: PredTask = "efsm",
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
-        batch_size: int = 100,
+        batch_size: int = 16,
     ) -> dict[str, Tensor] | list[dict[str, Tensor]]:
         """Predict from CrustalGraph.
 
@@ -551,17 +548,16 @@ class CHGNet(nn.Module):
             return_atom_feas (bool): whether to return atom features.
                 Default = False
             return_crystal_feas (bool): whether to return crystal features.
-                only available if self.mlp_first is False
                 Default = False
             batch_size (int): batch_size for predict structures.
-                Default = 100
+                Default = 16
 
         Returns:
-            prediction (dict): containing the fields:
-                e (Tensor) : energy of structures [batch_size, 1]
-                f (Tensor) : force on atoms [num_batch_atoms, 3]
-                s (Tensor) : stress of structure [3 * batch_size, 3]
-                m (Tensor) : magnetic moments of sites [num_batch_atoms, 3]
+            prediction (dict): dict or list of dict containing the fields:
+                e (Tensor) : energy of structures float in eV/atom
+                f (Tensor) : force on atoms [num_atoms, 3] in eV/A
+                s (Tensor) : stress of structure [3, 3] in GPa
+                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr magneton mu_B
         """
         if not isinstance(graph, (CrystalGraph, Sequence)):
             raise ValueError(
@@ -584,23 +580,11 @@ class CHGNet(nn.Module):
                 return_atom_feas=return_atom_feas,
                 return_crystal_feas=return_crystal_feas,
             )
-            for key, pred in prediction.items():
-                if key in ["e"]:
-                    for i, e in enumerate(pred.cpu().detach().numpy()):
-                        predictions[step * batch_size + i][key] = e
-                elif key in ["f", "s", "m"]:
-                    for i, tmp in enumerate(pred):
-                        predictions[step * batch_size + i][key] = (
-                            tmp.cpu().detach().numpy()
-                        )
-                elif key == "atom_fea":
-                    for i, atom_fea in enumerate(pred):
-                        predictions[step * batch_size + i][key] = (
-                            atom_fea.cpu().detach().numpy()
-                        )
-                elif key == "crystal_fea":
-                    for i, crystal_fea in enumerate(pred.cpu().detach().numpy()):
-                        predictions[step * batch_size + i][key] = crystal_fea
+            for key in {"e", "f", "s", "m", "atom_fea", "crystal_fea"} & {*prediction}:
+                for idx, tensor in enumerate(prediction[key]):
+                    predictions[step * batch_size + idx][key] = (
+                        tensor.cpu().detach().numpy()
+                    )
 
         return predictions[0] if len(graphs) == 1 else predictions
 
@@ -696,7 +680,7 @@ class BatchedGraph:
             graphs (list[Tensor]): a list of CrystalGraphs
             bond_basis_expansion (nn.Module): bond basis expansion layer in CHGNet
             angle_basis_expansion (nn.Module): angle basis expansion layer in CHGNet
-            compute_stress (bool): whether to compute stress
+            compute_stress (bool): whether to compute stress. Default = False
 
         Returns:
             assembled batch_graph that is ready for batched forward pass in CHGNet
