@@ -115,7 +115,9 @@ class CHGNetCalculator(Calculator):
         # Run CHGNet
         structure = AseAtomsAdaptor.get_structure(atoms)
         graph = self.model.graph_converter(structure)
-        model_prediction = self.model.predict_graph(graph.to(self.device), task="efsm", return_crystal_feas=True)
+        model_prediction = self.model.predict_graph(
+            graph.to(self.device), task="efsm", return_crystal_feas=True
+        )
 
         # Convert Result
         factor = 1 if not self.model.is_intensive else structure.composition.num_atoms
@@ -125,7 +127,7 @@ class CHGNetCalculator(Calculator):
             free_energy=model_prediction["e"] * factor,
             magmoms=model_prediction["m"],
             stress=model_prediction["s"] * self.stress_weight,
-            crystal_fea=model_prediction["crystal_fea"]
+            crystal_fea=model_prediction["crystal_fea"],
         )
 
 
@@ -216,7 +218,7 @@ class StructOptimizer:
         stream = sys.stdout if verbose else io.StringIO()
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
-            
+
             if crystal_feas_save_path:
                 cry_obs = CrystalFeasObserver(atoms)
 
@@ -224,7 +226,7 @@ class StructOptimizer:
                 atoms = ExpCellFilter(atoms)
             optimizer = self.optimizer_class(atoms, **kwargs)
             optimizer.attach(obs, interval=loginterval)
-            
+
             if crystal_feas_save_path:
                 optimizer.attach(cry_obs, interval=loginterval)
 
@@ -233,7 +235,7 @@ class StructOptimizer:
 
         if save_path is not None:
             obs.save(save_path)
-        
+
         if crystal_feas_save_path:
             cry_obs.save(crystal_feas_save_path)
 
@@ -311,20 +313,23 @@ class CrystalFeasObserver:
     """CrystalFeasObserver is a hook in the relaxation and MD process that saves the
     intermediate crystal feature structures.
     """
-    def __init__(self, atoms):
+
+    def __init__(self, atoms: Atoms) -> None:
+        """Create a CrystalFeasObserver from an Atoms object."""
         self.atoms = atoms
         self.crystal_feature_vectors: list[np.ndarray] = []
 
-    def __call__(self):
+    def __call__(self) -> None:
+        """Record Atoms crystal feature vectors after an MD/relaxation step."""
         self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Number of recorded steps."""
         return len(self.crystal_feature_vectors)
-    
-    def save(self, filename: str):
-        out_pkl = {
-            "crystal_feas": self.crystal_feature_vectors
-        }
+
+    def save(self, filename: str) -> None:
+        """Save the crystal feature vectors to file."""
+        out_pkl = {"crystal_feas": self.crystal_feature_vectors}
         with open(filename, "wb") as file:
             pickle.dump(out_pkl, file)
 
@@ -346,7 +351,7 @@ class MolecularDynamics:
         trajectory: str | Trajectory | None = None,
         logfile: str | None = None,
         loginterval: int = 1,
-        crystal_feas_logfile: str = None,
+        crystal_feas_logfile: str | None = None,
         append_trajectory: bool = False,
         use_device: str | None = None,
     ) -> None:
@@ -486,7 +491,6 @@ class MolecularDynamics:
         if self.crystal_feas_logfile:
             obs = CrystalFeasObserver(self.atoms)
             self.dyn.attach(obs, interval=self.loginterval)
-        
 
         self.dyn.run(steps)
 
