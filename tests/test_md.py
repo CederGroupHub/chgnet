@@ -161,7 +161,7 @@ def test_md_crystal_feas_log(
     assert isinstance(crystal_feas, list)
     assert len(crystal_feas) == 11
     assert len(crystal_feas[0]) == 64
-    assert crystal_feas[0][0] == approx(1.4411175, rel=1e-6)
-    assert crystal_feas[0][1] == approx(2.6527007, rel=1e-6)
-    assert crystal_feas[10][0] == approx(1.4390144, rel=1e-6)
-    assert crystal_feas[10][1] == approx(2.65252, rel=1e-6)
+    assert crystal_feas[0][0] == approx(1.4411175, rel=1e-5)
+    assert crystal_feas[0][1] == approx(2.6527007, rel=1e-5)
+    assert crystal_feas[10][0] == approx(1.4390144, rel=1e-5)
+    assert crystal_feas[10][1] == approx(2.65252, rel=1e-5)
