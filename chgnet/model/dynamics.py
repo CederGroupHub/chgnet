@@ -13,6 +13,7 @@ from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.constraints import ExpCellFilter
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.verlet import VelocityVerlet
 from ase.optimize.bfgs import BFGS
 from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.fire import FIRE
@@ -362,7 +363,7 @@ class MolecularDynamics:
             model (CHGNet): instance of a CHGNet model or CHGNetCalculator.
                 If set to None, the pretrained CHGNet is loaded.
                 Default = None
-            ensemble (str): choose from 'nvt' or 'npt'
+            ensemble (str): choose from 'nve', 'nvt', 'npt', 'npt_berendsen'
                 Default = "nvt"
             temperature (float): temperature for MD simulation, in K
                 Default = 300
@@ -370,7 +371,9 @@ class MolecularDynamics:
                 Default = 2
             pressure (float): pressure in eV/A^3
                 Default = 1.01325 * units.bar
-            taut (float): time constant for Berendsen temperature coupling in fs
+            taut (float): time constant for Berendsen temperature coupling in fs.
+                The temperature will be raised to target temperature in approximate
+                10 * taut time.
                 Default = 100 * timestep
             taup (float): time constant for pressure coupling in fs
                 Default = 1000 * timestep
@@ -406,7 +409,23 @@ class MolecularDynamics:
         if taup is None:
             taup = 1000 * timestep * units.fs
 
-        if ensemble.lower() == "nvt":
+        if ensemble.lower() == "nve":
+            """
+            VelocityVerlet (constant N, V, E) molecular dynamics.
+
+            Note: it's recommended to use smaller timestep for NVE compared to other
+            ensembles, since the VelocityVerlet algorithm assumes a strict conservative
+            force field.
+            """
+            self.dyn = VelocityVerlet(
+                atoms=self.atoms,
+                timestep=timestep * units.fs,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+        elif ensemble.lower() == "nvt":
             """
             Berendsen (constant N, V, T) molecular dynamics.
             """
