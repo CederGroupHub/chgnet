@@ -23,6 +23,7 @@ subprocess.run(
     f"lazydocs {pkg['name']} --output-path {route} "
     f"--no-watermark --src-base-url {pkg['repository']}/blob/main",
     shell=True,
+    check=True,
 )
 
 for path in glob(f"{route}/*.md"):

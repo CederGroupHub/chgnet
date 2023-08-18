@@ -9,14 +9,14 @@ warnings.filterwarnings("ignore", module="ase")
 
 struct = Structure.from_file("./mp-18767-LiMnO2.cif")
 ensemble = "npt"
-temperature = 300
+temperature = 300  # in K
 
-# NPT
+# setup NPT MD simulation
 md = MolecularDynamics(
     atoms=struct,
     ensemble=ensemble,
-    temperature=temperature,  # in k
-    timestep=2,  # in fs
+    temperature=temperature,
+    timestep=2,  # in femtosecond
     trajectory=f"md_out_{ensemble}_T_{temperature}.traj",
     logfile=f"md_out_{ensemble}_T_{temperature}.log",
     loginterval=100,

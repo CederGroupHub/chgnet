@@ -165,25 +165,22 @@ trainer.train(train_loader, val_loader, test_loader)
 
 ### Note
 
-1. The energy used for training should be energy/atom if you're fine-tuning the pretrained `CHGNet`.
-2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102).
+1. The target quantity used for training should be energy/atom (not total energy) if you're fine-tuning the pretrained `CHGNet`.
+2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102) corrections applied.
    The parameter for VASP is described in [`MPRelaxSet`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879).
    If you're fine-tuning with [`MPRelaxSet`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/io/vasp/sets.py#L862-L879), it is recommended to apply the [`MP2020`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102)
    compatibility to your energy labels so that they're consistent with the pretrained dataset.
 3. If you're fine-tuning to functionals other than GGA, we recommend you refit the [`AtomRef`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/composition_model.py).
-4. `CHGNet` stress is in unit GPa, and the unit conversion has already been included in
+4. `CHGNet` stress is in units of GPa, and the unit conversion has already been included in
    [`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py). So `VASP` stress can be directly fed to `StructureData`
 5. To save time from graph conversion step for each training, we recommend you use [`GraphData`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py) defined in
    [`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py), which reads graphs directly from saved directory. To create saved graphs,
    see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/main/examples/make_graphs.py).
-6. Apple’s Metal Performance Shaders `MPS` is currently disabled until a stable version of `pytorch` for `MPS` is released.
+6. The Pytorch `MPS` backend (Apple’s Metal Performance Shaders) is currently disabled until a stable version of `pytorch` for `MPS` is released.
 
 ## Reference
 
-link to our paper:
-<https://doi.org/10.48550/arXiv.2302.14231>
-
-Please cite the following:
+If you use CHGNet, please cite [this paper](https://doi.org/10.48550/arXiv.2302.14231):
 
 ```bib
 @article{deng_2023_chgnet,

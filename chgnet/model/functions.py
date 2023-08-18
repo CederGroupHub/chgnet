@@ -66,7 +66,7 @@ class MLP(nn.Module):
         super().__init__()
         if hidden_dim in (None, 0):
             layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim)]
-        elif type(hidden_dim) == int:
+        elif isinstance(hidden_dim, int):
             layers = [
                 nn.Linear(input_dim, hidden_dim),
                 find_activation(activation),
