@@ -48,7 +48,7 @@ def test_crystal_graph_fast():
     assert converter_fast.algorithm == "fast"
     start = perf_counter()
     graph = converter_fast(structure)
-    print("Fasttest_crystal_graph time:", perf_counter() - start)
+    print("Fast test_crystal_graph time:", perf_counter() - start)
 
     assert graph.composition == "Li2 Mn2 O4"
     assert graph.atomic_number.tolist() == [3, 3, 25, 25, 8, 8, 8, 8]
@@ -344,3 +344,12 @@ def test_crystal_graph_stability_fast():
         )
         assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
     print("Fast test_crystal_graph_stability time:", total_time)
+
+
+def test_crystal_graph_repr():
+    graph = converter_legacy(structure)
+    assert (
+        repr(graph)
+        == "CrystalGraph(composition='Li2 Mn2 O4', atom_graph_cutoff=5, bond_graph_cutoff=3, "
+        "n_atoms=8, atom_graph=384, bond_graph=744)"
+    )
