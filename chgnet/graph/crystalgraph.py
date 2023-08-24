@@ -29,8 +29,10 @@ class CrystalGraph:
         composition: str | None = None,
     ) -> None:
         """Initialize the crystal graph.
-        Attention! This data class is not intended to be created manually.
-                   Crystal Graph should be returned by a CrystalGraphConverter
+
+        Attention! This data class is not intended to be created manually. CrystalGraph should
+        be returned by a CrystalGraphConverter
+
         Args:
             atomic_number (Tensor): the atomic numbers of atoms in the structure
                 [n_atom]
@@ -57,16 +59,15 @@ class CrystalGraph:
                 [num_undirected_bonds]
             bond_graph (Tensor): a directed graph adjacency list,
                 (atom indices, 1st undirected bond idx, 1st directed bond idx,
-                 2nd undirected bond idx, 2nd directed bond idx)
-                for angles in angle_fea
+                2nd undirected bond idx, 2nd directed bond idx) for angles in angle_fea
                 [n_angle, 5]
             bond_graph_cutoff (float): the cutoff bond length to include bond
                 as nodes in bond_graph
             lattice (Tensor): lattices of the input structure
                 [3, 3]
-            graph_id (str or None): an id to keep track of this crystal graph
+            graph_id (str | None): an id to keep track of this crystal graph
                 Default = None
-            mp_id (str) or None: Materials Project id of this structure
+            mp_id (str | None): Materials Project id of this structure
                 Default = None
             composition: Chemical composition of the compound, used just for
                 better tracking of the graph
@@ -167,12 +168,15 @@ class CrystalGraph:
         return CrystalGraph(**dic)
 
     def __repr__(self) -> str:
-        """Details of the graph."""
+        """String representation of the graph."""
+        composition = self.composition
+        atom_graph_cutoff = self.atom_graph_cutoff
+        bond_graph_cutoff = self.bond_graph_cutoff
+        atom_graph_len = self.atom_graph
+        n_atoms = len(self.atomic_number)
+        atom_graph_len = len(self.atom_graph)
+        bond_graph_len = len(self.bond_graph)
         return (
-            f"Crystal Graph {self.composition} \n"
-            f"constructed using atom_graph_cutoff={self.atom_graph_cutoff}, "
-            f"bond_graph_cutoff={self.bond_graph_cutoff} \n"
-            f"(n_atoms={len(self.atomic_number)}, "
-            f"atom_graph={len(self.atom_graph)}, "
-            f"bond_graph={len(self.bond_graph)})"
+            f"CrystalGraph({composition=}, {atom_graph_cutoff=}, {bond_graph_cutoff=}, "
+            f"{n_atoms=}, {atom_graph_len=}, {bond_graph_len=})"
         )
