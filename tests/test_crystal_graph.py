@@ -8,6 +8,8 @@ from pymatgen.core import Structure
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 
+np.random.seed(0)
+
 structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
 converter_legacy = CrystalGraphConverter(
@@ -259,11 +261,10 @@ def test_crystal_graph_anisotropic_strained_fast():
 
 
 def test_crystal_graph_supercell_legacy():
-    structure_supercell = structure.copy()
-    structure_supercell.make_supercell([2, 3, 4])
+    supercell = structure.make_supercell([2, 3, 4], in_place=False)
 
     start = perf_counter()
-    graph = converter_legacy(structure_supercell)
+    graph = converter_legacy(supercell)
     print("Legacy test_crystal_graph_supercell time:", perf_counter() - start)
 
     assert graph.composition == "Li48 Mn48 O96"
@@ -285,11 +286,10 @@ def test_crystal_graph_supercell_legacy():
 
 
 def test_crystal_graph_supercell_fast():
-    structure_supercell = structure.copy()
-    structure_supercell.make_supercell([2, 3, 4])
+    supercell = structure.make_supercell([2, 3, 4], in_place=False)
 
     start = perf_counter()
-    graph = converter_fast(structure_supercell)
+    graph = converter_fast(supercell)
     print("Fast test_crystal_graph_supercell time:", perf_counter() - start)
 
     assert graph.composition == "Li48 Mn48 O96"
@@ -312,10 +312,8 @@ def test_crystal_graph_supercell_fast():
 
 def test_crystal_graph_stability_legacy():
     total_time = 0
-    for _i in range(20):
-        np.random.seed(0)
-        structure_perturbed = structure.copy()
-        structure_perturbed.make_supercell([2, 2, 2])
+    for _ in range(20):
+        structure_perturbed = structure.make_supercell([2, 2, 2], in_place=False)
         structure_perturbed.perturb(distance=0.5)
         start = perf_counter()
         graph = converter_legacy(structure_perturbed)
@@ -330,10 +328,8 @@ def test_crystal_graph_stability_legacy():
 
 def test_crystal_graph_stability_fast():
     total_time = 0
-    for _i in range(20):
-        np.random.seed(0)
-        structure_perturbed = structure.copy()
-        structure_perturbed.make_supercell([2, 2, 2])
+    for _ in range(20):
+        structure_perturbed = structure.make_supercell([2, 2, 2], in_place=False)
         structure_perturbed.perturb(distance=0.5)
         start = perf_counter()
         graph = converter_fast(structure_perturbed)

@@ -128,9 +128,8 @@ def test_predict_structure_rotated() -> None:
     assert out["m"] == pytest.approx(magmom, abs=1e-4)
 
 
-def test_predict_structure_supercell() -> None:
-    supercell = structure.copy()
-    supercell.make_supercell([2, 2, 1])
+def test_predict_supercell() -> None:
+    supercell = structure.make_supercell([2, 2, 1], in_place=False)
     out = model.predict_structure(supercell)
 
     assert sorted(out) == ["e", "f", "m", "s"]
