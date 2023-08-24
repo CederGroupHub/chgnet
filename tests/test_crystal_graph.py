@@ -351,5 +351,5 @@ def test_crystal_graph_repr():
     assert (
         repr(graph)
         == "CrystalGraph(composition='Li2 Mn2 O4', atom_graph_cutoff=5, bond_graph_cutoff=3, "
-        "n_atoms=8, atom_graph=384, bond_graph=744)"
+        "n_atoms=8, atom_graph_len=384, bond_graph_len=744)"
     )
