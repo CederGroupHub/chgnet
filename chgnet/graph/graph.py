@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 from chgnet.utils import write_json
 
 
@@ -42,11 +44,9 @@ class UndirectedEdge:
         self.info = info
 
     def __repr__(self):
-        """Return a string representation of this edge."""
-        return (
-            f"UndirectedEdge between Nodes{self.nodes}, "
-            f"info={self.info}, index={self.index}"
-        )
+        """String representation of this edge."""
+        nodes, index, info = self.nodes, self.index, self.info
+        return f"{type(self).__name__}({nodes=}, {index=}, {info=})"
 
     def __eq__(self, other):
         """Check if two undirected edges are equal."""
@@ -66,8 +66,7 @@ class DirectedEdge:
 
     def make_undirected(self, index, info=None):
         """Make a directed edge undirected."""
-        if info is None:
-            info = {}
+        info = info or {}
         info["distance"] = self.info["distance"]
         return UndirectedEdge(self.nodes, index, info)
 
@@ -78,15 +77,10 @@ class DirectedEdge:
             other (DirectedEdge): another DirectedEdge to compare to
 
         Returns:
-            True: if other is the same directed edge, or
-                  if other is the directed edge with reverse direction of self
-            False:
-                  all other cases
+            bool: True if other is the same directed edge, or if other is the directed edge
+                with reverse direction of self, else False.
         """
-        if (
-            self.nodes == other.nodes
-            and (self.info["image"] == other.info["image"]).all()
-        ):
+        if self.nodes == other.nodes and all(self.info["image"] == other.info["image"]):
             # the image key here is provided by Pymatgen, which refers to the periodic
             # cell the neighbor node comes from
 
@@ -95,24 +89,22 @@ class DirectedEdge:
             # the same edge twice in creating a crystal graph.)
             print(
                 "!!!!!! the two directed edges are equal but this operation is "
-                "not supposed to happen"
+                "not supposed to happen",
+                file=sys.stderr,
             )
             return True
-        if (
-            self.nodes == other.nodes[::-1]
-            and (self.info["image"] == -1 * other.info["image"]).all()
-        ):
+
+        return (
             # In this case the first edge is from node i to j and the second edge is
             # from node j to i
-            return True
-        return False
+            self.nodes == other.nodes[::-1]
+            and (self.info["image"] == -1 * other.info["image"]).all()
+        )
 
     def __repr__(self):
-        """Return a string representation of this edge."""
-        return (
-            f"DirectedEdge between Nodes{self.nodes}, "
-            f"info={self.info}, index={self.index}"
-        )
+        """String representation of this edge."""
+        nodes, index, info = self.nodes, self.index, self.info
+        return f"{type(self).__name__}({nodes=}, {index=}, {info=})"
 
 
 class Graph:
