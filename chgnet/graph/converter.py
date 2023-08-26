@@ -36,6 +36,7 @@ class CrystalGraphConverter(nn.Module):
         atom_graph_cutoff: float = 5,
         bond_graph_cutoff: float = 3,
         algorithm: Literal["legacy", "fast"] = "fast",
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
         verbose: bool = False,
     ) -> None:
         """Initialize the Crystal Graph Converter.
@@ -50,6 +51,9 @@ class CrystalGraphConverter(nn.Module):
                 'fast': C implementation of graph creation, this is faster,
                     but will need the cygraph.c file correctly compiled from pip install
                 Default = 'fast'
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'
             verbose (bool): whether to print the CrystalGraphConverter
                 initialization message. Default = False.
         """
@@ -58,6 +62,7 @@ class CrystalGraphConverter(nn.Module):
         self.bond_graph_cutoff = (
             atom_graph_cutoff if bond_graph_cutoff is None else bond_graph_cutoff
         )
+        self.on_isolated_atoms = on_isolated_atoms
 
         # Set graph conversion algorithm
         self.create_graph = self._create_graph_legacy
@@ -95,7 +100,6 @@ class CrystalGraphConverter(nn.Module):
         structure: Structure,
         graph_id=None,
         mp_id=None,
-        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
     ) -> CrystalGraph:
         """Convert a structure, return a CrystalGraph.
 
@@ -105,9 +109,6 @@ class CrystalGraphConverter(nn.Module):
                 Default = None
             mp_id (str): Materials Project id of this structure
                 Default = None
-            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms.
-                Default = 'error'
 
         Return:
             CrystalGraph that is ready to use by CHGNet
@@ -154,15 +155,16 @@ class CrystalGraphConverter(nn.Module):
         # Check if graph has isolated atom
         has_isolated_atom = not set(range(n_atoms)).issubset(center_index)
         if has_isolated_atom:
-            r_cutoff = self.atom_graph_cutoff
-            msg = f"{graph_id=} has isolated atom with {r_cutoff=}, should be skipped"
-            if on_isolated_atoms == "ignore":
-                return None
-            if on_isolated_atoms == "warn":
+            msg = (
+                f"Structure {graph_id=} has isolated atom with "
+                f"atom_graph_cutoff={self.atom_graph_cutoff}. "
+                f"CHGNet calculation will likely go wrong"
+            )
+            if self.on_isolated_atoms == "error":
+                # Discard this structure if it has isolated atom in the graph
+                raise ValueError(msg)
+            elif self.on_isolated_atoms == "warn":  # noqa: RET506
                 print(msg, file=sys.stderr)
-                return None
-            # Discard this structure if it has isolated atom in the graph
-            raise ValueError(msg)
 
         return CrystalGraph(
             atomic_number=atomic_number,
@@ -260,6 +262,22 @@ class CrystalGraphConverter(nn.Module):
         gc.set_threshold(gc_saved[0])
 
         return graph
+
+    def set_isolated_atom_response(
+        self,
+        on_isolated_atoms: Literal["ignore", "warn", "error"],
+    ) -> None:
+        """Set the graph converter's response to isolated atom graph
+        Args:
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'.
+
+        Returns:
+            None
+        """
+        self.on_isolated_atoms = on_isolated_atoms
+        return
 
     def as_dict(self) -> dict[str, float]:
         """Save the args of the graph converter."""

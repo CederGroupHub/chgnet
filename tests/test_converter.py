@@ -4,6 +4,7 @@ import pytest
 from pymatgen.core import Lattice, Structure
 from pytest import CaptureFixture
 
+from chgnet.graph import CrystalGraph
 from chgnet.graph.converter import CrystalGraphConverter
 
 lattice = Lattice.cubic(4)
@@ -58,23 +59,25 @@ def test_crystal_graph_converter_warns():
 def test_crystal_graph_converter_forward(
     on_isolated_atoms, capsys: CaptureFixture[str]
 ):
-    converter = CrystalGraphConverter(atom_graph_cutoff=5, bond_graph_cutoff=3)
+    converter = CrystalGraphConverter(
+        atom_graph_cutoff=5, bond_graph_cutoff=3, on_isolated_atoms=on_isolated_atoms
+    )
     strained = NaCl.copy()
     strained.apply_strain(5)
     graph_id = "strained"
-    err_msg = f"{graph_id=} has isolated atom with r_cutoff=5, should be skipped"
+    err_msg = (
+        f"Structure {graph_id=} has isolated atom with "
+        f"atom_graph_cutoff=5. "
+        f"CHGNet calculation will likely go wrong"
+    )
 
     if on_isolated_atoms == "error":
         with pytest.raises(ValueError) as exc_info:
-            converter.forward(
-                strained, graph_id=graph_id, on_isolated_atoms=on_isolated_atoms
-            )
+            converter.forward(strained, graph_id=graph_id)
         assert err_msg in str(exc_info.value)
     else:
-        crystal_graph = converter.forward(
-            strained, graph_id=graph_id, on_isolated_atoms=on_isolated_atoms
-        )
-        assert crystal_graph is None
+        crystal_graph = converter.forward(strained, graph_id=graph_id)
+        assert isinstance(crystal_graph, CrystalGraph)
         stdout, stderr = capsys.readouterr()
         assert stdout == ""
         if on_isolated_atoms == "warn":

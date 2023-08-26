@@ -114,7 +114,9 @@ class AtomConv(nn.Module):
         messages = messages * bond_weight
 
         # Aggregate messages
-        new_atom_feas = aggregate(messages, atom_graph[:, 0], average=False)
+        new_atom_feas = aggregate(
+            messages, atom_graph[:, 0], average=False, num_owner=len(atom_feas)
+        )
 
         # New atom features
         if self.use_mlp_out:

@@ -4,7 +4,7 @@ import contextlib
 import io
 import pickle
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import torch
@@ -56,6 +56,7 @@ class CHGNetCalculator(Calculator):
         model: CHGNet | None = None,
         use_device: str | None = None,
         stress_weight: float | None = 1 / 160.21766208,
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
         **kwargs,
     ) -> None:
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
@@ -70,6 +71,9 @@ class CHGNetCalculator(Calculator):
                 Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'
             **kwargs: Passed to the Calculator parent class.
         """
         super().__init__(**kwargs)
@@ -87,6 +91,7 @@ class CHGNetCalculator(Calculator):
 
         # Move the model to the specified device
         self.model = (model or CHGNet.load()).to(self.device)
+        self.model.graph_converter.set_isolated_atom_response(on_isolated_atoms)
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
 
@@ -141,6 +146,7 @@ class StructOptimizer:
         optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
     ) -> None:
         """Provide a trained CHGNet model and an optimizer to relax crystal structures.
 
@@ -156,6 +162,9 @@ class StructOptimizer:
                 Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'
         """
         if isinstance(optimizer_class, str):
             if optimizer_class in OPTIMIZERS:
@@ -171,7 +180,10 @@ class StructOptimizer:
             self.calculator = model
         else:
             self.calculator = CHGNetCalculator(
-                model=model, stress_weight=stress_weight, use_device=use_device
+                model=model,
+                stress_weight=stress_weight,
+                use_device=use_device,
+                on_isolated_atoms=on_isolated_atoms,
             )
 
     def relax(
@@ -349,11 +361,13 @@ class MolecularDynamics:
         taut: float | None = None,
         taup: float | None = None,
         compressibility_au: float | None = None,
+        bulk_modulus: float | None = None,
         trajectory: str | Trajectory | None = None,
         logfile: str | None = None,
         loginterval: int = 1,
         crystal_feas_logfile: str | None = None,
         append_trajectory: bool = False,
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
         use_device: str | None = None,
     ) -> None:
         """Initialize the MD class.
@@ -378,8 +392,14 @@ class MolecularDynamics:
             taup (float): time constant for pressure coupling in fs
                 Default = 1000 * timestep
             compressibility_au (float): compressibility of the material in A^3/eV
-                for npt ensemble, if not provided, it will be calculated by CHGNet
+                Used for npt ensemble in ASE molecular dynamics.
+                if not provided, it will be converted from bulk modulus.
+                If bulk modulus is also not provided, it will be calculated by CHGNet
                 through Birch Murnaghan equation of state
+                Default = None
+            bulk_modulus (float): bulk modulus of the material in GPa.
+                Will only be used if ensemble is npt and compressibility_au is not
+                provided.
                 Default = None
             trajectory (str or Trajectory): Attach trajectory object
                 Default = None
@@ -392,6 +412,9 @@ class MolecularDynamics:
             append_trajectory (bool): Whether to append to prev trajectory.
                 If false, previous trajectory gets overwritten
                 Default = False
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'
             use_device (str): the device for the MD run
                 Default = None
         """
@@ -402,7 +425,11 @@ class MolecularDynamics:
         if isinstance(model, CHGNetCalculator):
             self.atoms.calc = model
         else:
-            self.atoms.calc = CHGNetCalculator(model=model, use_device=use_device)
+            self.atoms.calc = CHGNetCalculator(
+                model=model,
+                use_device=use_device,
+                on_isolated_atoms=on_isolated_atoms,
+            )
 
         if taut is None:
             taut = 100 * timestep * units.fs
@@ -441,13 +468,16 @@ class MolecularDynamics:
             )
         else:
             if compressibility_au is None:
-                eos = EquationOfState(model=self.atoms.calc)
-                eos.fit(atoms=atoms, steps=500, fmax=0.1)
-                compressibility_au = eos.get_compressibility(unit="A^3/eV")
-                print(
-                    f"Done compressibility calculation: "
-                    f"b = {round(compressibility_au, 3)} A^3/eV"
-                )
+                if bulk_modulus is None:
+                    eos = EquationOfState(model=self.atoms.calc)
+                    eos.fit(atoms=atoms, steps=500, fmax=0.1)
+                    compressibility_au = eos.get_compressibility(unit="A^3/eV")
+                    print(
+                        f"Done compressibility calculation: "
+                        f"b = {round(compressibility_au, 3)} A^3/eV"
+                    )
+                else:
+                    compressibility_au = 160.2176 / bulk_modulus
 
             if ensemble.lower() == "npt":
                 """
@@ -538,6 +568,7 @@ class EquationOfState:
         optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
     ) -> None:
         """Initialize a structure optimizer object for calculation of bulk modulus.
 
@@ -553,12 +584,16 @@ class EquationOfState:
                 Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
+            on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
+                with isolated atoms.
+                Default = 'error'
         """
         self.relaxer = StructOptimizer(
             model=model,
             optimizer_class=optimizer_class,
             use_device=use_device,
             stress_weight=stress_weight,
+            on_isolated_atoms=on_isolated_atoms,
         )
         self.fitted = False
 
