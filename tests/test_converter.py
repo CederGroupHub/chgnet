@@ -43,13 +43,14 @@ def test_crystal_graph_converter_algorithm(algorithm):
     assert converter.algorithm == algorithm
 
 
-@pytest.mark.usefixtures("_set_make_graph")
-def test_crystal_graph_converter_warns():
-    with pytest.warns(UserWarning):
+def test_crystal_graph_converter_warns(_set_make_graph):
+    with pytest.warns(UserWarning, match="Unknown algorithm='foobar', using `legacy`"):
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="foobar"
         )
-    with pytest.warns(UserWarning):
+    with pytest.warns(
+        UserWarning, match="`fast` algorithm is not available, using `legacy`"
+    ):
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="fast"
         )
@@ -59,15 +60,18 @@ def test_crystal_graph_converter_warns():
 def test_crystal_graph_converter_forward(
     on_isolated_atoms, capsys: CaptureFixture[str]
 ):
+    atom_graph_cutoff = 5
     converter = CrystalGraphConverter(
-        atom_graph_cutoff=5, bond_graph_cutoff=3, on_isolated_atoms=on_isolated_atoms
+        atom_graph_cutoff=atom_graph_cutoff,
+        bond_graph_cutoff=3,
+        on_isolated_atoms=on_isolated_atoms,
     )
     strained = NaCl.copy()
     strained.apply_strain(5)
     graph_id = "strained"
     err_msg = (
-        f"Structure {graph_id=} has isolated atom with "
-        f"atom_graph_cutoff=5. "
+        f"Structure {graph_id=} has 2 isolated atom(s) with "
+        f"{atom_graph_cutoff=}. "
         f"CHGNet calculation will likely go wrong"
     )
 

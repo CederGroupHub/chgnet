@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from chgnet.graph.graph import Graph, Node
+from chgnet.graph.graph import DirectedEdge, Graph, Node, UndirectedEdge
 
 
 @pytest.fixture()
@@ -94,3 +94,20 @@ def test_line_graph(bigraph: Graph) -> None:
     assert undirected2directed[0] == 0
     assert undirected2directed[1] == 1
     assert undirected2directed[2] == 3
+
+
+def test_directed_edge() -> None:
+    info = {"image": np.array([0, 0, 0]), "distance": 1.0}
+    edge = DirectedEdge([0, 1], index=0, info=info)
+    undirected = edge.make_undirected(index=0, info=info)
+    assert edge == edge
+    assert edge == undirected
+    assert edge.nodes == [0, 1]
+    assert edge.index == 0
+    assert repr(edge) == f"DirectedEdge(nodes=[0, 1], index=0, {info=})"
+
+
+def test_undirected_edge() -> None:
+    info = {"image": np.array([0, 0, 0]), "distance": 1.0}
+    edge = UndirectedEdge([0, 1], index=0, info=info)
+    assert repr(edge) == f"UndirectedEdge(nodes=[0, 1], index=0, {info=})"

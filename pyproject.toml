@@ -94,6 +94,7 @@ ignore = [
     "PT006",   # pytest-parametrize-names-wrong-type
     "PT011",   # pytest-raises-too-broad
     "PT013",   # pytest-incorrect-pytest-import
+    "PT019",   # pytest-fixture-param-without-value
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]

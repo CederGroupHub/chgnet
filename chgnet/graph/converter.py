@@ -153,11 +153,12 @@ class CrystalGraphConverter(nn.Module):
         undirected2directed = torch.tensor(undirected2directed, dtype=torch.int64)
 
         # Check if graph has isolated atom
-        has_isolated_atom = not set(range(n_atoms)).issubset(center_index)
-        if has_isolated_atom:
+        n_isolated_atoms = len({*range(n_atoms)} - {*center_index})
+        if n_isolated_atoms:
+            atom_graph_cutoff = self.atom_graph_cutoff
             msg = (
-                f"Structure {graph_id=} has isolated atom with "
-                f"atom_graph_cutoff={self.atom_graph_cutoff}. "
+                f"Structure {graph_id=} has {n_isolated_atoms} isolated atom(s) with "
+                f"{atom_graph_cutoff=}. "
                 f"CHGNet calculation will likely go wrong"
             )
             if self.on_isolated_atoms == "error":
