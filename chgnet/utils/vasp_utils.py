@@ -45,9 +45,6 @@ def parse_vasp_dir(
         )
         outcar_filename = f"{file_root}/OUTCAR.gz"
 
-    if check_electronic_convergence and vasprun_orig.converged_electronic is False:
-        raise Exception("electronic step did not converge for last VASP ionic step")
-
     charge = []
     mag_x = []
     mag_y = []
