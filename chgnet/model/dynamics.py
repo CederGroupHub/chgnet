@@ -56,7 +56,7 @@ class CHGNetCalculator(Calculator):
         model: CHGNet | None = None,
         use_device: str | None = None,
         stress_weight: float | None = 1 / 160.21766208,
-        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
         **kwargs,
     ) -> None:
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
@@ -73,7 +73,7 @@ class CHGNetCalculator(Calculator):
                 Default = 1/160.21
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
                 with isolated atoms.
-                Default = 'error'
+                Default = 'warn'
             **kwargs: Passed to the Calculator parent class.
         """
         super().__init__(**kwargs)
@@ -146,7 +146,7 @@ class StructOptimizer:
         optimizer_class: Optimizer | str | None = "FIRE",
         use_device: str | None = None,
         stress_weight: float = 1 / 160.21766208,
-        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
     ) -> None:
         """Provide a trained CHGNet model and an optimizer to relax crystal structures.
 
@@ -164,7 +164,7 @@ class StructOptimizer:
                 Default = 1/160.21
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
                 with isolated atoms.
-                Default = 'error'
+                Default = 'warn'
         """
         if isinstance(optimizer_class, str):
             if optimizer_class in OPTIMIZERS:
@@ -367,7 +367,7 @@ class MolecularDynamics:
         loginterval: int = 1,
         crystal_feas_logfile: str | None = None,
         append_trajectory: bool = False,
-        on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
+        on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
         use_device: str | None = None,
     ) -> None:
         """Initialize the MD class.
@@ -414,7 +414,7 @@ class MolecularDynamics:
                 Default = False
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
                 with isolated atoms.
-                Default = 'error'
+                Default = 'warn'
             use_device (str): the device for the MD run
                 Default = None
         """

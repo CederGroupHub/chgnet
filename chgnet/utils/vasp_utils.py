@@ -10,24 +10,43 @@ if TYPE_CHECKING:
     from pymatgen.core import Structure
 
 
-def parse_vasp_dir(file_root: str) -> dict[str, list]:
+def parse_vasp_dir(
+    file_root: str, check_electronic_convergence: bool = True
+) -> dict[str, list]:
     """Parse VASP output files into structures and labels
     By default, the magnetization is read from mag_x from VASP,
     plz modify the code if magnetization is for (y) and (z).
 
     Args:
         file_root (str): the directory of the VASP calculation outputs
+        check_electronic_convergence (bool): if set to True, this function will raise
+            Exception to VASP calculation that did not achieve
     """
     try:
         oszicar = Oszicar(f"{file_root}/OSZICAR")
-        vasprun_orig = Vasprun(f"{file_root}/vasprun.xml", exception_on_bad_xml=False)
+        vasprun_orig = Vasprun(
+            f"{file_root}/vasprun.xml",
+            parse_dos=False,
+            parse_eigen=False,
+            parse_projected_eigen=False,
+            parse_potcar_file=False,
+            exception_on_bad_xml=False,
+        )
         outcar_filename = f"{file_root}/OUTCAR"
     except Exception:
         oszicar = Oszicar(f"{file_root}/OSZICAR.gz")
         vasprun_orig = Vasprun(
-            f"{file_root}/vasprun.xml.gz", exception_on_bad_xml=False
+            f"{file_root}/vasprun.xml.gz",
+            parse_dos=False,
+            parse_eigen=False,
+            parse_projected_eigen=False,
+            parse_potcar_file=False,
+            exception_on_bad_xml=False,
         )
         outcar_filename = f"{file_root}/OUTCAR.gz"
+
+    if check_electronic_convergence and vasprun_orig.converged_electronic is False:
+        raise Exception("electronic step did not converge for last VASP ionic step")
 
     charge = []
     mag_x = []
@@ -106,21 +125,30 @@ def parse_vasp_dir(file_root: str) -> dict[str, list]:
         mag_x_all.pop(-1)
 
     n_atoms = len(vasprun_orig.ionic_steps[0]["structure"])
+
     dataset = {
-        "structure": [step["structure"] for step in vasprun_orig.ionic_steps],
-        "uncorrected_total_energy": [
-            step["e_0_energy"] for step in vasprun_orig.ionic_steps
-        ],
-        "energy_per_atom": [
-            step["e_0_energy"] / n_atoms for step in vasprun_orig.ionic_steps
-        ],
-        "force": [step["forces"] for step in vasprun_orig.ionic_steps],
-        "magmom": [[step["tot"] for step in j] for j in mag_x_all],
+        "structure": [],
+        "uncorrected_total_energy": [],
+        "energy_per_atom": [],
+        "force": [],
+        "magmom": [],
+        "stress": None if "stress" not in vasprun_orig.ionic_steps[0] else [],
     }
-    if "stress" in vasprun_orig.ionic_steps[0]:
-        dataset["stress"] = [step["stress"] for step in vasprun_orig.ionic_steps]
-    else:
-        dataset["stress"] = None
+
+    for ionic_step, mag_step in zip(vasprun_orig.ionic_steps, mag_x_all):
+        if (
+            check_electronic_convergence
+            and len(ionic_step["electronic_steps"]) > vasprun_orig.parameters["NELM"]
+        ):
+            continue
+
+        dataset["structure"].append(ionic_step["structure"])
+        dataset["uncorrected_total_energy"].append(ionic_step["e_0_energy"])
+        dataset["energy_per_atom"].append(ionic_step["e_0_energy"] / n_atoms)
+        dataset["force"].append(ionic_step["forces"])
+        dataset["magmom"].append([site["tot"] for site in mag_step])
+        if "stress" in ionic_step:
+            dataset["stress"].append(ionic_step["stress"])
 
     return dataset
 
