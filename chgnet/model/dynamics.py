@@ -11,6 +11,7 @@ import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.constraints import ExpCellFilter
+from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.verlet import VelocityVerlet
@@ -355,12 +356,12 @@ class MolecularDynamics:
         atoms: Atoms | Structure,
         model: CHGNet | CHGNetCalculator | None = None,
         ensemble: str = "nvt",
+        thermostat: str = "Berendsen_inhomogeneous",
         temperature: int = 300,
         timestep: float = 2.0,
-        pressure: float = 1.01325 * units.bar,
+        pressure: float = 6.324e-7,
         taut: float | None = None,
         taup: float | None = None,
-        compressibility_au: float | None = None,
         bulk_modulus: float | None = None,
         trajectory: str | Trajectory | None = None,
         logfile: str | None = None,
@@ -379,27 +380,40 @@ class MolecularDynamics:
                 Default = None
             ensemble (str): choose from 'nve', 'nvt', 'npt', 'npt_berendsen'
                 Default = "nvt"
+            thermostat (str): Thermostat to use
+                choose from "Nose-Hoover", "Berendsen", "Berendsen_inhomogeneous"
+                Default = "Nose-Hoover"
             temperature (float): temperature for MD simulation, in K
                 Default = 300
             timestep (float): time step in fs
                 Default = 2
             pressure (float): pressure in eV/A^3
-                Default = 1.01325 * units.bar
-            taut (float): time constant for Berendsen temperature coupling in fs.
+                Can be 3x3 or 6 np.array if thermostat is "Nose-Hoover"
+                Default = 6.324e-7 eV/A^3 = 1 atm
+            taut (float): time constant for temperature coupling in fs.
                 The temperature will be raised to target temperature in approximate
                 10 * taut time.
                 Default = 100 * timestep
             taup (float): time constant for pressure coupling in fs
                 Default = 1000 * timestep
-            compressibility_au (float): compressibility of the material in A^3/eV
-                Used for npt ensemble in ASE molecular dynamics.
-                if not provided, it will be converted from bulk modulus.
-                If bulk modulus is also not provided, it will be calculated by CHGNet
-                through Birch Murnaghan equation of state
-                Default = None
             bulk_modulus (float): bulk modulus of the material in GPa.
-                Will only be used if ensemble is npt and compressibility_au is not
-                provided.
+                Used in NPT ensemble for the barostat pressure coupling.
+                The DFT bulk modulus can be found for most materials at
+                https://next-gen.materialsproject.org/
+
+                In NPT ensemble, the effective damping time for pressure is multiplied
+                by compressibility. In LAMMPS, Bulk modulus is defaulted to 10
+                see: https://docs.lammps.org/fix_press_berendsen.html
+                and: https://gitlab.com/ase/ase/-/blob/master/ase/md/nptberendsen.py
+
+                If bulk modulus is not provided here, it will be calculated by CHGNet
+                through Birch Murnaghan equation of state (EOS).
+                Note the EOS fitting can fail because of non-parabolic potential
+                energy surface, which is common with soft system like liquid and gas.
+                In such case, user should provide an input bulk modulus for better
+                barostat coupling, otherwise a guessed bulk modulus = 2 GPa will be used
+                (water's bulk modulus)
+
                 Default = None
             trajectory (str or Trajectory): Attach trajectory object
                 Default = None
@@ -418,6 +432,8 @@ class MolecularDynamics:
             use_device (str): the device for the MD run
                 Default = None
         """
+        self.ensemble = ensemble
+        self.thermostat = thermostat
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor.get_atoms(atoms)
 
@@ -452,45 +468,115 @@ class MolecularDynamics:
                 loginterval=loginterval,
                 append_trajectory=append_trajectory,
             )
+            print("NVE-MD created")
+
         elif ensemble.lower() == "nvt":
             """
-            Berendsen (constant N, V, T) molecular dynamics.
+            Constant volume/temperature molecular dynamics.
             """
-            self.dyn = NVTBerendsen(
-                atoms=self.atoms,
-                timestep=timestep * units.fs,
-                temperature_K=temperature,
-                taut=taut * units.fs,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-                append_trajectory=append_trajectory,
-            )
-        else:
-            if compressibility_au is None:
-                if bulk_modulus is None:
+            if thermostat.lower() == "nose-hoover":
+                """
+                Nose-hoover (constant N, V, T) molecular dynamics.
+                ASE implementation currently only supports upper triangular lattice
+                """
+                self.dyn = NPT(
+                    atoms=self.atoms,
+                    timestep=timestep * units.fs,
+                    temperature_K=temperature,
+                    externalstress=None,
+                    pfactor=None,
+                    trajectory=trajectory,
+                    logfile=logfile,
+                    loginterval=loginterval,
+                    append_trajectory=append_trajectory,
+                )
+                print("NVT-Nose-Hoover MD created")
+            elif thermostat.lower().startswith("berendsen"):
+                """
+                Berendsen (constant N, V, T) molecular dynamics.
+                """
+                self.dyn = NVTBerendsen(
+                    atoms=self.atoms,
+                    timestep=timestep * units.fs,
+                    temperature_K=temperature,
+                    taut=taut * units.fs,
+                    trajectory=trajectory,
+                    logfile=logfile,
+                    loginterval=loginterval,
+                    append_trajectory=append_trajectory,
+                )
+                print("NVT-Berendsen-MD created")
+            else:
+                raise ValueError(
+                    "Thermostat not supported, choose in 'Nose-Hoover', 'Berendsen', "
+                    "'Berendsen_inhomogeneous'"
+                )
+
+        elif ensemble.lower() == "npt":
+            """
+            Constant pressure/temperature molecular dynamics.
+            """
+            # Bulk modulus is needed for pressure damping time
+            if bulk_modulus is not None:
+                bulk_modulus_au = bulk_modulus / 160.2176  # GPa to eV/A^3
+                compressibility_au = 1 / bulk_modulus_au
+            else:
+                try:
+                    # Fit bulk modulus by equation of state
                     eos = EquationOfState(model=self.atoms.calc)
-                    eos.fit(atoms=atoms, steps=500, fmax=0.1)
+                    eos.fit(atoms=atoms, steps=500, fmax=0.1, verbose=False)
+                    bulk_modulus = eos.get_bulk_modulus(unit="GPa")
+                    bulk_modulus_au = eos.get_bulk_modulus(unit="eV/A^3")
                     compressibility_au = eos.get_compressibility(unit="A^3/eV")
                     print(
-                        f"Done compressibility calculation: "
-                        f"b = {round(compressibility_au, 3)} A^3/eV"
+                        f"Done bulk modulus calculation: "
+                        f"k = {round(bulk_modulus, 3)}GPa, {round(bulk_modulus_au, 3)}eV/A^3"
                     )
-                else:
-                    compressibility_au = 160.2176 / bulk_modulus
+                except Exception:
+                    bulk_modulus_au = 2 / 160.2176
+                    compressibility_au = 1 / bulk_modulus_au
+                    print(
+                        "Warning!!! Equation of State fitting failed, setting bulk "
+                        "modulus to 2 GPa. NPT simulation can proceed with incorrect "
+                        "pressure relaxation time."
+                        "User input for bulk modulus is recommended."
+                    )
+            self.bulk_modulus = bulk_modulus
 
-            if ensemble.lower() == "npt":
+            if thermostat.lower() == "nose-hoover":
                 """
-                NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
+                Combined Nose-Hoover and Parrinello-Rahman dynamics, creating an
+                NPT (or N,stress,T) ensemble.
+                see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
+                ASE implementation currently only supports upper triangular lattice
+                """
+                self.dyn = NPT(
+                    atoms=self.atoms,
+                    timestep=timestep * units.fs,
+                    temperature_K=temperature,
+                    externalstress=pressure * (units.eV / units.Angstrom**3),
+                    ttime=taut * units.fs,
+                    pfactor=bulk_modulus * units.GPa * taup * taup,
+                    trajectory=trajectory,
+                    logfile=logfile,
+                    loginterval=loginterval,
+                    append_trajectory=append_trajectory,
+                )
+                print("NPT-Nose-Hoover MD created")
+
+            elif thermostat.lower() == "berendsen_inhomogeneous":
+                """
+                Inhomogeneous_NPTBerendsen thermo/barostat
                 This is a more flexible scheme that fixes three angles of the unit
                 cell but allows three lattice parameter to change independently.
+                see: https://gitlab.com/ase/ase/-/blob/master/ase/md/nptberendsen.py
                 """
 
                 self.dyn = Inhomogeneous_NPTBerendsen(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
-                    pressure_au=pressure,
+                    pressure_au=pressure * (units.eV / units.Angstrom**3),
                     taut=taut * units.fs,
                     taup=taup * units.fs,
                     compressibility_au=compressibility_au,
@@ -498,20 +584,22 @@ class MolecularDynamics:
                     logfile=logfile,
                     loginterval=loginterval,
                 )
+                print("NPT-Berendsen-inhomogeneous-MD created")
 
-            elif ensemble.lower() == "npt_berendsen":
+            elif thermostat.lower() == "npt_berendsen":
                 """
                 This is a similar scheme to the Inhomogeneous_NPTBerendsen.
                 This is a less flexible scheme that fixes the shape of the
                 cell - three angles are fixed and the ratios between the three
                 lattice constants.
+                see: https://gitlab.com/ase/ase/-/blob/master/ase/md/nptberendsen.py
                 """
 
                 self.dyn = NPTBerendsen(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
-                    pressure_au=pressure,
+                    pressure_au=pressure * (units.eV / units.Angstrom**3),
                     taut=taut * units.fs,
                     taup=taup * units.fs,
                     compressibility_au=compressibility_au,
@@ -520,9 +608,12 @@ class MolecularDynamics:
                     loginterval=loginterval,
                     append_trajectory=append_trajectory,
                 )
-
+                print("NPT-Berendsen-MD created")
             else:
-                raise ValueError("Ensemble not supported")
+                raise ValueError(
+                    "Thermostat not supported, choose in 'Nose-Hoover', 'Berendsen', "
+                    "'Berendsen_inhomogeneous'"
+                )
 
         self.trajectory = trajectory
         self.logfile = logfile
@@ -603,6 +694,7 @@ class EquationOfState:
         n_points: int = 11,
         fmax: float | None = 0.1,
         steps: int | None = 500,
+        verbose: bool | None = False,
         **kwargs,
     ):
         """Relax the Structure/Atoms and fit the Birch-Murnaghan equation of state.
@@ -614,6 +706,8 @@ class EquationOfState:
                 Default = 0.1
             steps (int | None): The maximum number of steps for relaxation.
                 Default = 500
+            verbose (bool): Whether to print the output of the ASE optimizer.
+                Default = False
             **kwargs: Additional parameters for the optimizer.
 
         Returns:
@@ -621,16 +715,26 @@ class EquationOfState:
         """
         if isinstance(atoms, Atoms):
             atoms = AseAtomsAdaptor.get_structure(atoms)
+        primitive_cell = atoms.get_primitive_structure()
+        local_minima = self.relaxer.relax(
+            primitive_cell,
+            relax_cell=True,
+            fmax=fmax,
+            steps=steps,
+            verbose=verbose,
+            **kwargs,
+        )
+
         volumes, energies = [], []
         for idx in np.linspace(-0.1, 0.1, n_points):
-            structure_strained = atoms.copy()
+            structure_strained = local_minima["final_structure"].copy()
             structure_strained.apply_strain([idx, idx, idx])
             result = self.relaxer.relax(
                 structure_strained,
                 relax_cell=False,
                 fmax=fmax,
                 steps=steps,
-                verbose=False,
+                verbose=verbose,
                 **kwargs,
             )
             volumes.append(result["final_structure"].volume)

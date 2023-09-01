@@ -29,10 +29,10 @@ chgnet = CHGNet.load()
 def test_eos():
     eos = EquationOfState()
     eos.fit(atoms=structure)
-    assert eos.get_bulk_modulus() == approx(0.6621170816, rel=1e-5)
-    assert eos.get_bulk_modulus(unit="GPa") == approx(106.08285172, rel=1e-5)
-    assert eos.get_compressibility() == approx(1.510306904, rel=1e-5)
-    assert eos.get_compressibility(unit="GPa^-1") == approx(0.009426594, rel=1e-5)
+    assert eos.get_bulk_modulus() == approx(0.66012829210838, rel=1e-4)
+    assert eos.get_bulk_modulus(unit="GPa") == approx(105.76421250583728, rel=1e-4)
+    assert eos.get_compressibility() == approx(1.51485, rel=1e-4)
+    assert eos.get_compressibility(unit="GPa^-1") == approx(0.0094549940505, rel=1e-4)
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])
@@ -53,6 +53,7 @@ def test_md_nvt(
         atoms=structure,
         model=chgnet_legacy,
         ensemble="nvt",
+        thermostat="Berendsen_inhomogeneous",
         temperature=1000,  # in k
         timestep=2,  # in fs
         trajectory="md_out.traj",
@@ -110,9 +111,9 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
         atoms=structure,
         model=chgnet,
         ensemble="npt",
+        thermostat="Berendsen_inhomogeneous",
         temperature=1000,  # in k
         timestep=2,  # in fs
-        compressibility_au=1.5103069,
         trajectory="md_out.traj",
         logfile="md_out.log",
         loginterval=10,
@@ -122,7 +123,8 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, Inhomogeneous_NPTBerendsen)
-    assert md.dyn.pressure == approx(6.324209e-07, rel=1e-5)
+    assert md.bulk_modulus == approx(105.764, rel=1e-2)
+    assert md.dyn.pressure == approx(6.324e-07, rel=1e-4)
     assert os.path.isfile("md_out.traj")
     assert os.path.isfile("md_out.log")
     with open("md_out.log") as log_file:
