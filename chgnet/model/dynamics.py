@@ -359,7 +359,7 @@ class MolecularDynamics:
         thermostat: str = "Berendsen_inhomogeneous",
         temperature: int = 300,
         timestep: float = 2.0,
-        pressure: float = 6.324e-7,
+        pressure: float = 1.01325e-4,
         taut: float | None = None,
         taup: float | None = None,
         bulk_modulus: float | None = None,
@@ -387,9 +387,9 @@ class MolecularDynamics:
                 Default = 300
             timestep (float): time step in fs
                 Default = 2
-            pressure (float): pressure in eV/A^3
+            pressure (float): pressure in GPa
                 Can be 3x3 or 6 np.array if thermostat is "Nose-Hoover"
-                Default = 6.324e-7 eV/A^3 = 1 atm
+                Default = 1.01325e-4 GPa = 1 atm
             taut (float): time constant for temperature coupling in fs.
                 The temperature will be raised to target temperature in approximate
                 10 * taut time.
@@ -554,7 +554,7 @@ class MolecularDynamics:
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
-                    externalstress=pressure * (units.eV / units.Angstrom**3),
+                    externalstress=pressure * units.GPa,
                     ttime=taut * units.fs,
                     pfactor=bulk_modulus * units.GPa * taup * taup,
                     trajectory=trajectory,
@@ -576,7 +576,7 @@ class MolecularDynamics:
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
-                    pressure_au=pressure * (units.eV / units.Angstrom**3),
+                    pressure_au=pressure * units.GPa,
                     taut=taut * units.fs,
                     taup=taup * units.fs,
                     compressibility_au=compressibility_au,
@@ -599,7 +599,7 @@ class MolecularDynamics:
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
-                    pressure_au=pressure * (units.eV / units.Angstrom**3),
+                    pressure_au=pressure * units.GPa,
                     taut=taut * units.fs,
                     taup=taup * units.fs,
                     compressibility_au=compressibility_au,
