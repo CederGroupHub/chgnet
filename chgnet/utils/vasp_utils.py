@@ -135,7 +135,7 @@ def parse_vasp_dir(
     for ionic_step, mag_step in zip(vasprun_orig.ionic_steps, mag_x_all):
         if (
             check_electronic_convergence
-            and len(ionic_step["electronic_steps"]) > vasprun_orig.parameters["NELM"]
+            and len(ionic_step["electronic_steps"]) >= vasprun_orig.parameters["NELM"]
         ):
             continue
 
