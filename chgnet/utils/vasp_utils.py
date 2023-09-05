@@ -147,6 +147,9 @@ def parse_vasp_dir(
         if "stress" in ionic_step:
             dataset["stress"].append(ionic_step["stress"])
 
+    if dataset["uncorrected_total_energy"] == []:
+        raise Exception(f"No data parsed from {file_root}!")
+
     return dataset
 
 
