@@ -448,9 +448,9 @@ class MolecularDynamics:
             )
 
         if taut is None:
-            taut = 100 * timestep * units.fs
+            taut = 100 * timestep
         if taup is None:
-            taup = 1000 * timestep * units.fs
+            taup = 1000 * timestep
 
         if ensemble.lower() == "nve":
             """
@@ -483,6 +483,7 @@ class MolecularDynamics:
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
+                    ttime=taut * units.fs,
                     externalstress=None,
                     pfactor=None,
                     trajectory=trajectory,
@@ -550,13 +551,14 @@ class MolecularDynamics:
                 see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
                 ASE implementation currently only supports upper triangular lattice
                 """
+                ptime=taup * units.fs
                 self.dyn = NPT(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
                     externalstress=pressure * units.GPa,
                     ttime=taut * units.fs,
-                    pfactor=bulk_modulus * units.GPa * taup * taup,
+                    pfactor=bulk_modulus * units.GPa * ptime * ptime,
                     trajectory=trajectory,
                     logfile=logfile,
                     loginterval=loginterval,
