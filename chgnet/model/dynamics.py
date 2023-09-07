@@ -551,7 +551,7 @@ class MolecularDynamics:
                 see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
                 ASE implementation currently only supports upper triangular lattice
                 """
-                ptime=taup * units.fs
+                ptime = taup * units.fs
                 self.dyn = NPT(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
