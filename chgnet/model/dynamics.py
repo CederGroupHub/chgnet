@@ -479,7 +479,7 @@ class MolecularDynamics:
                 Nose-hoover (constant N, V, T) molecular dynamics.
                 ASE implementation currently only supports upper triangular lattice
                 """
-                self.upper_triangular_cell()
+                self.upper_triangular_cell(verbose=False)
                 self.dyn = NPT(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
@@ -552,7 +552,7 @@ class MolecularDynamics:
                 see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
                 ASE implementation currently only supports upper triangular lattice
                 """
-                self.upper_triangular_cell()
+                self.upper_triangular_cell(verbose=False)
                 ptime = taup * units.fs
                 self.dyn = NPT(
                     atoms=self.atoms,
@@ -653,18 +653,23 @@ class MolecularDynamics:
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
 
-    def upper_triangular_cell(self):
-        """Transform to upper triangular cell."""
+    def upper_triangular_cell(self, verbose: bool | None = False):
+        """Transform to upper-triangular cell.
+        ASE Nose-Hoover implementation only supports upper-triangular cell
+        while ASE's canonical description is lower-triangular cell.
+
+        Args:
+            verbose (bool): Whether to print the status of cell transformation.
+                Default = False
+        Returns:
+        """
         if not NPT._isuppertriangular(self.atoms.get_cell()):
             a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
             ang = np.radians((alpha, beta, gamma))
             sina, sinb, sing = np.sin(ang)
             cosa, cosb, cosg = np.cos(ang)
             cosp = (cosg - cosa * cosb) / (sina * sinb)
-            if cosp > 1.0:
-                cosp = 1.0
-            elif cosp < -1.0:
-                cosp = -1.0
+            cosp = np.clip(cosp, -1.0, 1.0)
             sinp = np.sqrt(1.0 - cosp**2.0)
 
             new_basis = [
@@ -674,7 +679,8 @@ class MolecularDynamics:
             ]
 
             self.atoms.set_cell(new_basis, scale_atoms=True)
-            print("Transformed to upper triangular unit cell.", flush=True)
+            if verbose:
+                print("Transformed to upper triangular unit cell.", flush=True)
 
 
 class EquationOfState:
