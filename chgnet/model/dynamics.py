@@ -484,8 +484,9 @@ class MolecularDynamics:
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
+                    externalstress=pressure
+                    * units.GPa,  # ase NPT does not like externalstress=None
                     ttime=taut * units.fs,
-                    externalstress=None,
                     pfactor=None,
                     trajectory=trajectory,
                     logfile=logfile,
