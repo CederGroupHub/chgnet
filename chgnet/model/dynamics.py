@@ -479,12 +479,14 @@ class MolecularDynamics:
                 Nose-hoover (constant N, V, T) molecular dynamics.
                 ASE implementation currently only supports upper triangular lattice
                 """
+                self.upper_triangular_cell()
                 self.dyn = NPT(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
                     temperature_K=temperature,
+                    externalstress=pressure
+                    * units.GPa,  # ase NPT does not like externalstress=None
                     ttime=taut * units.fs,
-                    externalstress=None,
                     pfactor=None,
                     trajectory=trajectory,
                     logfile=logfile,
@@ -551,6 +553,7 @@ class MolecularDynamics:
                 see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
                 ASE implementation currently only supports upper triangular lattice
                 """
+                self.upper_triangular_cell()
                 ptime = taup * units.fs
                 self.dyn = NPT(
                     atoms=self.atoms,
@@ -628,7 +631,6 @@ class MolecularDynamics:
 
         Args:
             steps (int): number of MD steps
-        Returns:
         """
         if self.crystal_feas_logfile:
             obs = CrystalFeasObserver(self.atoms)
@@ -644,12 +646,39 @@ class MolecularDynamics:
 
         Args:
             atoms (Atoms): new atoms for running MD
-        Returns:
         """
         calculator = self.atoms.calc
         self.atoms = atoms
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
+
+    def upper_triangular_cell(self, verbose: bool | None = False):
+        """Transform to upper-triangular cell.
+        ASE Nose-Hoover implementation only supports upper-triangular cell
+        while ASE's canonical description is lower-triangular cell.
+
+        Args:
+            verbose (bool): Whether to notify user about upper-triangular cell transformation.
+                Default = False
+        """
+        if not NPT._isuppertriangular(self.atoms.get_cell()):
+            a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
+            angles = np.radians((alpha, beta, gamma))
+            sin_a, sin_b, _sin_g = np.sin(angles)
+            cos_a, cos_b, cos_g = np.cos(angles)
+            cos_p = (cos_g - cos_a * cos_b) / (sin_a * sin_b)
+            cos_p = np.clip(cos_p, -1, 1)
+            sin_p = (1 - cos_p**2) ** 0.5
+
+            new_basis = [
+                (a * sin_b * sin_p, a * sin_b * cos_p, a * cos_b),
+                (0, b * sin_a, b * cos_a),
+                (0, 0, c),
+            ]
+
+            self.atoms.set_cell(new_basis, scale_atoms=True)
+            if verbose:
+                print("Transformed to upper triangular unit cell.", flush=True)
 
 
 class EquationOfState:
