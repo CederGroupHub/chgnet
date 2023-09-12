@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import pytest
 from ase import Atoms
+from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.verlet import VelocityVerlet
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
+from pymatgen.io.ase import AseAtomsAdaptor
 from pytest import MonkeyPatch, approx
 
 from chgnet import ROOT
@@ -24,6 +27,7 @@ if TYPE_CHECKING:
 
 relaxer = StructOptimizer()
 structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
+structure_2 = Structure.from_file(f"{ROOT}/examples/mp-1175469-Li9Co7O16.cif")
 chgnet = CHGNet.load()
 
 
@@ -157,6 +161,115 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
         "0.1600         -58.4731     -58.5533       0.0802    77.6\n"
         "0.1800         -58.3897     -58.8064       0.4167   402.9\n"
         "0.2000         -58.3404     -58.9253       0.5849   565.6\n",
+        dtype=float,
+        sep=" ",
+    )
+    assert np.isclose(logs, ref, rtol=2.1e-3, atol=1e-8).all()
+
+
+def test_md_nvt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
+    monkeypatch.chdir(tmp_path)  # run MD in temporary directory
+
+    md = MolecularDynamics(
+        atoms=structure_2,
+        model=chgnet,
+        ensemble="nvt",
+        thermostat="nose-hoover",
+        temperature=1000,  # in k
+        timestep=2,  # in fs
+        trajectory="md_out.traj",
+        logfile="md_out.log",
+        loginterval=10,
+    )
+
+    new_atoms = AseAtomsAdaptor.get_structure(md.atoms)
+    assert StructureMatcher(
+        primitive_cell=False, scale=False, attempt_supercell=False, allow_subset=False
+    ).fit(structure_2, new_atoms)
+
+    md.run(100)
+
+    assert isinstance(md.atoms, Atoms)
+    assert isinstance(md.atoms.calc, CHGNetCalculator)
+    assert isinstance(md.dyn, NPT)
+    assert np.isclose(
+        md.dyn.externalstress,
+        [-6.324e-07, -6.324e-07, -6.324e-07, 0.0, 0.0, 0.0],
+        rtol=1e-4,
+        atol=1e-8,
+    ).all()
+    assert os.path.isfile("md_out.traj")
+    assert os.path.isfile("md_out.log")
+    with open("md_out.log") as log_file:
+        next(log_file)
+        logs = log_file.read()
+        logs = np.fromstring(logs, dtype=float, sep=" ")
+    ref = np.fromstring(
+        "0.0200        -199.2479    -199.3994       0.1515    36.6\n"
+        "0.0400        -199.2459    -199.3440       0.0981    23.7\n"
+        "0.0600        -199.2394    -199.2669       0.0275     6.6\n"
+        "0.0800        -199.2348    -199.4143       0.1795    43.4\n"
+        "0.1000        -199.2274    -199.2774       0.0500    12.1\n"
+        "0.1200        -199.2123    -199.3001       0.0878    21.2\n"
+        "0.1400        -199.2040    -199.4000       0.1961    47.4\n"
+        "0.1600        -199.1856    -199.2181       0.0325     7.9\n"
+        "0.1800        -199.1603    -199.3266       0.1662    40.2\n"
+        "0.2000        -199.1455    -199.3490       0.2035    49.2\n",
+        dtype=float,
+        sep=" ",
+    )
+    assert np.isclose(logs, ref, rtol=2.1e-3, atol=1e-8).all()
+
+
+def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
+    monkeypatch.chdir(tmp_path)  # run MD in temporary directory
+
+    md = MolecularDynamics(
+        atoms=structure_2,
+        model=chgnet,
+        ensemble="npt",
+        thermostat="nose-hoover",
+        temperature=1000,  # in k
+        timestep=2,  # in fs
+        trajectory="md_out.traj",
+        logfile="md_out.log",
+        loginterval=10,
+    )
+
+    new_atoms = AseAtomsAdaptor.get_structure(md.atoms)
+    assert StructureMatcher(
+        primitive_cell=False, scale=False, attempt_supercell=False, allow_subset=False
+    ).fit(structure_2, new_atoms)
+
+    md.run(100)
+
+    assert isinstance(md.atoms, Atoms)
+    assert isinstance(md.atoms.calc, CHGNetCalculator)
+    assert isinstance(md.dyn, NPT)
+    assert md.bulk_modulus == approx(102.977, rel=1e-2)
+    assert np.isclose(
+        md.dyn.externalstress,
+        [-6.324e-07, -6.324e-07, -6.324e-07, 0.0, 0.0, 0.0],
+        rtol=1e-4,
+        atol=1e-8,
+    ).all()
+    assert os.path.isfile("md_out.traj")
+    assert os.path.isfile("md_out.log")
+    with open("md_out.log") as log_file:
+        next(log_file)
+        logs = log_file.read()
+        logs = np.fromstring(logs, dtype=float, sep=" ")
+    ref = np.fromstring(
+        "0.0200        -199.2480    -199.3994       0.1514    36.6\n"
+        "0.0400        -199.2460    -199.3442       0.0982    23.7\n"
+        "0.0600        -199.2397    -199.2672       0.0275     6.7\n"
+        "0.0800        -199.2355    -199.4148       0.1793    43.3\n"
+        "0.1000        -199.2282    -199.2782       0.0500    12.1\n"
+        "0.1200        -199.2135    -199.3017       0.0882    21.3\n"
+        "0.1400        -199.2060    -199.4014       0.1954    47.2\n"
+        "0.1600        -199.1878    -199.2201       0.0323     7.8\n"
+        "0.1800        -199.1630    -199.3306       0.1675    40.5\n"
+        "0.2000        -199.1496    -199.3506       0.2010    48.6\n",
         dtype=float,
         sep=" ",
     )
