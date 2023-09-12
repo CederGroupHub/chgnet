@@ -49,6 +49,14 @@ class StructureData(Dataset):
         for idx, struct in enumerate(structures):
             if not isinstance(struct, Structure):
                 raise ValueError(f"{idx} is not a pymatgen Structure object: {struct}")
+        for label, name in zip(
+            [energies, forces, stresses, magmoms],
+            ["energies, forces,stresses, magmoms"],
+        ):
+            assert len(label) == len(structures), (
+                f"Error! inconsistent number of structures and labels: "
+                f" len(structures)={len(structures)}, len({name})={len(label)})"
+            )
         self.structures = structures
         self.energies = energies
         self.forces = forces
