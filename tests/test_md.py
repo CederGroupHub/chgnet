@@ -92,7 +92,6 @@ def test_md_nvt(
     )
     assert_allclose(logs, ref, rtol=2.1e-3, atol=1e-8)
 
-
 def test_md_nve(tmp_path: Path, monkeypatch: MonkeyPatch):
     monkeypatch.chdir(tmp_path)  # run MD in temporary directory
 

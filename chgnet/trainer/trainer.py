@@ -333,13 +333,13 @@ class Trainer:
 
             if idx == 0 or (idx + 1) % self.print_freq == 0:
                 message = (
-                    f"Epoch: [{current_epoch}][{idx + 1}/{len(train_loader)}]\t"
-                    f"Time ({batch_time.avg:.3f})  Data ({data_time.avg:.3f})  "
-                    f"Loss {losses.val:.4f} ({losses.avg:.4f})  MAEs:  "
+                    f"Epoch: [{current_epoch}][{idx + 1}/{len(train_loader)}] | "
+                    f"Time ({batch_time.avg:.3f})({data_time.avg:.3f}) | "
+                    f"Loss {losses.val:.4f}({losses.avg:.4f}) | MAE "
                 )
                 for key in self.targets:
                     message += (
-                        f"{key} {mae_errors[key].val:.3f} ({mae_errors[key].avg:.3f})  "
+                        f"{key} {mae_errors[key].val:.3f}({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
         return {key: round(err.avg, 6) for key, err in mae_errors.items()}

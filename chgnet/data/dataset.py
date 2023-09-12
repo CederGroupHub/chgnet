@@ -45,10 +45,21 @@ class StructureData(Dataset):
             magmoms (list[list[float]], optional): [data_size, n_atoms, 1]
             graph_converter (CrystalGraphConverter, optional): Converts the structures to
                 graphs. If None, it will be set to CHGNet default converter.
+
+        Raises:
+            RuntimeError: if the length of structures and labels (energies, forces,
+                stresses, magmoms) are not equal.
         """
         for idx, struct in enumerate(structures):
             if not isinstance(struct, Structure):
                 raise ValueError(f"{idx} is not a pymatgen Structure object: {struct}")
+        for name in "energies forces stresses magmoms".split():
+            labels = locals()[name]
+            if labels is not None and len(labels) != len(structures):
+                raise RuntimeError(
+                    f"Inconsistent number of structures and labels: "
+                    f"{len(structures)=}, len({name})={len(labels)}"
+                )
         self.structures = structures
         self.energies = energies
         self.forces = forces
