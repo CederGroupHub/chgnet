@@ -479,7 +479,7 @@ class MolecularDynamics:
                 Nose-hoover (constant N, V, T) molecular dynamics.
                 ASE implementation currently only supports upper triangular lattice
                 """
-                self.upper_triangular_cell(verbose=False)
+                self.upper_triangular_cell()
                 self.dyn = NPT(
                     atoms=self.atoms,
                     timestep=timestep * units.fs,
@@ -553,7 +553,7 @@ class MolecularDynamics:
                 see: https://gitlab.com/ase/ase/-/blob/master/ase/md/npt.py
                 ASE implementation currently only supports upper triangular lattice
                 """
-                self.upper_triangular_cell(verbose=False)
+                self.upper_triangular_cell()
                 ptime = taup * units.fs
                 self.dyn = NPT(
                     atoms=self.atoms,
@@ -631,7 +631,6 @@ class MolecularDynamics:
 
         Args:
             steps (int): number of MD steps
-        Returns:
         """
         if self.crystal_feas_logfile:
             obs = CrystalFeasObserver(self.atoms)
@@ -647,7 +646,6 @@ class MolecularDynamics:
 
         Args:
             atoms (Atoms): new atoms for running MD
-        Returns:
         """
         calculator = self.atoms.calc
         self.atoms = atoms
@@ -660,23 +658,22 @@ class MolecularDynamics:
         while ASE's canonical description is lower-triangular cell.
 
         Args:
-            verbose (bool): Whether to print the status of cell transformation.
+            verbose (bool): Whether to notify user about upper-triangular cell transformation.
                 Default = False
-        Returns:
         """
         if not NPT._isuppertriangular(self.atoms.get_cell()):
             a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
-            ang = np.radians((alpha, beta, gamma))
-            sina, sinb, sing = np.sin(ang)
-            cosa, cosb, cosg = np.cos(ang)
-            cosp = (cosg - cosa * cosb) / (sina * sinb)
-            cosp = np.clip(cosp, -1.0, 1.0)
-            sinp = np.sqrt(1.0 - cosp**2.0)
+            angles = np.radians((alpha, beta, gamma))
+            sin_a, sin_b, _sin_g = np.sin(angles)
+            cos_a, cos_b, cos_g = np.cos(angles)
+            cos_p = (cos_g - cos_a * cos_b) / (sin_a * sin_b)
+            cos_p = np.clip(cos_p, -1, 1)
+            sin_p = (1 - cos_p**2) ** 0.5
 
             new_basis = [
-                (a * sinb * sinp, a * sinb * cosp, a * cosb),
-                (0.0, b * sina, b * cosa),
-                (0.0, 0.0, c),
+                (a * sin_b * sin_p, a * sin_b * cos_p, a * cos_b),
+                (0, b * sin_a, b * cos_a),
+                (0, 0, c),
             ]
 
             self.atoms.set_cell(new_basis, scale_atoms=True)
