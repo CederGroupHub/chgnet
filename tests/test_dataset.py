@@ -63,6 +63,7 @@ def test_data_loader(structure_data: StructureData) -> None:
 
 
 def test_structure_data_inconsistent_length():
+    # https://github.com/CederGroupHub/chgnet/pull/69
     structures = [NaCl.copy() for _ in range(5)]
     energies = [np.random.random(1) for _ in range(5)]
     forces = [np.random.random([2, 3]) for _ in range(4)]
@@ -71,5 +72,5 @@ def test_structure_data_inconsistent_length():
 
     assert (
         str(exc.value)
-        == f"Inconsistent number of structures and labels: {len(structures)=}, len(forces)=4"
+        == f"Inconsistent number of structures and labels: {len(structures)=}, {len(forces)=}"
     )
