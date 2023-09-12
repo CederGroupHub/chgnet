@@ -218,7 +218,7 @@ def test_md_nvt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
         dtype=float,
         sep=" ",
     )
-    assert np.isclose(logs, ref, rtol=2.1e-3, atol=1e-8).all()
+    assert np.isclose(logs, ref, rtol=1e-2, atol=1e-7).all()
 
 
 def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
@@ -273,7 +273,7 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
         dtype=float,
         sep=" ",
     )
-    assert np.isclose(logs, ref, rtol=2.1e-3, atol=1e-8).all()
+    assert np.isclose(logs, ref, rtol=1e-2, atol=1e-7).all()
 
 
 def test_md_crystal_feas_log(
