@@ -53,10 +53,11 @@ class StructureData(Dataset):
             [energies, forces, stresses, magmoms],
             ["energies, forces,stresses, magmoms"],
         ):
-            assert len(label) == len(structures), (
-                f"Error! inconsistent number of structures and labels: "
-                f" len(structures)={len(structures)}, len({name})={len(label)})"
-            )
+            if len(label) != len(structures):
+                raise ValueError(
+                    f"Error! inconsistent number of structures and labels: "
+                    f" len(structures)={len(structures)}, len({name})={len(label)})"
+                )
         self.structures = structures
         self.energies = energies
         self.forces = forces
