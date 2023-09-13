@@ -15,7 +15,7 @@ A pretrained universal neural network potential for
 **charge**-informed atomistic modeling
 ![Logo](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
-a comprehensive dataset consisting of 1.5 Million structures from 146k compounds spanning the whole periodic table.
+a comprehensive dataset consisting of more than 1.5 Million structures from 146k compounds spanning the whole periodic table.
 
 CHGNet highlights its ability to study electron interactions and charge distribution
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
@@ -178,9 +178,17 @@ trainer.train(train_loader, val_loader, test_loader)
    see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/main/examples/make_graphs.py).
 6. The Pytorch `MPS` backend (Apple’s Metal Performance Shaders) is currently disabled until a stable version of `pytorch` for `MPS` is released.
 
+## MPtrj Dataset
+
+The Materials Project trajectory (MPtrj) dataset used to ptr-train CHGNet is available at
+[figshare](https://figshare.com/articles/dataset/Materials_Project_Trjectory_MPtrj_Dataset/23713842).
+
+The MPtrj dataset consists of all the GGA/GGA+U DFT calculations at September 2022 [Materials Project](https://next-gen.materialsproject.org/).
+By using the MPtrj dataset, users agree to abide the [Materials Project terms of use](https://next-gen.materialsproject.org/about/terms).
+
 ## Reference
 
-If you use CHGNet, please cite [this paper](https://doi.org/10.48550/arXiv.2302.14231):
+If you use CHGNet or MPtrj dataset, please cite [this paper](https://doi.org/10.48550/arXiv.2302.14231):
 
 ```bib
 @article{deng_2023_chgnet,
