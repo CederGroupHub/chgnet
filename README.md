@@ -12,7 +12,7 @@
 </h4>
 
 A pretrained universal neural network potential for
-**charge**-informed atomistic modeling
+**charge**-informed atomistic modeling ([see publication](https://www.nature.com/articles/s42256-023-00716-3))
 ![Logo](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of more than 1.5 Million structures from 146k compounds spanning the whole periodic table.
@@ -188,15 +188,16 @@ By using the MPtrj dataset, users agree to abide the [Materials Project terms of
 
 ## Reference
 
-If you use CHGNet or MPtrj dataset, please cite [this paper](https://doi.org/10.48550/arXiv.2302.14231):
+If you use CHGNet or MPtrj dataset, please cite [this paper](https://www.nature.com/articles/s42256-023-00716-3):
 
 ```bib
 @article{deng_2023_chgnet,
-  title={{CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling}},
-  author={Deng, Bowen and Zhong, Peichen and Jun, KyuJung and Riebesell, Janosh and Han, Kevin and Bartel, Christopher J and Ceder, Gerbrand},
-  journal={arXiv preprint arXiv:2302.14231},
-  year={2023},
-  url = {https://arxiv.org/abs/2302.14231}
+    title={CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling},
+    DOI={10.1038/s42256-023-00716-3},
+    journal={Nature Machine Intelligence},
+    author={Deng, Bowen and Zhong, Peichen and Jun, KyuJung and Riebesell, Janosh and Han, Kevin and Bartel, Christopher J. and Ceder, Gerbrand},
+    year={2023},
+    pages={1–11}
 }
 ```
 
