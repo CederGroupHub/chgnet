@@ -180,10 +180,10 @@ trainer.train(train_loader, val_loader, test_loader)
 
 ## MPtrj Dataset
 
-The Materials Project trajectory (MPtrj) dataset used to ptr-train CHGNet is available at
+The Materials Project trajectory (MPtrj) dataset used to pretrain CHGNet is available at
 [figshare](https://figshare.com/articles/dataset/Materials_Project_Trjectory_MPtrj_Dataset/23713842).
 
-The MPtrj dataset consists of all the GGA/GGA+U DFT calculations at September 2022 [Materials Project](https://next-gen.materialsproject.org/).
+The MPtrj dataset consists of all the GGA/GGA+U DFT calculations from the September 2022 [Materials Project](https://next-gen.materialsproject.org/).
 By using the MPtrj dataset, users agree to abide the [Materials Project terms of use](https://next-gen.materialsproject.org/about/terms).
 
 ## Reference
