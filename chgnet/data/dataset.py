@@ -340,7 +340,7 @@ class GraphData(Dataset):
                         force = self.labels[mp_id][graph_id][self.force_key]
                         targets["f"] = torch.tensor(force, dtype=datatype)
                     elif key == "s":
-                        stress = self.labels[mp_id][graph_id][self.magmom_key]
+                        stress = self.labels[mp_id][graph_id][self.stress_key]
                         # Convert VASP stress
                         targets["s"] = torch.tensor(stress, dtype=datatype) * (-0.1)
                     elif key == "m":
