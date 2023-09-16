@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: If you use this software, please cite it as below.
-title: "CHGNet: Pretrained universal neural network potential for charge-informed atomistic modeling"
+title: CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling
 authors:
   - family-names: Deng
     given-names: Bowen
@@ -19,7 +19,7 @@ authors:
 date-released: 2023-02-24
 repository-code: https://github.com/CederGroupHub/chgnet
 arxiv: https://arxiv.org/abs/2302.14231
-doi: 10.1016/j.commatsci.2012.10.028
+doi: 10.1038/s42256-023-00716-3
 url: https://chgnet.lbl.gov
 type: software
 keywords:
