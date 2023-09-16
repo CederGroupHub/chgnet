@@ -35,8 +35,6 @@ Pretrained CHGNet achieves SOTA performance on materials stability prediction fr
 
 ## Installation
 
-You can install `chgnet` through `pip`:
-
 ```sh
 pip install chgnet
 ```
