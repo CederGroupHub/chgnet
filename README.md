@@ -12,7 +12,7 @@
 </h4>
 
 A pretrained universal neural network potential for
-**charge**-informed atomistic modeling ([see publication](https://www.nature.com/articles/s42256-023-00716-3))
+**charge**-informed atomistic modeling ([see publication](https://nature.com/articles/s42256-023-00716-3))
 ![Logo](https://raw.github.com/CederGroupHub/chgnet/main/site/static/chgnet-logo.png)
 **C**rystal **H**amiltonian **G**raph neural **Net**work is pretrained on the GGA/GGA+U static and relaxation trajectories from Materials Project,
 a comprehensive dataset consisting of more than 1.5 Million structures from 146k compounds spanning the whole periodic table.
@@ -34,8 +34,6 @@ Pretrained CHGNet achieves SOTA performance on materials stability prediction fr
 [Open in Google Colab]: https://colab.research.google.com/assets/colab-badge.svg
 
 ## Installation
-
-You can install `chgnet` through `pip`:
 
 ```sh
 pip install chgnet
@@ -188,7 +186,7 @@ By using the MPtrj dataset, users agree to abide the [Materials Project terms of
 
 ## Reference
 
-If you use CHGNet or MPtrj dataset, please cite [this paper](https://www.nature.com/articles/s42256-023-00716-3):
+If you use CHGNet or MPtrj dataset, please cite [this paper](https://nature.com/articles/s42256-023-00716-3):
 
 ```bib
 @article{deng_2023_chgnet,

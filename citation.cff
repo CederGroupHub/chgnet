@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling
+authors:
+  - family-names: Deng
+    given-names: Bowen
+  - family-names: Zhong
+    given-names: Peichen
+  - family-names: Jun
+    given-names: KyuJung
+  - family-names: Riebesell
+    given-names: Janosh
+  - family-names: Han
+    given-names: Kevin
+  - family-names: Bartel
+    given-names: Christopher J.
+  - family-names: Ceder
+    given-names: Gerbrand
+date-released: 2023-02-24
+repository-code: https://github.com/CederGroupHub/chgnet
+arxiv: https://arxiv.org/abs/2302.14231
+doi: 10.1038/s42256-023-00716-3
+url: https://chgnet.lbl.gov
+type: software
+keywords:
+  [machine learning, neural network, potential, charge, molecular dynamics]
+version: 0.2.0 # replace with the version you use
+journal: Nature Machine Intelligence
