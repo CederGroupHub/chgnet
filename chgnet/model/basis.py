@@ -140,9 +140,9 @@ class GaussianExpansion(nn.Module):
         assert min < max
         assert max - min > step
         self.register_buffer("gaussian_centers", torch.arange(min, max + step, step))
-        if var is None:
-            var = step
-        self.var = var
+        self.var = var or step
+        if self.var <= 0:
+            raise ValueError(f"{var=} must be positive")
 
     def expand(self, features: Tensor) -> Tensor:
         """Apply Gaussian filter to a feature Tensor.
@@ -152,7 +152,7 @@ class GaussianExpansion(nn.Module):
 
         Returns:
             expanded features (Tensor): tensor of Gaussian distances [n, dim]
-            where the expanded dimension will be (dmax-dmin)/step + 1
+            where the expanded dimension will be (dmax - dmin) / step + 1
         """
         return torch.exp(
             -((features.reshape(-1, 1) - self.gaussian_centers) ** 2) / self.var**2

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import collections
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -11,6 +11,8 @@ from torch import Tensor, nn
 from chgnet.model.functions import GatedMLP, find_activation
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from chgnet.graph.crystalgraph import CrystalGraph
 
 

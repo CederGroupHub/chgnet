@@ -4,7 +4,7 @@ import functools
 import os
 import random
 import warnings
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -17,6 +17,8 @@ from chgnet import utils
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from chgnet import TrainTask
 
 warnings.filterwarnings("ignore")
@@ -81,7 +83,7 @@ class StructureData(Dataset):
         """Get the number of structures in this dataset."""
         return len(self.keys)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    @functools.cache  # Cache loaded structures
     def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict]:
         """Get one graph for a structure in this dataset.
 
@@ -188,7 +190,7 @@ class CIFData(Dataset):
         """Get the number of structures in this dataset."""
         return len(self.cif_ids)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    @functools.cache  # Cache loaded structures
     def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
@@ -535,7 +537,7 @@ class StructureJsonData(Dataset):
         """Get the number of structures with targets in the dataset."""
         return len(self.keys)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    @functools.cache  # Cache loaded structures
     def __getitem__(self, idx):
         """Get one item in the dataset.
 
