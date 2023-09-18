@@ -29,6 +29,13 @@ subprocess.run(
 for path in glob(f"{route}/*.md"):
     with open(path) as file:
         markdown = file.read()
+
+    # remove all files with less than 20 lines
+    # these correspond to mostly empty __init__.py files
+    if markdown.count("\n") < 20:
+        os.remove(path)
+        continue
+
     # remove <b> tags from generated markdown as they break inline code
     markdown = markdown.replace("<b>", "").replace("</b>", "")
     # improve style of badges linking to source code on GitHub
