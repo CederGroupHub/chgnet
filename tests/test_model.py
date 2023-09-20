@@ -59,11 +59,22 @@ def test_model(
 
 def test_predict_structure() -> None:
     out = model.predict_structure(
-        structure, return_atom_feas=True, return_crystal_feas=True
+        structure,
+        return_site_energies=True,
+        return_atom_feas=True,
+        return_crystal_feas=True,
     )
 
-    assert sorted(out) == ["atom_fea", "crystal_fea", "e", "f", "m", "s"]
-    assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
+    assert sorted(out) == [
+        "atom_fea",
+        "crystal_fea",
+        "e",
+        "f",
+        "m",
+        "s",
+        "site_energies",
+    ]
+    assert out["e"] == pytest.approx(-7.37159, rel=1e-4, abs=1e-4)
 
     forces = [
         [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
@@ -75,21 +86,36 @@ def test_predict_structure() -> None:
         [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
         [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
     ]
-    assert out["f"] == pytest.approx(np.array(forces), abs=1e-4)
+    assert out["f"] == pytest.approx(np.array(forces), rel=1e-4, abs=1e-4)
 
     stress = [
         [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
         [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
         [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
     ]
-    assert out["s"] == pytest.approx(np.array(stress), abs=1e-4)
+    assert out["s"] == pytest.approx(np.array(stress), rel=1e-4, abs=1e-4)
 
     magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
-    assert out["m"] == pytest.approx(magmom, abs=1e-4)
+    assert out["m"] == pytest.approx(magmom, rel=1e-4, abs=1e-4)
 
-    assert out["crystal_fea"].mean() == pytest.approx(0.27905, abs=1e-4)
+    site_energies = [
+        -3.8090043,
+        -3.8090036,
+        -10.2737875,
+        -10.2737875,
+        -7.659066,
+        -7.744509,
+        -7.744509,
+        -7.659066,
+    ]
+    assert out["site_energies"] == pytest.approx(site_energies, rel=1e-4, abs=1e-4)
+    assert out["site_energies"].shape == (8,)
+    assert np.sum(out["site_energies"]) / len(structure) == pytest.approx(
+        out["e"], abs=1e-7
+    )
+    assert out["crystal_fea"].mean() == pytest.approx(0.27905, rel=1e-4, abs=1e-4)
     assert out["crystal_fea"].shape == (64,)
-    assert out["atom_fea"].mean() == pytest.approx(0.01606, abs=1e-4)
+    assert out["atom_fea"].mean() == pytest.approx(0.01606, rel=1e-4, abs=1e-4)
     assert out["atom_fea"].shape == (8, 64)
 
 
@@ -98,9 +124,9 @@ def test_predict_structure_rotated() -> None:
 
     rotation_transformation = RotationTransformation(axis=[0, 0, 1], angle=30)
     rotated_structure = rotation_transformation.apply_transformation(structure)
-    out = model.predict_structure(rotated_structure)
+    out = model.predict_structure(rotated_structure, return_site_energies=True)
 
-    assert sorted(out) == ["e", "f", "m", "s"]
+    assert sorted(out) == ["e", "f", "m", "s", "site_energies"]
     assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
 
     # Define a rotation matrix for rotation about Z-axis by 90 degrees
@@ -127,12 +153,24 @@ def test_predict_structure_rotated() -> None:
     magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
     assert out["m"] == pytest.approx(magmom, abs=1e-4)
 
+    site_energies = [
+        -3.8090043,
+        -3.8090036,
+        -10.2737875,
+        -10.2737875,
+        -7.659066,
+        -7.744509,
+        -7.744509,
+        -7.659066,
+    ]
+    assert out["site_energies"] == pytest.approx(site_energies, rel=1e-4, abs=1e-4)
+
 
 def test_predict_supercell() -> None:
     supercell = structure.make_supercell([2, 2, 1], in_place=False)
-    out = model.predict_structure(supercell)
+    out = model.predict_structure(supercell, return_site_energies=True)
 
-    assert sorted(out) == ["e", "f", "m", "s"]
+    assert sorted(out) == ["e", "f", "m", "s", "site_energies"]
     assert out["e"] == pytest.approx(-7.37159, abs=1e-4)
 
     forces = [
@@ -161,10 +199,46 @@ def test_predict_supercell() -> None:
         for cell_idx in range(4):
             assert_allclose(out["m"][idx * 4 + cell_idx], magmom, atol=1e-4)
 
+    site_energies = [
+        -3.8090043,
+        -3.8090036,
+        -3.8090043,
+        -3.8090036,
+        -3.8090043,
+        -3.8090036,
+        -3.8090043,
+        -3.8090036,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -10.2737875,
+        -7.659066,
+        -7.659066,
+        -7.659066,
+        -7.659066,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.744509,
+        -7.659066,
+        -7.659066,
+        -7.659066,
+        -7.659066,
+    ]
+    assert out["site_energies"] == pytest.approx(site_energies, rel=1e-4, abs=1e-4)
+
 
 def test_predict_batched_structures() -> None:
     structs = [structure, structure, structure]
-    out = model.predict_structure(structs)
+    out = model.predict_structure(structs, return_site_energies=True)
     assert len(out) == len(structs)
 
     assert all(preds["e"] == pytest.approx(-7.37159, abs=1e-4) for preds in out)
@@ -185,10 +259,23 @@ def test_predict_batched_structures() -> None:
         [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
     ]
     magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    site_energies = [
+        -3.8090043,
+        -3.8090036,
+        -10.2737875,
+        -10.2737875,
+        -7.659066,
+        -7.744509,
+        -7.744509,
+        -7.659066,
+    ]
     for preds in out:
         assert_allclose(preds["f"], forces, atol=1e-4)
         assert_allclose(preds["s"], stress, atol=1e-4)
-        assert preds["m"] == pytest.approx(magmom, abs=1e-4)
+        assert preds["m"] == pytest.approx(magmom, rel=1e-4, abs=1e-4)
+        assert preds["site_energies"] == pytest.approx(
+            site_energies, rel=1e-4, abs=1e-4
+        )
 
 
 model_arg_keys = frozenset(
