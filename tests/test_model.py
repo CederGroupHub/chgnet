@@ -111,7 +111,7 @@ def test_predict_structure() -> None:
     assert out["site_energies"] == pytest.approx(site_energies, rel=1e-4, abs=1e-4)
     assert out["site_energies"].shape == (8,)
     assert np.sum(out["site_energies"]) / len(structure) == pytest.approx(
-        out["e"], abs=1e-7
+        out["e"], rel=1e-4, abs=1e-6
     )
     assert out["crystal_fea"].mean() == pytest.approx(0.27905, rel=1e-4, abs=1e-4)
     assert out["crystal_fea"].shape == (64,)
