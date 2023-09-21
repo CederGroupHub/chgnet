@@ -292,6 +292,7 @@ class CHGNet(nn.Module):
                     hidden_dim=mlp_hidden_dims,
                     output_dim=mlp_hidden_dims[-1],
                     dropout=mlp_dropout,
+                    norm=gMLP_norm,
                     activation=non_linearity,
                 ),
                 nn.Linear(in_features=mlp_hidden_dims[-1], out_features=1),
