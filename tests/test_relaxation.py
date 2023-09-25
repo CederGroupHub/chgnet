@@ -48,9 +48,5 @@ no_mps = mark.skipif(not hasattr(torch.backends, "mps"), reason="No MPS device")
     "use_device", ["cpu", param("cuda", marks=no_cuda), param("mps", marks=no_mps)]
 )
 def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
-    try:
-        relaxer = StructOptimizer(use_device=use_device)
-        assert re.match(rf"{use_device}(:\d+)?", relaxer.calculator.device)
-    except NotImplementedError as exc:
-        # TODO: remove try/except once mps is supported
-        assert str(exc) == "'mps' backend is not supported yet"  # noqa: PT017
+    relaxer = StructOptimizer(use_device=use_device)
+    assert re.match(rf"{use_device}(:\d+)?", relaxer.calculator.device)

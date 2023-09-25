@@ -79,16 +79,13 @@ class CHGNetCalculator(Calculator):
         """
         super().__init__(**kwargs)
 
-        # mps is disabled before stable version of pytorch on apple mps is released
-        if use_device == "mps":
-            raise NotImplementedError("'mps' backend is not supported yet")
-        # elif torch.backends.mps.is_available():
-        #     self.device = 'mps'
-
         # Determine the device to use
-        self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
-        if self.device == "cuda":
-            self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+        if use_device == "mps" and torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
+            if self.device == "cuda":
+                self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
 
         # Move the model to the specified device
         self.model = (model or CHGNet.load()).to(self.device)
