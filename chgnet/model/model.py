@@ -741,7 +741,7 @@ class BatchedGraph:
             else:
                 strain = None
                 lattice = graph.lattice
-            volumes.append(torch.det(lattice))
+            volumes.append(torch.dot(lattice[0], torch.cross(lattice[1], lattice[2])))
             strains.append(strain)
 
             # Bonds
