@@ -154,7 +154,7 @@ def test_predict_structure_rotated(rotation_angle: float, axis: list) -> None:
     assert out["f"] == pytest.approx(rotated_force, rel=1e-4, abs=1e-3)
 
     rotated_stress = R @ pristine_prediction["s"] @ R.transpose()
-    assert out["s"] == pytest.approx(np.array(rotated_stress), rel=1e-4, abs=1e-3)
+    assert out["s"] == pytest.approx(rotated_stress, rel=1e-4, abs=1e-3)
 
     assert out["m"] == pytest.approx(pristine_prediction["m"], rel=1e-4, abs=1e-4)
 
