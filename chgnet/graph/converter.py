@@ -115,7 +115,9 @@ class CrystalGraphConverter(nn.Module):
         """
         n_atoms = len(structure)
         atomic_number = torch.tensor(
-            [site.specie.Z for site in structure], dtype=int, requires_grad=False
+            [site.specie.Z for site in structure],
+            dtype=torch.int32,
+            requires_grad=False,
         )
         atom_frac_coord = torch.tensor(
             structure.frac_coords, dtype=datatype, requires_grad=True
@@ -134,8 +136,8 @@ class CrystalGraphConverter(nn.Module):
 
         # Atom Graph
         atom_graph, directed2undirected = graph.adjacency_list()
-        atom_graph = torch.tensor(atom_graph, dtype=torch.int64)
-        directed2undirected = torch.tensor(directed2undirected, dtype=torch.int64)
+        atom_graph = torch.tensor(atom_graph, dtype=torch.int32)
+        directed2undirected = torch.tensor(directed2undirected, dtype=torch.int32)
 
         # Bond Graph
         try:
@@ -149,8 +151,8 @@ class CrystalGraphConverter(nn.Module):
             raise SystemExit(
                 f"Failed creating bond graph for {graph_id}, check bond_graph_error.cif"
             ) from exc
-        bond_graph = torch.tensor(bond_graph, dtype=torch.int64)
-        undirected2directed = torch.tensor(undirected2directed, dtype=torch.int64)
+        bond_graph = torch.tensor(bond_graph, dtype=torch.int32)
+        undirected2directed = torch.tensor(undirected2directed, dtype=torch.int32)
 
         # Check if graph has isolated atom
         n_isolated_atoms = len({*range(n_atoms)} - {*center_index})
