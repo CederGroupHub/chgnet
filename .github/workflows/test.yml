@@ -44,7 +44,7 @@ jobs:
         run: pytest --capture=no --cov --cov-report=xml .
 
       - name: Codacy coverage reporter
-        if: matrix.os == 'ubuntu-latest' && github.repository == github.event.pull_request.head.repo.full_name
+        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
