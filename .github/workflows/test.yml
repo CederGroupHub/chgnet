@@ -11,9 +11,9 @@ on:
     inputs:
       task:
         type: choice
-        options: [tests, release]
+        options: [tests, release, test-release]
         default: tests
-        description: Only run tests or release a new version to PyPI after tests pass.
+        description: Run tests, release to PyPI, or release to TestPyPI.
 
 jobs:
   tests:
@@ -108,8 +108,9 @@ jobs:
           name: artifact
           path: dist
 
-      - name: Publish to PyPi
+      - name: Publish to PyPi or TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
           verbose: true
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.task == 'test-release' && 'https://test.pypi.org/legacy/' || '' }}
