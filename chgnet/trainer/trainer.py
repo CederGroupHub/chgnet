@@ -177,9 +177,6 @@ class Trainer:
             self.device = use_device
         elif torch.cuda.is_available():
             self.device = "cuda"
-        # mps is disabled until stable version of torch for mps is released
-        # elif torch.backends.mps.is_available():
-        #     self.device = "mps"
         else:
             self.device = "cpu"
         if self.device == "cuda":
