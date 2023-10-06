@@ -520,7 +520,7 @@ class StructureJsonData(Dataset):
 
         self.keys = []
         self.keys = [
-            (mp_id, graph_id) for mp_id, dic in self.data.items() for graph_id in dic
+            (mp_id, graph_id) for mp_id, dct in self.data.items() for graph_id in dct
         ]
         random.shuffle(self.keys)
         print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
