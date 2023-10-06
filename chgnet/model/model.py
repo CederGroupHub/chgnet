@@ -201,6 +201,7 @@ class CHGNet(nn.Module):
         # Define convolutional layers
         conv_norm = kwargs.pop("conv_norm", None)
         gMLP_norm = kwargs.pop("gMLP_norm", None)
+        mlp_out_bias = kwargs.pop("mlp_out_bias", False)
         atom_graph_layers = [
             AtomConv(
                 atom_fea_dim=atom_fea_dim,
@@ -211,6 +212,7 @@ class CHGNet(nn.Module):
                 norm=conv_norm,
                 gMLP_norm=gMLP_norm,
                 use_mlp_out=True,
+                mlp_out_bias=mlp_out_bias,
                 resnet=True,
             )
             for _ in range(n_conv)
@@ -229,6 +231,7 @@ class CHGNet(nn.Module):
                     norm=conv_norm,
                     gMLP_norm=gMLP_norm,
                     use_mlp_out=True,
+                    mlp_out_bias=mlp_out_bias,
                     resnet=True,
                 )
                 for _ in range(n_conv - 1)
@@ -636,8 +639,8 @@ class CHGNet(nn.Module):
     @classmethod
     def from_dict(cls, dict, **kwargs):
         """Build a CHGNet from a saved dictionary."""
-        chgnet = CHGNet(**dict["model_args"])
-        chgnet.load_state_dict(dict["state_dict"], **kwargs)
+        chgnet = CHGNet(**dict["model_args"], **kwargs)
+        chgnet.load_state_dict(dict["state_dict"])
         return chgnet
 
     @classmethod
@@ -652,7 +655,8 @@ class CHGNet(nn.Module):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if model_name == "MPtrj-efsm":
             return cls.from_file(
-                os.path.join(current_dir, "../pretrained/e30f77s348m32.pth.tar")
+                os.path.join(current_dir, "../pretrained/e30f77s348m32.pth.tar"),
+                mlp_out_bias=True,
             )
         raise ValueError(f"Unknown {model_name=}")
 

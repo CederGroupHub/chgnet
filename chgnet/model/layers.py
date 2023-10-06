@@ -24,6 +24,7 @@ class AtomConv(nn.Module):
         activation: str = "silu",
         norm: str | None = None,
         use_mlp_out: bool = True,
+        mlp_out_bias: bool = False,
         resnet: bool = True,
         gMLP_norm: str | None = None,
     ) -> None:
@@ -46,6 +47,8 @@ class AtomConv(nn.Module):
             use_mlp_out (bool, optional): Whether to apply an MLP output layer to the
                 updated atom features.
                 Default = True
+            mlp_out_bias (bool): whether to use bias in the output MLP Linear layer.
+                Default = False
             resnet (bool, optional): Whether to apply a residual connection to the
                 updated atom features.
                 Default = True
@@ -67,7 +70,10 @@ class AtomConv(nn.Module):
         )
         if self.use_mlp_out:
             self.mlp_out = MLP(
-                input_dim=atom_fea_dim, output_dim=atom_fea_dim, hidden_dim=0
+                input_dim=atom_fea_dim,
+                output_dim=atom_fea_dim,
+                hidden_dim=0,
+                bias=mlp_out_bias,
             )
         self.atom_norm = find_normalization(name=norm, dim=atom_fea_dim)
 
@@ -143,6 +149,7 @@ class BondConv(nn.Module):
         activation: str = "silu",
         norm: str | None = None,
         use_mlp_out: bool = True,
+        mlp_out_bias: bool = False,
         resnet=True,
         gMLP_norm: str | None = None,
     ) -> None:
@@ -166,6 +173,8 @@ class BondConv(nn.Module):
             use_mlp_out (bool, optional): Whether to apply an MLP output layer to the
                 updated atom features.
                 Default = True
+            mlp_out_bias (bool): whether to use bias in the output MLP Linear layer.
+                Default = False
             resnet (bool, optional): Whether to apply a residual connection to the
                 updated atom features.
                 Default = True
@@ -187,7 +196,10 @@ class BondConv(nn.Module):
         )
         if self.use_mlp_out:
             self.mlp_out = MLP(
-                input_dim=bond_fea_dim, output_dim=bond_fea_dim, hidden_dim=0
+                input_dim=bond_fea_dim,
+                output_dim=bond_fea_dim,
+                hidden_dim=0,
+                bias=mlp_out_bias,
             )
         self.bond_norm = find_normalization(name=norm, dim=bond_fea_dim)
 
@@ -238,10 +250,11 @@ class BondConv(nn.Module):
         new_bond_feas = aggregate(
             bond_update, bond_graph[:, 1], average=False, num_owner=len(bond_feas)
         )
-
+        print("before mlp", new_bond_feas)
         # New bond features
         if self.use_mlp_out:
             new_bond_feas = self.mlp_out(new_bond_feas)
+        print("after", new_bond_feas)
         if self.resnet:
             new_bond_feas += bond_feas
 

@@ -49,6 +49,7 @@ class MLP(nn.Module):
         hidden_dim: int | Sequence[int] | None = (64, 64),
         dropout: float = 0,
         activation: str = "silu",
+        bias: bool = True,
     ) -> None:
         """Initialize the MLP.
 
@@ -61,26 +62,31 @@ class MLP(nn.Module):
             dropout (float): the dropout rate before each linear layer. Default: 0
             activation (str, optional): The name of the activation function to use
                 in the gated MLP. Must be one of "relu", "silu", "tanh", or "gelu".
-                Default = "silu".
+                Default = "silu"
+            bias (bool): whether to use bias in each Linear layers.
+                Default = True
         """
         super().__init__()
         if hidden_dim in (None, 0):
-            layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim)]
+            layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim, bias=bias)]
         elif isinstance(hidden_dim, int):
             layers = [
-                nn.Linear(input_dim, hidden_dim),
+                nn.Linear(input_dim, hidden_dim, bias=bias),
                 find_activation(activation),
                 nn.Dropout(dropout),
-                nn.Linear(hidden_dim, output_dim),
+                nn.Linear(hidden_dim, output_dim, bias=bias),
             ]
         elif isinstance(hidden_dim, Sequence):
-            layers = [nn.Linear(input_dim, hidden_dim[0]), find_activation(activation)]
+            layers = [
+                nn.Linear(input_dim, hidden_dim[0], bias=bias),
+                find_activation(activation),
+            ]
             if len(hidden_dim) != 1:
                 for h_in, h_out in zip(hidden_dim[0:-1], hidden_dim[1:]):
-                    layers.append(nn.Linear(h_in, h_out))
+                    layers.append(nn.Linear(h_in, h_out, bias=bias))
                     layers.append(find_activation(activation))
             layers.append(nn.Dropout(dropout))
-            layers.append(nn.Linear(hidden_dim[-1], output_dim))
+            layers.append(nn.Linear(hidden_dim[-1], output_dim, bias=bias))
         else:
             raise TypeError(
                 f"{hidden_dim=} must be an integer, a list of integers, or None."
@@ -109,22 +115,29 @@ class GatedMLP(nn.Module):
         input_dim: int,
         output_dim: int,
         hidden_dim: int | list[int] | None = None,
-        dropout=0,
-        activation="silu",
-        norm="batch",
+        dropout: float = 0,
+        activation: str = "silu",
+        norm: str = "batch",
+        bias: bool = True,
     ) -> None:
         """Initialize a gated MLP.
 
         Args:
             input_dim (int): the input dimension
             output_dim (int): the output dimension
-            hidden_dim (list[int] | int]): a list of integers or a single integer representing
-            the number of hidden units in each layer of the MLP. Default = None
-            dropout (float): the dropout rate before each linear layer. Default: 0
-            activation (str, optional): The name of the activation function to use in the gated
-                MLP. Must be one of "relu", "silu", "tanh", or "gelu". Default = "silu".
-            norm (str, optional): The name of the normalization layer to use on the updated
-                atom features. Must be one of "batch", "layer", or None. Default = "batch".
+            hidden_dim (list[int] | int]): a list of integers or a single integer
+                representing the number of hidden units in each layer of the MLP.
+                Default = None
+            dropout (float): the dropout rate before each linear layer.
+                Default: 0
+            activation (str, optional): The name of the activation function to use in
+                the gated MLP. Must be one of "relu", "silu", "tanh", or "gelu".
+                Default = "silu"
+            norm (str, optional): The name of the normalization layer to use on the
+                updated atom features. Must be one of "batch", "layer", or None.
+                Default = "batch"
+            bias (bool): whether to use bias in each Linear layers.
+                Default = True
         """
         super().__init__()
         self.mlp_core = MLP(
@@ -133,6 +146,7 @@ class GatedMLP(nn.Module):
             hidden_dim=hidden_dim,
             dropout=dropout,
             activation=activation,
+            bias=bias,
         )
         self.mlp_gate = MLP(
             input_dim=input_dim,
@@ -140,6 +154,7 @@ class GatedMLP(nn.Module):
             hidden_dim=hidden_dim,
             dropout=dropout,
             activation=activation,
+            bias=bias,
         )
         self.activation = find_activation(activation)
         self.sigmoid = nn.Sigmoid()
