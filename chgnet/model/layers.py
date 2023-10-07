@@ -250,11 +250,9 @@ class BondConv(nn.Module):
         new_bond_feas = aggregate(
             bond_update, bond_graph[:, 1], average=False, num_owner=len(bond_feas)
         )
-        print("before mlp", new_bond_feas)
         # New bond features
         if self.use_mlp_out:
             new_bond_feas = self.mlp_out(new_bond_feas)
-        print("after", new_bond_feas)
         if self.resnet:
             new_bond_feas += bond_feas
 
