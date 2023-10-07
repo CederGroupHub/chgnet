@@ -180,3 +180,15 @@ class CrystalGraph:
             f"CrystalGraph({composition=}, {atom_graph_cutoff=}, {bond_graph_cutoff=}, "
             f"{n_atoms=}, {atom_graph_len=}, {bond_graph_len=})"
         )
+
+    @property
+    def num_isolated_atoms(self):
+        """Number of isolated atoms given the atom graph cutoff
+        Isolated atoms are disconnected nodes in the atom graph
+        that will not get updated in CHGNet.
+        These atoms will always have calculated force equal to zero.
+
+        With the default CHGNet atom graph cutoff radius, only ~ 0.1% of MPtrj dataset
+        structures has isolated atoms.
+        """
+        return len(self.atomic_number) - torch.unique(self.atom_graph[:, 0]).numel()
