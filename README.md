@@ -40,6 +40,14 @@ Pretrained CHGNet achieves SOTA performance on materials stability prediction fr
 pip install chgnet
 ```
 
+if pypi installation fails, you can try installation from source:
+
+```sh
+git clone https://github.com/CederGroupHub/chgnet.git
+cd chgnet
+pip install -e .
+```
+
 ## Docs
 
 View [API docs](https://cedergrouphub.github.io/chgnet/api).
