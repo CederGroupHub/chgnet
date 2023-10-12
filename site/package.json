@@ -12,7 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "vite build && vite preview",
-    "changelog": "npx auto-changelog --package --output ../changelog.md --unreleased-only --hide-credit --commit-limit false"
+    "changelog": "npx auto-changelog --package --output ../changelog.md --hide-credit --commit-limit false"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^2.0.3",
