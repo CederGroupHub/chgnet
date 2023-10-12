@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   release:
     types: [published]
   workflow_dispatch:
@@ -51,6 +50,7 @@ jobs:
           coverage-reports: coverage.xml
 
   build_source_dist:
+    name: Build source distribution
     needs: tests
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
@@ -73,7 +73,7 @@ jobs:
           path: dist/*.tar.gz
 
   build_wheels:
-    name: Build wheels for ${{ matrix.os }}
+    name: Build wheels for Python ${{ matrix.python-version }} on ${{ matrix.os }}
     needs: tests
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
     strategy:
@@ -97,6 +97,7 @@ jobs:
           path: wheelhouse
 
   release:
+    name: Release wheels and source distribution to PyPI
     needs: [build_wheels, build_source_dist]
     runs-on: ubuntu-latest
     permissions:
