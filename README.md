@@ -43,9 +43,7 @@ pip install chgnet
 if pypi installation fails, you can try installation from source:
 
 ```sh
-git clone https://github.com/CederGroupHub/chgnet.git
-cd chgnet
-pip install -e .
+pip install git+https://github.com/CederGroupHub/chgnet.git
 ```
 
 ## Docs
