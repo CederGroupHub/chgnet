@@ -250,6 +250,7 @@ class BondConv(nn.Module):
         new_bond_feas = aggregate(
             bond_update, bond_graph[:, 1], average=False, num_owner=len(bond_feas)
         )
+
         # New bond features
         if self.use_mlp_out:
             new_bond_feas = self.mlp_out(new_bond_feas)
