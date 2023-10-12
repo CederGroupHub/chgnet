@@ -441,14 +441,15 @@ class Trainer:
             end = time.perf_counter()
 
             if (idx + 1) % self.print_freq == 0:
+                name = "Test" if is_test else "Val"
                 message = (
-                    f"Test: [{idx + 1}/{len(val_loader)}]\t"
-                    f"Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
-                    f"Loss {losses.val:.4f} ({losses.avg:.4f})  MAEs:  "
+                    f"{name}: [{idx + 1}/{len(val_loader)}] | "
+                    f"Time ({batch_time.avg:.3f}) | "
+                    f"Loss {losses.val:.4f}({losses.avg:.4f}) | MAE "
                 )
                 for key in self.targets:
                     message += (
-                        f"{key} {mae_errors[key].val:.3f} ({mae_errors[key].avg:.3f})  "
+                        f"{key} {mae_errors[key].val:.3f}({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
 
