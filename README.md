@@ -181,7 +181,6 @@ trainer.train(train_loader, val_loader, test_loader)
 5. To save time from graph conversion step for each training, we recommend you use [`GraphData`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py) defined in
    [`dataset.py`](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/data/dataset.py), which reads graphs directly from saved directory. To create saved graphs,
    see [`examples/make_graphs.py`](https://github.com/CederGroupHub/chgnet/blob/main/examples/make_graphs.py).
-6. The Pytorch `MPS` backend (Apple’s Metal Performance Shaders) is currently disabled until a stable version of `pytorch` for `MPS` is released.
 
 ## MPtrj Dataset
 
