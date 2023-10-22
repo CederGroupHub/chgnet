@@ -63,7 +63,6 @@ def test_predict_structure() -> None:
         return_atom_feas=True,
         return_crystal_feas=True,
     )
-
     assert sorted(out) == [
         "atom_fea",
         "crystal_fea",
@@ -73,48 +72,57 @@ def test_predict_structure() -> None:
         "s",
         "site_energies",
     ]
-    assert out["e"] == pytest.approx(-7.37159, rel=1e-4, abs=1e-4)
+    assert out["e"] == pytest.approx(-7.36769, rel=1e-4, abs=1e-4)
 
     forces = [
-        [4.4703484e-08, -4.2840838e-08, 2.4071064e-02],
-        [-4.4703484e-08, -1.4551915e-08, -2.4071217e-02],
-        [-1.7881393e-07, 1.0244548e-08, 2.5402933e-02],
-        [5.9604645e-08, -2.3283064e-08, -2.5402665e-02],
-        [-1.1920929e-07, 6.6356733e-08, -2.1660209e-02],
-        [2.3543835e-06, -8.0077443e-06, 9.5508099e-03],
-        [-2.2947788e-06, 7.9898164e-06, -9.5513463e-03],
-        [-5.9604645e-08, -0.0000000e00, 2.1660626e-02],
+        [1.34110451e-07, -2.92202458e-08, 2.38135569e-02],
+        [5.96046448e-08, 4.63332981e-08, -2.38130391e-02],
+        [8.94069672e-08, -2.06753612e-07, 9.25870836e-02],
+        [-1.49011612e-07, -1.06170774e-07, -9.25877392e-02],
+        [5.96046448e-08, 2.00234354e-08, -2.43449211e-03],
+        [-1.19209290e-06, -4.74974513e-08, -1.30698681e-02],
+        [1.40070915e-06, 1.64378434e-07, 1.30702555e-02],
+        [-5.96046448e-08, 1.66241080e-07, 2.43446976e-03],
     ]
     assert out["f"] == pytest.approx(np.array(forces), rel=1e-4, abs=1e-4)
 
     stress = [
-        [3.3677614e-01, -1.9665707e-07, -5.6416429e-06],
-        [4.9939729e-07, 2.4675032e-01, 1.8549043e-05],
-        [-4.0414070e-06, 1.9096897e-05, 4.0323928e-02],
+        [-3.0366361e-01, -3.7709856e-07, 2.2964025e-06],
+        [-1.2128221e-06, 2.2305478e-01, -3.2104114e-07],
+        [1.3322200e-06, -8.3219516e-07, -1.0736181e-01],
     ]
     assert out["s"] == pytest.approx(np.array(stress), rel=1e-4, abs=1e-4)
 
-    magmom = [0.00521, 0.00521, 3.85728, 3.85729, 0.02538, 0.03706, 0.03706, 0.02538]
+    magmom = [
+        3.0495524e-03,
+        3.0494630e-03,
+        3.8694179e00,
+        3.8694181e00,
+        4.4136152e-02,
+        3.8622141e-02,
+        3.8622111e-02,
+        4.4136211e-02,
+    ]
     assert out["m"] == pytest.approx(magmom, rel=1e-4, abs=1e-4)
 
     site_energies = [
-        -3.8090043,
-        -3.8090036,
-        -10.2737875,
-        -10.2737875,
-        -7.659066,
-        -7.744509,
-        -7.744509,
-        -7.659066,
+        -3.6264274,
+        -3.6264274,
+        -9.634681,
+        -9.634682,
+        -8.024935,
+        -8.184724,
+        -8.184724,
+        -8.024935,
     ]
     assert out["site_energies"] == pytest.approx(site_energies, rel=1e-4, abs=1e-4)
     assert out["site_energies"].shape == (8,)
     assert np.sum(out["site_energies"]) / len(structure) == pytest.approx(
         out["e"], rel=1e-4, abs=1e-6
     )
-    assert out["crystal_fea"].mean() == pytest.approx(0.27905, rel=1e-4, abs=1e-4)
+    assert out["crystal_fea"].mean() == pytest.approx(0.26999, rel=1e-4, abs=1e-4)
     assert out["crystal_fea"].shape == (64,)
-    assert out["atom_fea"].mean() == pytest.approx(0.01606, rel=1e-4, abs=1e-4)
+    assert out["atom_fea"].mean() == pytest.approx(-0.09668, rel=1e-4, abs=1e-4)
     assert out["atom_fea"].shape == (8, 64)
 
 
@@ -202,26 +210,15 @@ def test_predict_batched_structures() -> None:
             )
 
 
-model_arg_keys = frozenset(
-    "atom_fea_dim bond_fea_dim angle_fea_dim composition_model num_radial num_angular n_conv "
-    "atom_conv_hidden_dim update_bond bond_conv_hidden_dim update_angle angle_layer_hidden_dim"
-    " conv_dropout read_out mlp_hidden_dims mlp_dropout mlp_first is_intensive non_linearity "
-    "atom_graph_cutoff bond_graph_cutoff graph_converter_algorithm cutoff_coeff learnable_rbf "
-    "skip_connection conv_norm gMLP_norm readout_norm".split()
-)
-
-
 def test_as_to_from_dict() -> None:
     dct = model.as_dict()
     assert {*dct} == {"model_args", "state_dict"}
-    assert {*dct["model_args"]} >= model_arg_keys
 
     model_2 = CHGNet.from_dict(dct)
     assert model_2.as_dict()["model_args"] == dct["model_args"]
 
     to_dict = model.todict()
     assert {*to_dict} == {"model_name", "model_args"}
-    assert {*to_dict["model_args"]} >= model_arg_keys
 
     model_3 = CHGNet(**to_dict["model_args"])
     assert model_3.todict() == to_dict

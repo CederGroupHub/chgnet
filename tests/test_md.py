@@ -35,14 +35,15 @@ chgnet = CHGNet.load()
 def test_eos():
     eos = EquationOfState()
     eos.fit(atoms=structure)
-    assert eos.get_bulk_modulus() == approx(0.66012829210838, rel=1e-4)
-    assert eos.get_bulk_modulus(unit="GPa") == approx(105.76421250583728, rel=1e-4)
-    assert eos.get_compressibility() == approx(1.51485, rel=1e-4)
-    assert eos.get_compressibility(unit="GPa^-1") == approx(0.0094549940505, rel=1e-4)
+
+    assert eos.get_bulk_modulus() == approx(0.6501, rel=1e-4)
+    assert eos.get_bulk_modulus(unit="GPa") == approx(104.16, rel=1e-4)
+    assert eos.get_compressibility() == approx(1.5381, rel=1e-4)
+    assert eos.get_compressibility(unit="GPa^-1") == approx(0.00960, rel=1e-4)
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])
-def test_md_nvt(
+def test_md_nvt_berendsen(
     tmp_path: Path, monkeypatch: MonkeyPatch, algorithm: Literal["legacy", "fast"]
 ):
     monkeypatch.chdir(tmp_path)  # run MD in temporary directory
@@ -77,17 +78,17 @@ def test_md_nvt(
         logs = log_file.read()
         logs = np.fromstring(logs, sep=" ")
     ref = np.fromstring(
-        "0.0000         -58.9727     -58.9727       0.0000     0.0\n"
-        "0.0200         -58.9723     -58.9731       0.0009     0.8\n"
-        "0.0400         -58.9672     -58.9727       0.0055     5.4\n"
-        "0.0600         -58.9427     -58.9663       0.0235    22.8\n"
-        "0.0800         -58.8605     -58.9352       0.0747    72.2\n"
-        "0.1000         -58.7651     -58.8438       0.0786    76.0\n"
-        "0.1200         -58.6684     -58.7268       0.0584    56.4\n"
-        "0.1400         -58.5703     -58.6202       0.0499    48.2\n"
-        "0.1600         -58.4724     -58.5531       0.0807    78.1\n"
-        "0.1800         -58.3891     -58.8077       0.4186   404.8\n"
-        "0.2000         -58.3398     -58.9244       0.5846   565.4\n",
+        "0.0000         -58.8678     -58.8678       0.0000     0.0\n"
+        "0.0200         -58.8665     -58.8692       0.0027     2.6\n"
+        "0.0400         -58.8650     -58.8846       0.0196    18.9\n"
+        "0.0600         -58.7870     -58.8671       0.0801    77.5\n"
+        "0.0800         -58.7024     -58.8023       0.0999    96.7\n"
+        "0.1000         -58.6080     -58.6803       0.0723    69.9\n"
+        "0.1200         -58.5487     -58.5849       0.0362    35.0\n"
+        "0.1400         -58.4648     -58.5285       0.0637    61.6\n"
+        "0.1600         -58.3202     -58.5693       0.2491   240.9\n"
+        "0.1800         -58.2515     -58.7861       0.5346   517.0\n"
+        "0.2000         -58.2441     -58.8199       0.5758   556.8\n",
         sep=" ",
     )
     assert_allclose(logs, ref, rtol=2.1e-3, atol=1e-8)
@@ -113,10 +114,11 @@ def test_md_nve(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert set(os.listdir()) == {"md_out.log", "md_out.traj"}
     with open("md_out.log") as log_file:
         logs = log_file.read()
+    print("nve logs", logs)
     assert logs == (
         "Time[ps]      Etot[eV]     Epot[eV]     Ekin[eV]    T[K]\n"
-        "0.0000         -58.9727     -58.9727       0.0000     0.0\n"
-        "0.0100         -58.9727     -58.9728       0.0001     0.1\n"
+        "0.0000         -58.9415     -58.9415       0.0000     0.0\n"
+        "0.0100         -58.9415     -58.9417       0.0002     0.2\n"
     )
 
 
@@ -139,7 +141,7 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, Inhomogeneous_NPTBerendsen)
-    assert md.bulk_modulus == approx(105.764, rel=1e-2)
+    assert md.bulk_modulus == approx(104.16, rel=1e-2)
     assert md.dyn.pressure == approx(6.324e-07, rel=1e-4)
     assert set(os.listdir()) == {"md_out.log", "md_out.traj"}
     with open("md_out.log") as log_file:
@@ -147,17 +149,17 @@ def test_md_npt_inhomogeneous_berendsen(tmp_path: Path, monkeypatch: MonkeyPatch
         logs = log_file.read()
         logs = np.fromstring(logs, sep=" ")
     ref = np.fromstring(
-        "0.0000         -58.9727     -58.9727       0.0000     0.0\n"
-        "0.0200         -58.9723     -58.9731       0.0009     0.8\n"
-        "0.0400         -58.9672     -58.9727       0.0055     5.3\n"
-        "0.0600         -58.9427     -58.9663       0.0235    22.7\n"
-        "0.0800         -58.8605     -58.9352       0.0747    72.2\n"
-        "0.1000         -58.7652     -58.8438       0.0786    76.0\n"
-        "0.1200         -58.6686     -58.7269       0.0584    56.4\n"
-        "0.1400         -58.5707     -58.6205       0.0499    48.2\n"
-        "0.1600         -58.4731     -58.5533       0.0802    77.6\n"
-        "0.1800         -58.3897     -58.8064       0.4167   402.9\n"
-        "0.2000         -58.3404     -58.9253       0.5849   565.6\n",
+        "0.0000         -58.9415     -58.9415       0.0000     0.0\n"
+        "0.0200         -58.9407     -58.9423       0.0016     1.6\n"
+        "0.0400         -58.9310     -58.9415       0.0105    10.1\n"
+        "0.0600         -58.8819     -58.9315       0.0495    47.9\n"
+        "0.0800         -58.7860     -58.8800       0.0940    90.9\n"
+        "0.1000         -58.6916     -58.7694       0.0778    75.2\n"
+        "0.1200         -58.5945     -58.6458       0.0513    49.6\n"
+        "0.1400         -58.4972     -58.5543       0.0571    55.2\n"
+        "0.1600         -58.4008     -58.5540       0.1532   148.1\n"
+        "0.1800         -58.3292     -58.8330       0.5038   487.2\n"
+        "0.2000         -58.2842     -58.8526       0.5684   549.7\n",
         sep=" ",
     )
     assert_allclose(logs, ref, rtol=2.1e-3, atol=1e-8)
@@ -200,16 +202,16 @@ def test_md_nvt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
         logs = log_file.read()
         logs = np.fromstring(logs, sep=" ")
     ref = np.fromstring(
-        "0.0200        -199.2479    -199.3994       0.1515    36.6\n"
-        "0.0400        -199.2459    -199.3440       0.0981    23.7\n"
-        "0.0600        -199.2394    -199.2669       0.0275     6.6\n"
-        "0.0800        -199.2348    -199.4143       0.1795    43.4\n"
-        "0.1000        -199.2274    -199.2774       0.0500    12.1\n"
-        "0.1200        -199.2123    -199.3001       0.0878    21.2\n"
-        "0.1400        -199.2040    -199.4000       0.1961    47.4\n"
-        "0.1600        -199.1856    -199.2181       0.0325     7.9\n"
-        "0.1800        -199.1603    -199.3266       0.1662    40.2\n"
-        "0.2000        -199.1455    -199.3490       0.2035    49.2\n",
+        "0.0200       -199.3047   -199.3890       0.0844    20.4\n"
+        "0.0400       -199.3036   -199.3510       0.0475    11.5\n"
+        "0.0600       -199.2999   -199.3219       0.0221     5.3\n"
+        "0.0800       -199.2974   -199.4012       0.1038    25.1\n"
+        "0.1000       -199.2927   -199.3097       0.0170     4.1\n"
+        "0.1200       -199.2847   -199.3522       0.0675    16.3\n"
+        "0.1400       -199.2802   -199.3789       0.0988    23.9\n"
+        "0.1600       -199.2681   -199.2785       0.0104     2.5\n"
+        "0.1800       -199.2565   -199.3830       0.1265    30.6\n"
+        "0.2000       -199.2463   -199.3190       0.0727    17.6\n",
         sep=" ",
     )
     assert_allclose(logs, ref, rtol=1e-2, atol=1e-7)
@@ -241,7 +243,7 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, NPT)
-    assert md.bulk_modulus == approx(102.977, rel=1e-2)
+    assert md.bulk_modulus == approx(88.6389, rel=1e-2)
     assert_allclose(
         md.dyn.externalstress,
         [-6.324e-07, -6.324e-07, -6.324e-07, 0.0, 0.0, 0.0],
@@ -254,18 +256,19 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
         logs = log_file.read()
         logs = np.fromstring(logs, sep=" ")
     ref = np.fromstring(
-        "0.0200        -199.2480    -199.3994       0.1514    36.6\n"
-        "0.0400        -199.2460    -199.3442       0.0982    23.7\n"
-        "0.0600        -199.2397    -199.2672       0.0275     6.7\n"
-        "0.0800        -199.2355    -199.4148       0.1793    43.3\n"
-        "0.1000        -199.2282    -199.2782       0.0500    12.1\n"
-        "0.1200        -199.2135    -199.3017       0.0882    21.3\n"
-        "0.1400        -199.2060    -199.4014       0.1954    47.2\n"
-        "0.1600        -199.1878    -199.2201       0.0323     7.8\n"
-        "0.1800        -199.1630    -199.3306       0.1675    40.5\n"
-        "0.2000        -199.1496    -199.3506       0.2010    48.6\n",
+        "0.0200       -199.3048   -199.3891       0.0843    20.4\n"
+        "0.0400       -199.3038   -199.3513       0.0475    11.5\n"
+        "0.0600       -199.3005   -199.3226       0.0221     5.4\n"
+        "0.0800       -199.2988   -199.4024       0.1036    25.0\n"
+        "0.1000       -199.2945   -199.3115       0.0170     4.1\n"
+        "0.1200       -199.2872   -199.3550       0.0679    16.4\n"
+        "0.1400       -199.2841   -199.3822       0.0981    23.7\n"
+        "0.1600       -199.2729   -199.2833       0.0105     2.5\n"
+        "0.1800       -199.2622   -199.3895       0.1273    30.8\n"
+        "0.2000       -199.2539   -199.3247       0.0708    17.1\n",
         sep=" ",
     )
+
     assert_allclose(logs, ref, rtol=1e-2, atol=1e-7)
 
 
@@ -296,7 +299,9 @@ def test_md_crystal_feas_log(
     assert isinstance(crystal_feas, list)
     assert len(crystal_feas) == 101
     assert len(crystal_feas[0]) == 64
-    assert crystal_feas[0][0] == approx(1.4411131, rel=1e-5)
-    assert crystal_feas[0][1] == approx(2.652704, rel=1e-5)
-    assert crystal_feas[10][0] == approx(1.4390125, rel=1e-5)
-    assert crystal_feas[10][1] == approx(2.6525214, rel=1e-5)
+    print(crystal_feas[0][0], crystal_feas[0][1])
+    print(crystal_feas[10][0], crystal_feas[10][1])
+    assert crystal_feas[0][0] == approx(-0.002082636, abs=1e-5)
+    assert crystal_feas[0][1] == approx(-1.4285042, abs=1e-5)
+    assert crystal_feas[10][0] == approx(-0.0020592688, abs=1e-5)
+    assert crystal_feas[10][1] == approx(-1.4284436, abs=1e-5)

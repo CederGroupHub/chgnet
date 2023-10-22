@@ -650,15 +650,26 @@ class CHGNet(nn.Module):
         return CHGNet.from_dict(state["model"], **kwargs)
 
     @classmethod
-    def load(cls, model_name="MPtrj-efsm"):
+    def load(cls, model_name="0.3.0"):
         """Load pretrained CHGNet."""
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        if model_name == "MPtrj-efsm":
+        if model_name == "0.3.0":
             return cls.from_file(
-                os.path.join(current_dir, "../pretrained/e30f77s348m32.pth.tar"),
+                os.path.join(
+                    current_dir,
+                    "../pretrained/0.3.0/chgnet_0.3.0_e29f68s314m37.pth.tar",
+                )
+            )
+        elif model_name == "0.2.0":  # noqa: RET505
+            return cls.from_file(
+                os.path.join(
+                    current_dir,
+                    "../pretrained/0.2.0/chgnet_0.2.0_e30f77s348m32.pth.tar",
+                ),
                 mlp_out_bias=True,
             )
-        raise ValueError(f"Unknown {model_name=}")
+        else:
+            raise ValueError(f"Unknown {model_name=}")
 
 
 @dataclass

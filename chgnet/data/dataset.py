@@ -48,7 +48,8 @@ class StructureData(Dataset):
             magmoms (list[list[float]], optional): [data_size, n_atoms, 1]
             structure_ids (list[str], optional): a list of ids to track the structures
             graph_converter (CrystalGraphConverter, optional): Converts the structures
-                to graphs. If None, it will be set to CHGNet default converter.
+                to graphs. If None, it will be set to CHGNet 0.3.0 converter
+                with AtomGraph cutoff = 6A.
 
         Raises:
             RuntimeError: if the length of structures and labels (energies, forces,
@@ -74,7 +75,7 @@ class StructureData(Dataset):
         random.shuffle(self.keys)
         print(f"{len(structures)} structures imported")
         self.graph_converter = graph_converter or CrystalGraphConverter(
-            atom_graph_cutoff=5, bond_graph_cutoff=3
+            atom_graph_cutoff=6, bond_graph_cutoff=3
         )
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
@@ -157,9 +158,9 @@ class CIFData(Dataset):
             labels (str, dict): the path or dictionary of labels
             targets ("ef" | "efs" | "efm" | "efsm"): The training targets.
                 Default = "efsm"
-            graph_converter (CrystalGraphConverter, optional):
-                a CrystalGraphConverter to convert the structures,
-                if None, it will be set to CHGNet default converter
+            graph_converter (CrystalGraphConverter, optional): Converts the structures
+                to graphs. If None, it will be set to CHGNet 0.3.0 converter
+                with AtomGraph cutoff = 6A.
             energy_key (str, optional): the key of energy in the labels.
                 Default = "energy_per_atom".
             force_key (str, optional): the key of force in the labels.
@@ -175,7 +176,7 @@ class CIFData(Dataset):
         random.shuffle(self.cif_ids)
         print(f"{cif_path}: {len(self.cif_ids):,} structures imported")
         self.graph_converter = graph_converter or CrystalGraphConverter(
-            atom_graph_cutoff=5, bond_graph_cutoff=3
+            atom_graph_cutoff=6, bond_graph_cutoff=3
         )
 
         self.energy_key = energy_key

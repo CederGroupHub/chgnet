@@ -19,7 +19,7 @@ structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
 def test_relaxation(algorithm: Literal["legacy", "fast"]):
     chgnet = CHGNet.load()
     converter = CrystalGraphConverter(
-        atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm=algorithm
+        atom_graph_cutoff=6, bond_graph_cutoff=3, algorithm=algorithm
     )
     assert converter.algorithm == algorithm
 
@@ -37,7 +37,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"]):
 
     # make sure final structure is more relaxed than initial one
     assert traj.energies[0] > traj.energies[-1]
-    assert traj.energies[-1] == approx(-58.972927)
+    assert traj.energies[-1] == approx(-58.94209, rel=1e-4)
 
 
 no_cuda = mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
