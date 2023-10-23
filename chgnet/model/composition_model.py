@@ -70,7 +70,7 @@ class CompositionModel(nn.Module):
             assembled batch_graph that contains all information for model.
         """
         composition_feas = []
-        for _graph_idx, graph in enumerate(graphs):
+        for graph in graphs:
             composition_fea = torch.bincount(
                 graph.atomic_number - 1, minlength=self.max_num_elements
             )
@@ -201,7 +201,7 @@ class AtomRef(nn.Module):
         """Initialize pre-fitted weights from a dataset."""
         if dataset in ["MPtrj", "MPtrj_e"]:
             self.initialize_from_MPtrj()
-        elif dataset in ["MPF"]:
+        elif dataset == "MPF":
             self.initialize_from_MPF()
         else:
             raise NotImplementedError(f"{dataset=} not supported yet")

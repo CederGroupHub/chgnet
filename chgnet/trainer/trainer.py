@@ -151,7 +151,7 @@ class Trainer:
                 eta_min=decay_fraction * learning_rate,
             )
             self.scheduler_type = "cos"
-        elif scheduler in ["CosRestartLR"]:
+        elif scheduler == "CosRestartLR":
             scheduler_params = kwargs.pop(
                 "scheduler_params", {"decay_fraction": 1e-2, "T_0": 10, "T_mult": 2}
             )
@@ -471,7 +471,7 @@ class Trainer:
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
         MAE = min(self.training_history["e"]["val"])
-        print(f"Best model has val {MAE = :.4}")
+        print(f"Best model has val {MAE =:.4}")
         return self.best_model
 
     @property
@@ -616,7 +616,7 @@ class CombinedLoss(nn.Module):
             self.criterion = nn.MSELoss()
         elif criterion in ["MAE", "mae", "l1"]:
             self.criterion = nn.L1Loss()
-        elif criterion in ["Huber"]:
+        elif criterion == "Huber":
             self.criterion = nn.HuberLoss(delta=delta)
         else:
             raise NotImplementedError

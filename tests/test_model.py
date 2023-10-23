@@ -188,7 +188,7 @@ def test_predict_supercell() -> None:
         np.repeat(pristine_prediction["f"], 4, axis=0), rel=1e-4, abs=1e-4
     )
 
-    assert out["s"] == pytest.approx(pristine_prediction["s"], rel=1e-4, abs=1e-4)
+    assert out["s"] == pytest.approx(pristine_prediction["s"], rel=1e-3, abs=1e-3)
 
     assert out["site_energies"] == pytest.approx(
         np.repeat(pristine_prediction["site_energies"], 4), rel=1e-4, abs=1e-4

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chgnet"
-version = "0.3.0"
+version = "0.3.1"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.9"
@@ -45,7 +45,7 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 
 [tool.setuptools.package-data]
 "chgnet" = ["*.json"]
-"chgnet.pretrained" = ["**/*"]
+"chgnet.pretrained" = ["*", "**/*"]
 
 [tool.ruff]
 target-version = "py39"
