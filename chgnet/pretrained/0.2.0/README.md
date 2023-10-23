@@ -70,5 +70,5 @@ trainer = Trainer(
 | partition  | Energy (meV/atom) | Force (meV/A) | stress (GPa) | magmom (muB) |
 | ---------- | ----------------- | ------------- | ------------ | ------------ |
 | Train      | 22                | 59            | 0.246        | 0.030        |
-| Validation | 20                | 75            | 0.350        | 0.033        |
+| Validation | 30                | 75            | 0.350        | 0.033        |
 | Test       | 30                | 77            | 0.348        | 0.032        |
