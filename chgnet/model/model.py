@@ -40,8 +40,8 @@ class CHGNet(nn.Module):
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
         composition_model: str | nn.Module = "MPtrj",
-        num_radial: int = 9,
-        num_angular: int = 9,
+        num_radial: int = 31,
+        num_angular: int = 31,
         n_conv: int = 4,
         atom_conv_hidden_dim: Sequence[int] | int = 64,
         update_bond: bool = True,
@@ -50,16 +50,18 @@ class CHGNet(nn.Module):
         angle_layer_hidden_dim: Sequence[int] | int = 0,
         conv_dropout: float = 0,
         read_out: str = "ave",
-        mlp_hidden_dims: Sequence[int] | int = (64, 64),
+        mlp_hidden_dims: Sequence[int] | int = (64, 64, 64),
         mlp_dropout: float = 0,
         mlp_first: bool = True,
         is_intensive: bool = True,
         non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "silu",
-        atom_graph_cutoff: float = 5,
+        atom_graph_cutoff: float = 6,
         bond_graph_cutoff: float = 3,
         graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
-        cutoff_coeff: int = 5,
+        cutoff_coeff: int = 8,
         learnable_rbf: bool = True,
+        gMLP_norm: str | None = "layer",
+        readout_norm: str | None = "layer",
         version: str | None = None,
         **kwargs,
     ) -> None:
@@ -138,6 +140,10 @@ class CHGNet(nn.Module):
             learnable_rbf (bool): whether to set the frequencies in rbf and Fourier
                 basis functions learnable.
                 Default = True
+            gMLP_norm (str): normalization layer to use in gate-MLP
+                Default = 'layer'
+            readout_norm (str): normalization layer to use before readout layer
+                Default = 'layer'
             version (str): Pretrained checkpoint version.
             **kwargs: Additional keyword arguments
         """
@@ -206,7 +212,6 @@ class CHGNet(nn.Module):
 
         # Define convolutional layers
         conv_norm = kwargs.pop("conv_norm", None)
-        gMLP_norm = kwargs.pop("gMLP_norm", None)
         mlp_out_bias = kwargs.pop("mlp_out_bias", False)
         atom_graph_layers = [
             AtomConv(
@@ -267,9 +272,7 @@ class CHGNet(nn.Module):
 
         # Define readout layer
         self.site_wise = nn.Linear(atom_fea_dim, 1)
-        self.readout_norm = find_normalization(
-            name=kwargs.pop("readout_norm", None), dim=atom_fea_dim
-        )
+        self.readout_norm = find_normalization(readout_norm, dim=atom_fea_dim)
         self.mlp_first = mlp_first
         if mlp_first:
             self.read_out_type = "sum"
