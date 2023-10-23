@@ -11,9 +11,9 @@ def graph() -> Graph:
     """Create a graph with 3 nodes and 3 directed edges."""
     nodes = [Node(index=idx) for idx in range(3)]
     graph = Graph(nodes)
-    graph.add_edge(0, 1, np.array([0, 0, 0]), 1.0)
-    graph.add_edge(0, 2, np.array([0, 0, 0]), 2.0)
-    graph.add_edge(1, 2, np.array([0, 0, 0]), 3.0)
+    graph.add_edge(0, 1, np.zeros(3), 1)
+    graph.add_edge(0, 2, np.zeros(3), 2)
+    graph.add_edge(1, 2, np.zeros(3), 3)
     return graph
 
 
@@ -55,14 +55,14 @@ def bigraph() -> Graph:
     """Create a bi-directional graph with 3 nodes and 4 bi-directed edges."""
     nodes = [Node(index=idx) for idx in range(3)]
     bigraph = Graph(nodes)
-    bigraph.add_edge(0, 1, np.array([0, 0, 0]), 1.0)
-    bigraph.add_edge(0, 2, np.array([0, 0, 0]), 2.0)
-    bigraph.add_edge(1, 0, np.array([0, 0, 0]), 1.0)
-    bigraph.add_edge(1, 2, np.array([0, 0, 0]), 5.0)
-    bigraph.add_edge(1, 1, np.array([0, 0, 1]), 4.0)
-    bigraph.add_edge(1, 1, np.array([0, 0, -1]), 4.0)
-    bigraph.add_edge(2, 0, np.array([0, 0, 0]), 2.0)
-    bigraph.add_edge(2, 1, np.array([0, 0, 0]), 5.0)
+    bigraph.add_edge(0, 1, np.zeros(3), 1)
+    bigraph.add_edge(0, 2, np.zeros(3), 2)
+    bigraph.add_edge(1, 0, np.zeros(3), 1)
+    bigraph.add_edge(1, 2, np.zeros(3), 5)
+    bigraph.add_edge(1, 1, np.array([0, 0, 1]), 4)
+    bigraph.add_edge(1, 1, np.array([0, 0, -1]), 4)
+    bigraph.add_edge(2, 0, np.zeros(3), 2)
+    bigraph.add_edge(2, 1, np.zeros(3), 5)
     return bigraph
 
 
@@ -97,7 +97,7 @@ def test_line_graph(bigraph: Graph) -> None:
 
 
 def test_directed_edge() -> None:
-    info = {"image": np.array([0, 0, 0]), "distance": 1.0}
+    info = {"image": np.zeros(3), "distance": 1}
     edge = DirectedEdge([0, 1], index=0, info=info)
     undirected = edge.make_undirected(index=0, info=info)
     assert edge == edge
@@ -111,7 +111,7 @@ def test_directed_edge() -> None:
 
 
 def test_undirected_edge() -> None:
-    info = {"image": np.array([0, 0, 0]), "distance": 1.0}
+    info = {"image": np.zeros(3), "distance": 1}
     edge = UndirectedEdge([0, 1], index=0, info=info)
     assert repr(edge) == f"UndirectedEdge(nodes=[0, 1], index=0, {info=})"
 

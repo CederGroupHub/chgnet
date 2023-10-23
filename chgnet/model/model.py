@@ -310,10 +310,9 @@ class CHGNet(nn.Module):
                 nn.Linear(in_features=mlp_hidden_dims[-1], out_features=1),
             )
 
-        print(
-            f"CHGNet initialized with {sum(p.numel() for p in self.parameters()):,} "
-            f"parameters"
-        )
+        n_params = sum(p.numel() for p in self.parameters())
+        version_str = f" v{version}" if version else ""
+        print(f"CHGNet{version_str} initialized with {n_params:,} parameters")
 
     @property
     def version(self) -> str | None:

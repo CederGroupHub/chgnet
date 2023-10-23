@@ -229,13 +229,13 @@ def test_model_load(capsys: pytest.CaptureFixture) -> None:
     model = CHGNet.load()
     assert model.version == "0.3.0"
     stdout, stderr = capsys.readouterr()
-    assert stdout == "CHGNet initialized with 412,525 parameters\n"
+    assert stdout == f"CHGNet v{model.version} initialized with 412,525 parameters\n"
     assert stderr == ""
 
     model = CHGNet.load(model_name="0.2.0")
     assert model.version == "0.2.0"
     stdout, stderr = capsys.readouterr()
-    assert stdout == "CHGNet initialized with 400,438 parameters\n"
+    assert stdout == f"CHGNet v{model.version} initialized with 400,438 parameters\n"
     assert stderr == ""
 
     model_name = "0.1.0"  # invalid
