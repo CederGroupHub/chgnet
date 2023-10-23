@@ -99,12 +99,15 @@ md = MolecularDynamics(
     trajectory="md_out.traj",
     logfile="md_out.log",
     loginterval=100,
-    use_device="cpu",  # use 'cuda' for faster MD
 )
 md.run(50)  # run a 0.1 ps MD simulation
 ```
 
-Visualize the magnetic moments after the MD run
+The MD defaults to CUDA if available, to manually set device to cpu or mps:
+`MolecularDynamics(use_device='cpu')`.
+
+MD outputs are saved to the ASE trajectory file, to visualize the MD trajectory
+and magnetic moments after the MD run:
 
 ```python
 from ase.io.trajectory import Trajectory
@@ -123,6 +126,9 @@ struct_with_chg = solve_charge_by_mag(structure)
 print(struct_with_chg)
 ```
 
+To manipulate the MD trajectory, convert to other data formats, calculate mean square displacement, etc,
+please refer to [ASE trajectory documentation](https://wiki.fysik.dtu.dk/ase/ase/io/trajectory.html).
+
 ### Structure Optimization
 
 `CHGNet` can perform fast structure optimization and provide site-wise magnetic moments. This makes it ideal for pre-relaxation and
@@ -134,7 +140,18 @@ from chgnet.model import StructOptimizer
 relaxer = StructOptimizer()
 result = relaxer.relax(structure)
 print("CHGNet relaxed structure", result["final_structure"])
+print("relaxed total energy in eV:", result['trajectory'].energies[-1])
 ```
+
+### Available Weights
+
+CHGNet 0.3.0 is released with new pretrained weights! (release date: 10/22/23)
+
+`CHGNet.load()` now loads `0.3.0` by default,
+previous `0.2.0` version can be loaded with `CHGNet.load('0.2.0')`
+
+- [CHGNet_0.3.0](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/pretrained/0.3.0/README.md)
+- [CHGNet_0.2.0](https://github.com/CederGroupHub/chgnet/blob/main/chgnet/pretrained/0.2.0/README.md)
 
 ### Model Training / Fine-tune
 
@@ -168,7 +185,9 @@ trainer = Trainer(
 trainer.train(train_loader, val_loader, test_loader)
 ```
 
-### Note
+#### Notes for Training
+
+Check [fine-tuning example notebook](https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb)
 
 1. The target quantity used for training should be energy/atom (not total energy) if you're fine-tuning the pretrained `CHGNet`.
 2. The pretrained dataset of `CHGNet` comes from GGA+U DFT with [`MaterialsProject2020Compatibility`](https://github.com/materialsproject/pymatgen/blob/v2023.2.28/pymatgen/entries/compatibility.py#L826-L1102) corrections applied.
