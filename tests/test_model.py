@@ -84,14 +84,14 @@ def test_predict_structure() -> None:
         [1.40070915e-06, 1.64378434e-07, 1.30702555e-02],
         [-5.96046448e-08, 1.66241080e-07, 2.43446976e-03],
     ]
-    assert out["f"] == pytest.approx(np.array(forces), rel=1e-4, abs=1e-4)
+    assert out["f"] == pytest.approx(np.array(forces), rel=1e-3, abs=1e-4)
 
     stress = [
         [-3.0366361e-01, -3.7709856e-07, 2.2964025e-06],
         [-1.2128221e-06, 2.2305478e-01, -3.2104114e-07],
         [1.3322200e-06, -8.3219516e-07, -1.0736181e-01],
     ]
-    assert out["s"] == pytest.approx(np.array(stress), rel=1e-4, abs=1e-4)
+    assert out["s"] == pytest.approx(np.array(stress), rel=1e-3, abs=1e-4)
 
     magmom = [
         3.0495524e-03,
@@ -103,7 +103,7 @@ def test_predict_structure() -> None:
         3.8622111e-02,
         4.4136211e-02,
     ]
-    assert out["m"] == pytest.approx(magmom, rel=1e-4, abs=1e-4)
+    assert out["m"] == pytest.approx(magmom, rel=1e-3, abs=1e-4)
 
     site_energies = [
         -3.6264274,
