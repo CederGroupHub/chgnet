@@ -106,8 +106,14 @@ def test_directed_edge() -> None:
     assert edge.index == 0
     assert repr(edge) == f"DirectedEdge(nodes=[0, 1], index=0, {info=})"
 
+    # test hashable
+    _ = {edge}
+
 
 def test_undirected_edge() -> None:
     info = {"image": np.array([0, 0, 0]), "distance": 1.0}
     edge = UndirectedEdge([0, 1], index=0, info=info)
     assert repr(edge) == f"UndirectedEdge(nodes=[0, 1], index=0, {info=})"
+
+    # test hashable
+    _ = {edge}
