@@ -26,6 +26,8 @@ from chgnet.model.layers import (
 if TYPE_CHECKING:
     from chgnet import PredTask
 
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 class CHGNet(nn.Module):
     """Crystal Hamiltonian Graph neural Network
@@ -58,9 +60,10 @@ class CHGNet(nn.Module):
         graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
         cutoff_coeff: int = 5,
         learnable_rbf: bool = True,
+        version: str | None = None,
         **kwargs,
     ) -> None:
-        """Initialize the CHGNet.
+        """Initialize CHGNet.
 
         Args:
             atom_fea_dim (int): atom feature vector embedding dimension.
@@ -135,6 +138,7 @@ class CHGNet(nn.Module):
             learnable_rbf (bool): whether to set the frequencies in rbf and Fourier
                 basis functions learnable.
                 Default = True
+            version (str): Pretrained checkpoint version.
             **kwargs: Additional keyword arguments
         """
         # Store model args for reconstruction
@@ -144,6 +148,8 @@ class CHGNet(nn.Module):
             if k not in ["self", "__class__", "kwargs"]
         }
         self.model_args.update(kwargs)
+        if version:
+            self.model_args["version"] = version
 
         super().__init__()
         self.atom_fea_dim = atom_fea_dim
@@ -305,6 +311,11 @@ class CHGNet(nn.Module):
             f"CHGNet initialized with {sum(p.numel() for p in self.parameters()):,} "
             f"parameters"
         )
+
+    @property
+    def version(self) -> str | None:
+        """Return the version of the loaded checkpoint."""
+        return self.model_args.get("version")
 
     def forward(
         self,
