@@ -222,7 +222,7 @@ class StructOptimizer:
                 A dictionary with 'final_structure' and 'trajectory'.
         """
         if isinstance(atoms, Structure):
-            atoms = AseAtomsAdaptor.get_atoms(atoms)
+            atoms = atoms.to_ase_atoms()
 
         atoms.calc = self.calculator  # assign model used to predict forces
 
@@ -432,7 +432,7 @@ class MolecularDynamics:
         self.ensemble = ensemble
         self.thermostat = thermostat
         if isinstance(atoms, (Structure, Molecule)):
-            atoms = AseAtomsAdaptor.get_atoms(atoms)
+            atoms = atoms.to_ase_atoms()
 
         self.atoms = atoms
         if isinstance(model, CHGNetCalculator):

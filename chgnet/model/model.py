@@ -26,6 +26,8 @@ from chgnet.model.layers import (
 if TYPE_CHECKING:
     from chgnet import PredTask
 
+module_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 class CHGNet(nn.Module):
     """Crystal Hamiltonian Graph neural Network
@@ -38,8 +40,8 @@ class CHGNet(nn.Module):
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
         composition_model: str | nn.Module = "MPtrj",
-        num_radial: int = 9,
-        num_angular: int = 9,
+        num_radial: int = 31,
+        num_angular: int = 31,
         n_conv: int = 4,
         atom_conv_hidden_dim: Sequence[int] | int = 64,
         update_bond: bool = True,
@@ -48,19 +50,22 @@ class CHGNet(nn.Module):
         angle_layer_hidden_dim: Sequence[int] | int = 0,
         conv_dropout: float = 0,
         read_out: str = "ave",
-        mlp_hidden_dims: Sequence[int] | int = (64, 64),
+        mlp_hidden_dims: Sequence[int] | int = (64, 64, 64),
         mlp_dropout: float = 0,
         mlp_first: bool = True,
         is_intensive: bool = True,
         non_linearity: Literal["silu", "relu", "tanh", "gelu"] = "silu",
-        atom_graph_cutoff: float = 5,
+        atom_graph_cutoff: float = 6,
         bond_graph_cutoff: float = 3,
         graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
-        cutoff_coeff: int = 5,
+        cutoff_coeff: int = 8,
         learnable_rbf: bool = True,
+        gMLP_norm: str | None = "layer",
+        readout_norm: str | None = "layer",
+        version: str | None = None,
         **kwargs,
     ) -> None:
-        """Initialize the CHGNet.
+        """Initialize CHGNet.
 
         Args:
             atom_fea_dim (int): atom feature vector embedding dimension.
@@ -135,6 +140,11 @@ class CHGNet(nn.Module):
             learnable_rbf (bool): whether to set the frequencies in rbf and Fourier
                 basis functions learnable.
                 Default = True
+            gMLP_norm (str): normalization layer to use in gate-MLP
+                Default = 'layer'
+            readout_norm (str): normalization layer to use before readout layer
+                Default = 'layer'
+            version (str): Pretrained checkpoint version.
             **kwargs: Additional keyword arguments
         """
         # Store model args for reconstruction
@@ -144,6 +154,8 @@ class CHGNet(nn.Module):
             if k not in ["self", "__class__", "kwargs"]
         }
         self.model_args.update(kwargs)
+        if version:
+            self.model_args["version"] = version
 
         super().__init__()
         self.atom_fea_dim = atom_fea_dim
@@ -200,7 +212,6 @@ class CHGNet(nn.Module):
 
         # Define convolutional layers
         conv_norm = kwargs.pop("conv_norm", None)
-        gMLP_norm = kwargs.pop("gMLP_norm", None)
         mlp_out_bias = kwargs.pop("mlp_out_bias", False)
         atom_graph_layers = [
             AtomConv(
@@ -261,9 +272,7 @@ class CHGNet(nn.Module):
 
         # Define readout layer
         self.site_wise = nn.Linear(atom_fea_dim, 1)
-        self.readout_norm = find_normalization(
-            name=kwargs.pop("readout_norm", None), dim=atom_fea_dim
-        )
+        self.readout_norm = find_normalization(readout_norm, dim=atom_fea_dim)
         self.mlp_first = mlp_first
         if mlp_first:
             self.read_out_type = "sum"
@@ -306,6 +315,11 @@ class CHGNet(nn.Module):
             f"parameters"
         )
 
+    @property
+    def version(self) -> str | None:
+        """Return the version of the loaded checkpoint."""
+        return self.model_args.get("version")
+
     def forward(
         self,
         graphs: Sequence[CrystalGraph],
@@ -313,12 +327,11 @@ class CHGNet(nn.Module):
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
         return_crystal_feas: bool = False,
-    ) -> dict:
+    ) -> dict[str, Tensor]:
         """Get prediction associated with input graphs
         Args:
             graphs (List): a list of CrystalGraphs
-            task (str): the prediction task
-                        eg: 'e', 'em', 'ef', 'efs', 'efsm'
+            task (str): the prediction task. One of 'e', 'em', 'ef', 'efs', 'efsm'.
                 Default = 'e'
             return_site_energies (bool): whether to return per-site energies,
                 only available if self.mlp_first == True
@@ -651,25 +664,27 @@ class CHGNet(nn.Module):
 
     @classmethod
     def load(cls, model_name="0.3.0"):
-        """Load pretrained CHGNet."""
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        if model_name == "0.3.0":
-            return cls.from_file(
-                os.path.join(
-                    current_dir,
-                    "../pretrained/0.3.0/chgnet_0.3.0_e29f68s314m37.pth.tar",
-                )
-            )
-        elif model_name == "0.2.0":  # noqa: RET505
-            return cls.from_file(
-                os.path.join(
-                    current_dir,
-                    "../pretrained/0.2.0/chgnet_0.2.0_e30f77s348m32.pth.tar",
-                ),
-                mlp_out_bias=True,
-            )
-        else:
+        """Load pretrained CHGNet model.
+
+        Args:
+            model_name (str, optional): Defaults to "0.3.0".
+
+        Raises:
+            ValueError: On unknown model_name.
+        """
+        checkpoint_path = {
+            "0.3.0": "../pretrained/0.3.0/chgnet_0.3.0_e29f68s314m37.pth.tar",
+            "0.2.0": "../pretrained/0.2.0/chgnet_0.2.0_e30f77s348m32.pth.tar",
+        }.get(model_name)
+
+        if checkpoint_path is None:
             raise ValueError(f"Unknown {model_name=}")
+
+        return cls.from_file(
+            os.path.join(module_dir, checkpoint_path),
+            mlp_out_bias=model_name == "0.2.0",
+            version=model_name,
+        )
 
 
 @dataclass
