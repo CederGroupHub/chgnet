@@ -14,6 +14,7 @@ from ase.constraints import ExpCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary
 from ase.md.verlet import VelocityVerlet
 from ase.optimize.bfgs import BFGS
 from ase.optimize.bfgslinesearch import BFGSLineSearch
@@ -355,6 +356,7 @@ class MolecularDynamics:
         ensemble: str = "nvt",
         thermostat: str = "Berendsen_inhomogeneous",
         temperature: int = 300,
+        starting_temperature: int | None = None,
         timestep: float = 2.0,
         pressure: float = 1.01325e-4,
         taut: float | None = None,
@@ -382,6 +384,10 @@ class MolecularDynamics:
                 Default = "Nose-Hoover"
             temperature (float): temperature for MD simulation, in K
                 Default = 300
+            starting_temperature (float): starting temperature of MD simulation, in K
+                if set as None, the MD starts with the momentum carried by ase.Atoms
+                if input is a pymatgen.core.Structure, the MD starts at 0K
+                Default = None
             timestep (float): time step in fs
                 Default = 2
             pressure (float): pressure in GPa
@@ -433,6 +439,12 @@ class MolecularDynamics:
         self.thermostat = thermostat
         if isinstance(atoms, (Structure, Molecule)):
             atoms = atoms.to_ase_atoms()
+
+        if starting_temperature is not None:
+            MaxwellBoltzmannDistribution(
+                atoms, temperature_K=starting_temperature, force_temp=True
+            )
+            Stationary(atoms)
 
         self.atoms = atoms
         if isinstance(model, CHGNetCalculator):
