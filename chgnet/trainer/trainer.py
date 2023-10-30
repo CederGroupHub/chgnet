@@ -63,8 +63,8 @@ class Trainer:
                 Default = 0.1
             mag_loss_ratio (float): magmom loss ratio in loss function
                 Default = 0.1
-            optimizer (str): optimizer to update model. Can be "Adam", "SGD", "AdamW", "RAdam"
-                Default = 'Adam'
+            optimizer (str): optimizer to update model. Can be "Adam", "SGD", "AdamW",
+                "RAdam". Default = 'Adam'
             scheduler (str): learning rate scheduler. Can be "CosLR", "ExponentialLR",
                 "CosRestartLR". Default = 'CosLR'
             criterion (str): loss function criterion. Can be "MSE", "Huber", "MAE"
@@ -216,7 +216,8 @@ class Trainer:
                 Default = None
             save_dir (str): the dir name to save the trained weights
                 Default = None
-            save_test_result (bool): whether to save the test set prediction in a json file
+            save_test_result (bool): Whether to save the test set prediction in a JSON
+                file. Default = False
             train_composition_model (bool): whether to train the composition model
                 (AtomRef), this is suggested when the fine-tuning dataset has large
                 elemental energy shift from the pretrained CHGNet, which typically comes

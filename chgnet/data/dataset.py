@@ -125,7 +125,8 @@ class StructureData(Dataset):
 
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another randomly selected structure
+            # Omit structures with isolated atoms. Return another randomly selected
+            # structure
             except Exception:
                 struct = self.structures[graph_id]
                 self.failed_graph_id[graph_id] = struct.composition.formula
@@ -491,7 +492,8 @@ class StructureJsonData(Dataset):
 
         Args:
             data (str | dict): file path or dir name that contain all the JSONs
-            graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure to graph
+            graph_converter (CrystalGraphConverter): Converts pymatgen.core.Structure
+                to CrystalGraph object.
             targets ("ef" | "efs" | "efm" | "efsm"): The training targets.
                 Default = "efsm"
             energy_key (str, optional): the key of energy in the labels.
@@ -575,7 +577,8 @@ class StructureJsonData(Dataset):
                             targets["m"] = torch.abs(torch.tensor(mag, dtype=datatype))
                 return crystal_graph, targets
 
-            # Omit structures with isolated atoms. Return another randomly selected structure
+            # Omit structures with isolated atoms. Return another randomly selected
+            # structure
             except Exception:
                 structure = Structure.from_dict(self.data[mp_id][graph_id]["structure"])
                 self.failed_graph_id[graph_id] = structure.composition.formula

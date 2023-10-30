@@ -345,9 +345,8 @@ def test_crystal_graph_stability_fast():
 def test_crystal_graph_repr():
     graph = converter_legacy(structure)
     assert (
-        repr(graph)
-        == "CrystalGraph(composition='Li2 Mn2 O4', atom_graph_cutoff=5, bond_graph_cutoff=3, "
-        "n_atoms=8, atom_graph_len=384, bond_graph_len=744)"
+        repr(graph) == "CrystalGraph(composition='Li2 Mn2 O4', atom_graph_cutoff=5, "
+        "bond_graph_cutoff=3, n_atoms=8, atom_graph_len=384, bond_graph_len=744)"
     )
 
 

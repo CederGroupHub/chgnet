@@ -46,7 +46,8 @@ class CompositionModel(nn.Module):
         """Predict the energy given composition encoding.
 
         Args:
-            composition_feas: batched atom feature matrix [batch_size, total_num_elements].
+            composition_feas: batched atom feature matrix of shape
+                [batch_size, total_num_elements].
 
         Returns:
             prediction associated with each composition [batchsize].
@@ -111,7 +112,8 @@ class AtomRef(nn.Module):
         """Predict the energy given composition encoding.
 
         Args:
-            composition_feas: batched atom feature matrix [batch_size, total_num_elements].
+            composition_feas: batched atom feature matrix of shape
+                [batch_size, total_num_elements].
 
         Returns:
             prediction associated with each composition [batchsize].

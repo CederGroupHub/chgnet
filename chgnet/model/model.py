@@ -534,8 +534,8 @@ class CHGNet(nn.Module):
         """Predict from pymatgen.core.Structure.
 
         Args:
-            structure (Structure | Sequence[Structure]): structure or a list of structures
-                to predict.
+            structure (Structure | Sequence[Structure]): structure or a list of
+                structures to predict.
             task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_site_energies (bool): whether to return per-site energies.
@@ -552,7 +552,8 @@ class CHGNet(nn.Module):
                 e (Tensor) : energy of structures float in eV/atom
                 f (Tensor) : force on atoms [num_atoms, 3] in eV/A
                 s (Tensor) : stress of structure [3, 3] in GPa
-                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr magneton mu_B
+                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr
+                    magneton mu_B
         """
         if self.graph_converter is None:
             raise ValueError("graph_converter cannot be None!")
@@ -598,7 +599,8 @@ class CHGNet(nn.Module):
                 e (Tensor) : energy of structures float in eV/atom
                 f (Tensor) : force on atoms [num_atoms, 3] in eV/A
                 s (Tensor) : stress of structure [3, 3] in GPa
-                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr magneton mu_B
+                m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr
+                    magneton mu_B
         """
         if not isinstance(graph, (CrystalGraph, Sequence)):
             raise ValueError(

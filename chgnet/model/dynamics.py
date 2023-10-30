@@ -424,8 +424,8 @@ class MolecularDynamics:
                 Default = None
             loginterval (int): write to log file every interval steps
                 Default = 1
-            crystal_feas_logfile (str): open this file for recording crystal features during MD
-                Default = None
+            crystal_feas_logfile (str): open this file for recording crystal features
+                during MD. Default = None
             append_trajectory (bool): Whether to append to prev trajectory.
                 If false, previous trajectory gets overwritten
                 Default = False
@@ -541,8 +541,8 @@ class MolecularDynamics:
                     bulk_modulus_au = eos.get_bulk_modulus(unit="eV/A^3")
                     compressibility_au = eos.get_compressibility(unit="A^3/eV")
                     print(
-                        f"Done bulk modulus calculation: "
-                        f"k = {round(bulk_modulus, 3)}GPa, {round(bulk_modulus_au, 3)}eV/A^3"
+                        f"Completed bulk modulus calculation: "
+                        f"k = {bulk_modulus:.3}GPa, {bulk_modulus_au:.3}eV/A^3"
                     )
                 except Exception:
                     bulk_modulus_au = 2 / 160.2176
@@ -667,8 +667,8 @@ class MolecularDynamics:
         while ASE's canonical description is lower-triangular cell.
 
         Args:
-            verbose (bool): Whether to notify user about upper-triangular cell transformation.
-                Default = False
+            verbose (bool): Whether to notify user about upper-triangular cell
+                transformation. Default = False
         """
         if not NPT._isuppertriangular(self.atoms.get_cell()):
             a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()

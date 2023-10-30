@@ -14,7 +14,8 @@ class AtomEmbedding(nn.Module):
 
         Args:
             atom_feature_dim (int): dimension of atomic embedding.
-            max_num_elements (int): maximum number of elements in the dataset. Default = 94
+            max_num_elements (int): maximum number of elements in the dataset.
+                Default = 94
         """
         super().__init__()
         self.embedding = nn.Embedding(max_num_elements, atom_feature_dim)
@@ -32,7 +33,9 @@ class AtomEmbedding(nn.Module):
 
 
 class BondEncoder(nn.Module):
-    """Encode a chemical bond given the position of two atoms using Gaussian Distance."""
+    """Encode a chemical bond given the positions of two atoms using Gaussian
+    distance.
+    """
 
     def __init__(
         self,

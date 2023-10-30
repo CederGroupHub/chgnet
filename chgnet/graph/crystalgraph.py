@@ -30,8 +30,8 @@ class CrystalGraph:
     ) -> None:
         """Initialize the crystal graph.
 
-        Attention! This data class is not intended to be created manually. CrystalGraph should
-        be returned by a CrystalGraphConverter
+        Attention! This data class is not intended to be created manually. CrystalGraph
+        should be returned by a CrystalGraphConverter
 
         Args:
             atomic_number (Tensor): the atomic numbers of atoms in the structure
@@ -92,7 +92,8 @@ class CrystalGraph:
         self.composition = composition
         if len(directed2undirected) != 2 * len(undirected2directed):
             raise ValueError(
-                f"{graph_id} number of directed indices != 2 * number of undirected indices!"
+                f"{graph_id} number of directed indices ({len(directed2undirected)}) !="
+                f" 2 * number of undirected indices ({2 * len(undirected2directed)})!"
             )
 
     def to(self, device: str = "cpu") -> CrystalGraph:

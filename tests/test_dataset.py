@@ -82,5 +82,6 @@ def test_structure_data_inconsistent_length():
 
     assert (
         str(exc.value)
-        == f"Inconsistent number of structures and labels: {len(structures)=}, {len(forces)=}"
+        == f"Inconsistent number of structures and labels: {len(structures)=}, "
+        f"{len(forces)=}"
     )

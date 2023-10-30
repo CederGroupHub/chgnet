@@ -89,8 +89,8 @@ class DirectedEdge(Edge):
             other (DirectedEdge): another DirectedEdge to compare to
 
         Returns:
-            bool: True if other is the same directed edge, or if other is the directed edge
-                with reverse direction of self, else False.
+            bool: True if other is the same directed edge, or if other is the directed
+                edge with reverse direction of self, else False.
         """
         self_img = (self.info or {}).get("image")
         other_img = (other.info or {}).get("image")

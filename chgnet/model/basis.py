@@ -172,8 +172,8 @@ class CutoffPolynomial(nn.Module):
             Default = 5
             cutoff_coeff (float): the strength of soft-Cutoff
             0 will disable the cutoff, returning 1 at every r
-            for positive numbers > 0, the smaller cutoff_coeff is, the faster this function
-                decays. Default = 5.
+            for positive numbers > 0, the smaller cutoff_coeff is, the faster this
+                function decays. Default = 5.
         """
         super().__init__()
         self.cutoff = cutoff
