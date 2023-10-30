@@ -51,10 +51,12 @@ def test_trainer(tmp_path) -> None:
         assert param.requires_grad is False
     assert test_dir.is_dir(), "Training dir was not created"
 
-    output_files = list(test_dir.iterdir())
-    for prefix in ("epoch", "bestE", "bestF"):
-        n_matches = sum(file.name.startswith(prefix) for file in output_files)
-        assert n_matches == 1
+    output_files = [file.name for file in test_dir.iterdir()]
+    for prefix in ("epoch", "bestE_", "bestF_"):
+        n_matches = sum(file.startswith(prefix) for file in output_files)
+        assert (
+            n_matches == 1
+        ), f"Expected 1 {prefix} file, found {n_matches} in {output_files}"
 
 
 def test_trainer_composition_model(tmp_path) -> None:

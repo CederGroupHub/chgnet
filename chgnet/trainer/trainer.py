@@ -508,15 +508,11 @@ class Trainer:
             if fname.startswith("epoch"):
                 os.remove(os.path.join(save_dir, fname))
 
-        rounded_mae_e = round(mae_error["e"] * 1000)
-        rounded_mae_f = round(mae_error["f"] * 1000)
-        rounded_mae_s = round(mae_error["s"] * 1000) if "s" in mae_error else "NA"
-        rounded_mae_m = round(mae_error["m"] * 1000) if "m" in mae_error else "NA"
-        filename = os.path.join(
-            save_dir,
-            f"epoch{epoch}_e{rounded_mae_e}f{rounded_mae_f}"
-            f"s{rounded_mae_s}m{rounded_mae_m}.pth.tar",
+        err_str = "_".join(
+            f"{key}{f'{mae_error[key] * 1000:.0f}' if key in mae_error else 'NA'}"
+            for key in "efsm"
         )
+        filename = os.path.join(save_dir, f"epoch{epoch}_{err_str}.pth.tar")
         self.save(filename=filename)
 
         # save the model if it has minimal val energy error or val force error
@@ -527,11 +523,7 @@ class Trainer:
                     os.remove(os.path.join(save_dir, fname))
             shutil.copyfile(
                 filename,
-                os.path.join(
-                    save_dir,
-                    f"bestE_epoch{epoch}_e{rounded_mae_e}f{rounded_mae_f}"
-                    f"s{rounded_mae_s}m{rounded_mae_m}.pth.tar",
-                ),
+                os.path.join(save_dir, f"bestE_epoch{epoch}_{err_str}.pth.tar"),
             )
         if mae_error["f"] == min(self.training_history["f"]["val"]):
             for fname in os.listdir(save_dir):
@@ -539,11 +531,7 @@ class Trainer:
                     os.remove(os.path.join(save_dir, fname))
             shutil.copyfile(
                 filename,
-                os.path.join(
-                    save_dir,
-                    f"bestF_epoch{epoch}_e{rounded_mae_e}f{rounded_mae_f}"
-                    f"s{rounded_mae_s}m{rounded_mae_m}.pth.tar",
-                ),
+                os.path.join(save_dir, f"bestF_epoch{epoch}_{err_str}.pth.tar"),
             )
 
     @classmethod
