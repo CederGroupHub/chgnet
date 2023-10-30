@@ -381,7 +381,7 @@ class MolecularDynamics:
                 Default = "nvt"
             thermostat (str): Thermostat to use
                 choose from "Nose-Hoover", "Berendsen", "Berendsen_inhomogeneous"
-                Default = "Nose-Hoover"
+                Default = "Berendsen_inhomogeneous"
             temperature (float): temperature for MD simulation, in K
                 Default = 300
             starting_temperature (float): starting temperature of MD simulation, in K
