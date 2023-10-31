@@ -310,14 +310,18 @@ class CHGNet(nn.Module):
                 nn.Linear(in_features=mlp_hidden_dims[-1], out_features=1),
             )
 
-        n_params = sum(p.numel() for p in self.parameters())
         version_str = f" v{version}" if version else ""
-        print(f"CHGNet{version_str} initialized with {n_params:,} parameters")
+        print(f"CHGNet{version_str} initialized with {self.n_params:,} parameters")
 
     @property
     def version(self) -> str | None:
         """Return the version of the loaded checkpoint."""
         return self.model_args.get("version")
+
+    @property
+    def n_params(self) -> int:
+        """Return the number of parameters in the model."""
+        return sum(p.numel() for p in self.parameters())
 
     def forward(
         self,
