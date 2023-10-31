@@ -24,6 +24,8 @@ DFT magnetic moments, which carry rich information about both local ionic enviro
 
 Pretrained CHGNet achieves SOTA performance on materials stability prediction from unrelaxed structures according to [Matbench Discovery](https://matbench-discovery.materialsproject.org) [[repo](https://github.com/janosh/matbench-discovery)].
 
+<slot name="metrics-table" />
+
 ## Example notebooks
 
 | Notebooks                                                                                                                                      | Google&nbsp;Colab                                                                                                                                        | Descriptions                                                                                                                                                                                                                                                                                                                                                                                              |

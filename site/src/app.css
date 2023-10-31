@@ -161,3 +161,10 @@ aside.toc.desktop {
 caption {
   display: block;
 }
+
+table {
+  display: block;
+  max-width: 100%;
+  overflow: scroll;
+  border-collapse: collapse;
+}
