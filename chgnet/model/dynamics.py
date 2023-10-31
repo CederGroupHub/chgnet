@@ -94,6 +94,16 @@ class CHGNetCalculator(Calculator):
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
 
+    @property
+    def version(self) -> str:
+        """The version of CHGNet."""
+        return self.model.version
+
+    @property
+    def n_params(self) -> int:
+        """The number of parameters in CHGNet."""
+        return self.model.n_params
+
     def calculate(
         self,
         atoms: Atoms | None = None,
@@ -184,6 +194,16 @@ class StructOptimizer:
                 use_device=use_device,
                 on_isolated_atoms=on_isolated_atoms,
             )
+
+    @property
+    def version(self) -> str:
+        """The version of CHGNet."""
+        return self.calculator.model.version
+
+    @property
+    def n_params(self) -> int:
+        """The number of parameters in CHGNet."""
+        return self.calculator.model.n_params
 
     def relax(
         self,
