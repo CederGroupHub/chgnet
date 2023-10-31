@@ -32,6 +32,13 @@ structure_2 = Structure.from_file(f"{ROOT}/examples/mp-1175469-Li9Co7O16.cif")
 chgnet = CHGNet.load()
 
 
+def test_version_and_params():
+    calculator = relaxer.calculator
+    model = calculator.model
+    assert relaxer.version == calculator.version == model.version
+    assert relaxer.n_params == calculator.n_params == model.n_params
+
+
 def test_eos():
     eos = EquationOfState()
     eos.fit(atoms=structure)
