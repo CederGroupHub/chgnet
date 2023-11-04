@@ -22,7 +22,7 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
-Pretrained CHGNet achieves SOTA performance on materials stability prediction from unrelaxed structures according to [Matbench Discovery](https://matbench-discovery.materialsproject.org) [[repo](https://github.com/janosh/matbench-discovery)].
+Pretrained CHGNet achieves leading performance on materials stability prediction from unrelaxed structures according to [Matbench Discovery](https://matbench-discovery.materialsproject.org) [[repo](https://github.com/janosh/matbench-discovery)].
 
 <slot name="metrics-table" />
 
@@ -50,9 +50,9 @@ if PyPI installation fails or you need the latest `main` branch commits, you can
 pip install git+https://github.com/CederGroupHub/chgnet
 ```
 
-## Docs
+## Tutorials and Docs
 
-View [API docs](https://cedergrouphub.github.io/chgnet/api).
+See [Video Tutorial](https://www.youtube.com/watch?v=tZAdMwsRUaQ) and [API docs](https://cedergrouphub.github.io/chgnet/api).
 
 ## Usage
 
