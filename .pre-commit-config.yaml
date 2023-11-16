@@ -4,7 +4,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.3
+    rev: v0.1.5
     hooks:
       - id: ruff
         args: [--fix]
@@ -36,7 +36,7 @@ repos:
         args: [--drop-empty-cells, --keep-output]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.3
+    rev: v3.1.0
     hooks:
       - id: prettier
         args: [--write] # edit files in-place
@@ -46,7 +46,7 @@ repos:
           - svelte
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.52.0
+    rev: v8.53.0
     hooks:
       - id: eslint
         types: [file]

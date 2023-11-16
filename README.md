@@ -22,7 +22,7 @@ CHGNet highlights its ability to study electron interactions and charge distribu
 in atomistic modeling with near DFT accuracy. The charge inference is realized by regularizing the atom features with
 DFT magnetic moments, which carry rich information about both local ionic environments and charge distribution.
 
-Pretrained CHGNet achieves leading performance on materials stability prediction from unrelaxed structures according to [Matbench Discovery](https://matbench-discovery.materialsproject.org) [[repo](https://github.com/janosh/matbench-discovery)].
+Pretrained CHGNet achieves excellent performance on materials stability prediction from unrelaxed structures according to [Matbench Discovery](https://matbench-discovery.materialsproject.org) [[repo](https://github.com/janosh/matbench-discovery)].
 
 <slot name="metrics-table" />
 
@@ -52,9 +52,9 @@ pip install git+https://github.com/CederGroupHub/chgnet
 
 ## Tutorials and Docs
 
-[![2023-11-02-sciML-webinar](https://github.com/CederGroupHub/chgnet/assets/30958850/49fe7d89-bf47-4ea0-aca6-f9014d2f41b8)](https://youtu.be/tZAdMwsRUaQ)
+[![2023-11-02-sciML-webinar](https://github.com/CederGroupHub/chgnet/assets/30958850/49fe7d89-bf47-4ea0-aca6-f9014d2f41b8)](https://youtu.be/Lm148F_1Dn4)
 
-See the [sciML webinar tutorial](https://www.youtube.com/watch?v=OwDyv1pPFMQ) on 2023-11-02 and [API docs](https://cedergrouphub.github.io/chgnet/api).
+See the [sciML webinar tutorial](https://youtu.be/Lm148F_1Dn4) on 2023-11-02 and [API docs](https://cedergrouphub.github.io/chgnet/api).
 
 ## Usage
 
