@@ -687,6 +687,9 @@ class CHGNet(nn.Module):
 
         return cls.from_file(
             os.path.join(module_dir, checkpoint_path),
+            # mlp_out_bias=True is set for backward compatible behavior but in rare
+            # cases causes unphysical jumps in bonding energy. see
+            # https://github.com/CederGroupHub/chgnet/issues/79
             mlp_out_bias=model_name == "0.2.0",
             version=model_name,
         )
@@ -753,7 +756,7 @@ class BatchedGraph:
             compute_stress (bool): whether to compute stress. Default = False
 
         Returns:
-            assembled batch_graph that is ready for batched forward pass in CHGNet
+            BatchedGraph: assembled graphs ready for batched CHGNet forward pass
         """
         atomic_numbers, atom_positions = [], []
         strains, volumes = [], []
@@ -772,7 +775,9 @@ class BatchedGraph:
             # Lattice
             if compute_stress:
                 strain = graph.lattice.new_zeros([3, 3], requires_grad=True)
-                lattice = graph.lattice @ (torch.eye(3).to(strain.device) + strain)
+                lattice = graph.lattice @ (
+                    torch.eye(3, dtype=datatype).to(strain.device) + strain
+                )
             else:
                 strain = None
                 lattice = graph.lattice
