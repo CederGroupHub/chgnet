@@ -775,7 +775,9 @@ class BatchedGraph:
             # Lattice
             if compute_stress:
                 strain = graph.lattice.new_zeros([3, 3], requires_grad=True)
-                lattice = graph.lattice @ (torch.eye(3).to(strain.device) + strain)
+                lattice = graph.lattice @ (
+                    torch.eye(3, dtype=datatype).to(strain.device) + strain
+                )
             else:
                 strain = None
                 lattice = graph.lattice
