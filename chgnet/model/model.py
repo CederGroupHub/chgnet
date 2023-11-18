@@ -687,6 +687,9 @@ class CHGNet(nn.Module):
 
         return cls.from_file(
             os.path.join(module_dir, checkpoint_path),
+            # mlp_out_bias=True is set for backward compatible behavior but in rare
+            # cases causes unphysical jumps in bonding energy. see
+            # https://github.com/CederGroupHub/chgnet/issues/79
             mlp_out_bias=model_name == "0.2.0",
             version=model_name,
         )
