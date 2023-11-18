@@ -756,7 +756,7 @@ class BatchedGraph:
             compute_stress (bool): whether to compute stress. Default = False
 
         Returns:
-            assembled batch_graph that is ready for batched forward pass in CHGNet
+            BatchedGraph: assembled graphs ready for batched CHGNet forward pass
         """
         atomic_numbers, atom_positions = [], []
         strains, volumes = [], []
