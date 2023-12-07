@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.filters import FrechetCellFilter
+from ase.filters import Filter, FrechetCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -89,7 +89,7 @@ class CHGNetCalculator(Calculator):
                 self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
 
         # Move the model to the specified device
-        self.model = (model or CHGNet.load()).to(self.device)
+        self.model = (model or CHGNet.load()).to(self.device).float()
         self.model.graph_converter.set_isolated_atom_response(on_isolated_atoms)
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
@@ -211,6 +211,7 @@ class StructOptimizer:
         fmax: float | None = 0.1,
         steps: int | None = 500,
         relax_cell: bool | None = True,
+        ase_filter: Filter = FrechetCellFilter,
         save_path: str | None = None,
         loginterval: int | None = 1,
         crystal_feas_save_path: str | None = None,
@@ -227,6 +228,10 @@ class StructOptimizer:
                 Default = 500
             relax_cell (bool | None): Whether to relax the cell as well.
                 Default = True
+            ase_filter (ase.filters.Filter): The filter to be applied to the atoms
+                object for relaxation. Default = FrechetCellFilter
+                Used to default to ExpCellFilter but was removed due to bug reported in
+                https://gitlab.com/ase/ase/-/merge_requests/3024.
             save_path (str | None): The path to save the trajectory.
                 Default = None
             loginterval (int | None): Interval for logging trajectory and crystal feas
@@ -255,7 +260,7 @@ class StructOptimizer:
                 cry_obs = CrystalFeasObserver(atoms)
 
             if relax_cell:
-                atoms = FrechetCellFilter(atoms)
+                atoms = ase_filter(atoms)
             optimizer = self.optimizer_class(atoms, **kwargs)
             optimizer.attach(obs, interval=loginterval)
 
@@ -271,7 +276,7 @@ class StructOptimizer:
         if crystal_feas_save_path:
             cry_obs.save(crystal_feas_save_path)
 
-        if isinstance(atoms, FrechetCellFilter):
+        if isinstance(atoms, Filter):
             atoms = atoms.atoms
         struct = AseAtomsAdaptor.get_structure(atoms)
         for key in struct.site_properties:
