@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.constraints import ExpCellFilter
+from ase.filters import FrechetCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -255,7 +255,7 @@ class StructOptimizer:
                 cry_obs = CrystalFeasObserver(atoms)
 
             if relax_cell:
-                atoms = ExpCellFilter(atoms)
+                atoms = FrechetCellFilter(atoms)
             optimizer = self.optimizer_class(atoms, **kwargs)
             optimizer.attach(obs, interval=loginterval)
 
@@ -271,7 +271,7 @@ class StructOptimizer:
         if crystal_feas_save_path:
             cry_obs.save(crystal_feas_save_path)
 
-        if isinstance(atoms, ExpCellFilter):
+        if isinstance(atoms, FrechetCellFilter):
             atoms = atoms.atoms
         struct = AseAtomsAdaptor.get_structure(atoms)
         for key in struct.site_properties:

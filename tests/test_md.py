@@ -34,7 +34,9 @@ chgnet = CHGNet.load()
 
 def test_version_and_params():
     calculator = relaxer.calculator
+    assert isinstance(calculator, CHGNetCalculator)
     model = calculator.model
+    assert isinstance(model, CHGNet)
     assert relaxer.version == calculator.version == model.version
     assert relaxer.n_params == calculator.n_params == model.n_params
 
@@ -43,10 +45,10 @@ def test_eos():
     eos = EquationOfState()
     eos.fit(atoms=structure)
 
-    assert eos.get_bulk_modulus() == approx(0.6501, rel=1e-4)
-    assert eos.get_bulk_modulus(unit="GPa") == approx(104.16, rel=1e-4)
-    assert eos.get_compressibility() == approx(1.5381, rel=1e-4)
-    assert eos.get_compressibility(unit="GPa^-1") == approx(0.00960, rel=1e-4)
+    assert eos.get_bulk_modulus() == approx(0.6481, rel=1e-4)
+    assert eos.get_bulk_modulus(unit="GPa") == approx(103.845, rel=1e-4)
+    assert eos.get_compressibility() == approx(1.5428, rel=1e-4)
+    assert eos.get_compressibility(unit="GPa^-1") == approx(0.0096296, rel=1e-4)
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])
@@ -250,7 +252,7 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, NPT)
-    assert md.bulk_modulus == approx(88.6389, rel=1e-2)
+    assert md.bulk_modulus == approx(91.14753, rel=1e-2)
     assert_allclose(
         md.dyn.externalstress,
         [-6.324e-07, -6.324e-07, -6.324e-07, 0.0, 0.0, 0.0],
