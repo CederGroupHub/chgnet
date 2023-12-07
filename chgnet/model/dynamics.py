@@ -228,9 +228,10 @@ class StructOptimizer:
                 Default = 500
             relax_cell (bool | None): Whether to relax the cell as well.
                 Default = True
-            ase_filter (ase.filters.Filter): The filter to be applied to the atoms
-                object for relaxation. Default = FrechetCellFilter
+            ase_filter (ase.filters.Filter): The filter to apply to the atoms object
+                for relaxation. Default = FrechetCellFilter
                 Used to default to ExpCellFilter but was removed due to bug reported in
+                https://gitlab.com/ase/ase/-/issues/1321 and fixed in
                 https://gitlab.com/ase/ase/-/merge_requests/3024.
             save_path (str | None): The path to save the trajectory.
                 Default = None
