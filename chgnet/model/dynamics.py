@@ -89,7 +89,7 @@ class CHGNetCalculator(Calculator):
                 self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
 
         # Move the model to the specified device
-        self.model = (model or CHGNet.load()).to(self.device).float()
+        self.model = (model or CHGNet.load()).to(self.device)
         self.model.graph_converter.set_isolated_atom_response(on_isolated_atoms)
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
