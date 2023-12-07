@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install cython
+          # install ase from main branch until FrechetCellFilter is release
+          # TODO remove pip install git+https://gitlab.com/ase/ase
+          pip install git+https://gitlab.com/ase/ase
           python setup.py build_ext --inplace
           pip install -e .[test]
 

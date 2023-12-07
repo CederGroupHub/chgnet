@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chgnet"
-version = "0.3.2"
+version = "0.3.3"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.9"
 readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
-    "ase@git+https://gitlab.com/ase/ase",
+    "ase",
     "cython>=0.29.26",
     "numpy>=1.21.6",
     "nvidia-ml-py3>=7.352.0",
