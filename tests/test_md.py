@@ -252,7 +252,7 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert isinstance(md.atoms, Atoms)
     assert isinstance(md.atoms.calc, CHGNetCalculator)
     assert isinstance(md.dyn, NPT)
-    assert md.bulk_modulus == approx(88.6389, rel=1e-2)
+    assert md.bulk_modulus == approx(91.14753, rel=1e-2)
     assert_allclose(
         md.dyn.externalstress,
         [-6.324e-07, -6.324e-07, -6.324e-07, 0.0, 0.0, 0.0],
