@@ -521,7 +521,7 @@ class CHGNet(nn.Module):
 
         # Normalize energy if model is intensive
         if self.is_intensive:
-            energy = energy / atoms_per_graph
+            energy /= atoms_per_graph
         prediction["e"] = energy
 
         return prediction
