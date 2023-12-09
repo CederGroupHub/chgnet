@@ -78,8 +78,7 @@ def calc_type_equal(
     # Make sure we don't include both GGA and GGA+U for the same mp_id
     if main_entry.parameters['is_hubbard'] != is_hubbard:
         print(f'{main_entry.entry_id}, {taskdoc.task_id} is_hubbard= {is_hubbard}')
-        trjdata.exception[
-            taskdoc.task_id] = f'is_hubbard inconsistent task is_hubbard={is_hubbard}'
+        trjdata.exception[taskdoc.task_id] = f'is_hubbard inconsistent task is_hubbard={is_hubbard}'
         return False
     elif is_hubbard == True:
         # If the task is calculated with GGA+U
@@ -90,8 +89,7 @@ def calc_type_equal(
                         taskdoc.calcs_reversed[0].input['incar']['LDAUU'])}
         if main_entry.parameters['hubbards'] != hubbards:
             thermo_hubbards = main_entry.parameters['hubbards']
-            trjdata.exception[
-                taskdoc.task_id] = f'hubbards inconsistent task hubbards={hubbards}, thermo hubbards={thermo_hubbards}'
+            trjdata.exception[taskdoc.task_id] = f'hubbards inconsistent task hubbards={hubbards}, thermo hubbards={thermo_hubbards}'
             return False
         else:
             # Check the energy convergence of the task wrt. the main entry
