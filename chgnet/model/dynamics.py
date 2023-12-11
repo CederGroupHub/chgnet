@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import inspect
 import io
 import pickle
 import sys
@@ -10,7 +11,6 @@ import numpy as np
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.filters import Filter, FrechetCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -32,6 +32,18 @@ from chgnet.utils import cuda_devices_sorted_by_free_mem
 if TYPE_CHECKING:
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
+
+try:
+    from ase.filters import Filter, FrechetCellFilter
+except ImportError:
+    print(
+        "We recommend using ase's unreleased FrechetCellFilter over ExpCellFilter for "
+        "CHGNet structural relaxation. ExpCellFilter has a bug in its calculation "
+        "of cell gradients which was fixed in FrechetCellFilter. Otherwise the two "
+        "are identical. ExpCellFilter was kept only for backwards compatibility and "
+        "should no longer be used. Run pip install git+https://gitlab.com/ase/ase to "
+        "install from main branch."
+    )
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet
@@ -211,7 +223,7 @@ class StructOptimizer:
         fmax: float | None = 0.1,
         steps: int | None = 500,
         relax_cell: bool | None = True,
-        ase_filter: Filter = FrechetCellFilter,
+        ase_filter: str | Filter = FrechetCellFilter,
         save_path: str | None = None,
         loginterval: int | None = 1,
         crystal_feas_save_path: str | None = None,
@@ -228,8 +240,8 @@ class StructOptimizer:
                 Default = 500
             relax_cell (bool | None): Whether to relax the cell as well.
                 Default = True
-            ase_filter (ase.filters.Filter): The filter to apply to the atoms object
-                for relaxation. Default = FrechetCellFilter
+            ase_filter (str | ase.filters.Filter): The filter to apply to the atoms
+                object for relaxation. Default = FrechetCellFilter
                 Used to default to ExpCellFilter but was removed due to bug reported in
                 https://gitlab.com/ase/ase/-/issues/1321 and fixed in
                 https://gitlab.com/ase/ase/-/merge_requests/3024.
@@ -248,6 +260,20 @@ class StructOptimizer:
             dict[str, Structure | TrajectoryObserver]:
                 A dictionary with 'final_structure' and 'trajectory'.
         """
+        if isinstance(ase_filter, str):
+            try:
+                import ase.filters
+
+                ase_filter = getattr(ase.filters, ase_filter)
+            except AttributeError as exc:
+                valid_filter_names = [
+                    name
+                    for name, cls in inspect.getmembers(ase.filters, inspect.isclass)
+                    if issubclass(cls, Filter)
+                ]
+                raise ValueError(
+                    f"Invalid {ase_filter=}, must be one of {valid_filter_names}. "
+                ) from exc
         if isinstance(atoms, Structure):
             atoms = atoms.to_ase_atoms()
 

@@ -117,7 +117,7 @@ class AtomConv(nn.Module):
 
         # smooth out message by bond_weights
         bond_weight = torch.index_select(bond_weights, 0, directed2undirected)
-        messages = messages * bond_weight
+        messages *= bond_weight
 
         # Aggregate messages
         new_atom_feas = aggregate(

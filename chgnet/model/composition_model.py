@@ -53,7 +53,7 @@ class CompositionModel(nn.Module):
             prediction associated with each composition [batchsize].
         """
         composition_feas = self.activation(self.fc1(composition_feas))
-        composition_feas = composition_feas + self.gated_mlp(composition_feas)
+        composition_feas += self.gated_mlp(composition_feas)
         return self.fc2(composition_feas).view(-1)
 
     def forward(self, graphs: list[CrystalGraph]) -> Tensor:
