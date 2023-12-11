@@ -10,7 +10,6 @@ import numpy as np
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.filters import Filter, FrechetCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -32,6 +31,18 @@ from chgnet.utils import cuda_devices_sorted_by_free_mem
 if TYPE_CHECKING:
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
+
+try:
+    from ase.filters import Filter, FrechetCellFilter
+except ImportError:
+    print(
+        "We recommend using ase's unreleased FrechetCellFilter over ExpCellFilter for "
+        "CHGNet structural relaxation. ExpCellFilter has a bug in its calculation "
+        "of cell gradients which was fixed in FrechetCellFilter. Otherwise the two "
+        "are identical. ExpCellFilter was kept only for backwards compatibility and "
+        "should no longer be used. Run pip install git+https://gitlab.com/ase/ase to "
+        "install from main branch."
+    )
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet
