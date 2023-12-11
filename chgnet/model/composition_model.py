@@ -77,7 +77,7 @@ class CompositionModel(nn.Module):
             )
             if self.is_intensive:
                 n_atom = graph.atomic_number.shape[0]
-                composition_fea /= n_atom
+                composition_fea = composition_fea / n_atom
             composition_feas.append(composition_fea)
         return torch.stack(composition_feas, dim=0)
 
@@ -150,7 +150,7 @@ class AtomRef(nn.Module):
                 atomic_number - 1, minlength=self.max_num_elements
             )
             if self.is_intensive:
-                composition_fea /= atomic_number.shape[0]
+                composition_fea = composition_fea / atomic_number.shape[0]
             composition_feas[index, :] = composition_fea
             e[index] = energy
 
@@ -181,7 +181,7 @@ class AtomRef(nn.Module):
             )
             if self.is_intensive:
                 n_atom = graph.atomic_number.shape[0]
-                composition_fea /= n_atom
+                composition_fea = composition_fea / n_atom
             composition_feas.append(composition_fea)
         return torch.stack(composition_feas, dim=0).float()
 

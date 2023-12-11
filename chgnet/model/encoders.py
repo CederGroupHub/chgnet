@@ -98,7 +98,7 @@ class BondEncoder(nn.Module):
         bond_vectors = center - neighbor
         bond_lengths = torch.norm(bond_vectors, dim=1)
         # Normalize the bond vectors
-        bond_vectors /= bond_lengths[:, None]
+        bond_vectors = bond_vectors / bond_lengths[:, None]
 
         # We create bond features only for undirected bonds
         # atom1 -> atom2 and atom2 -> atom1 should share same bond_basis
