@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import inspect
 import io
 import pickle
 import sys
@@ -222,7 +223,7 @@ class StructOptimizer:
         fmax: float | None = 0.1,
         steps: int | None = 500,
         relax_cell: bool | None = True,
-        ase_filter: Filter = FrechetCellFilter,
+        ase_filter: str | Filter = FrechetCellFilter,
         save_path: str | None = None,
         loginterval: int | None = 1,
         crystal_feas_save_path: str | None = None,
@@ -239,8 +240,8 @@ class StructOptimizer:
                 Default = 500
             relax_cell (bool | None): Whether to relax the cell as well.
                 Default = True
-            ase_filter (ase.filters.Filter): The filter to apply to the atoms object
-                for relaxation. Default = FrechetCellFilter
+            ase_filter (str | ase.filters.Filter): The filter to apply to the atoms
+                object for relaxation. Default = FrechetCellFilter
                 Used to default to ExpCellFilter but was removed due to bug reported in
                 https://gitlab.com/ase/ase/-/issues/1321 and fixed in
                 https://gitlab.com/ase/ase/-/merge_requests/3024.
@@ -259,6 +260,20 @@ class StructOptimizer:
             dict[str, Structure | TrajectoryObserver]:
                 A dictionary with 'final_structure' and 'trajectory'.
         """
+        if isinstance(ase_filter, str):
+            try:
+                import ase.filters
+
+                ase_filter = getattr(ase.filters, ase_filter)
+            except AttributeError as exc:
+                valid_filter_names = [
+                    name
+                    for name, cls in inspect.getmembers(ase.filters, inspect.isclass)
+                    if issubclass(cls, Filter)
+                ]
+                raise ValueError(
+                    f"Invalid {ase_filter=}, must be one of {valid_filter_names}. "
+                ) from exc
         if isinstance(atoms, Structure):
             atoms = atoms.to_ase_atoms()
 
