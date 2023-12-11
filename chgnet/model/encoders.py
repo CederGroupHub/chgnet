@@ -94,7 +94,7 @@ class BondEncoder(nn.Module):
             bond_vectors (Tensor): normalized bond vectors, for tracking the bond
                 directions [n_bond, 3]
         """
-        neighbor += image @ lattice
+        neighbor = neighbor + image @ lattice
         bond_vectors = center - neighbor
         bond_lengths = torch.norm(bond_vectors, dim=1)
         # Normalize the bond vectors
