@@ -226,23 +226,25 @@ def test_as_to_from_dict() -> None:
 
 
 def test_model_load_version_params(capsys: pytest.CaptureFixture) -> None:
-    model = CHGNet.load()
+    model = CHGNet.load(use_device="cpu")
     assert model.version == "0.3.0"
     assert model.n_params == 412_525
     stdout, stderr = capsys.readouterr()
     assert (
         stdout
-        == f"CHGNet v{model.version} initialized with {model.n_params:,} parameters\n"
+        == f"""CHGNet v{model.version} initialized with {model.n_params:,} parameters
+CHGNet will run on cpu\n"""
     )
     assert stderr == ""
 
-    model = CHGNet.load(model_name="0.2.0")
+    model = CHGNet.load(model_name="0.2.0", use_device="cpu")
     assert model.version == "0.2.0"
     assert model.n_params == 400_438
     stdout, stderr = capsys.readouterr()
     assert (
         stdout
-        == f"CHGNet v{model.version} initialized with {model.n_params:,} parameters\n"
+        == f"""CHGNet v{model.version} initialized with {model.n_params:,} parameters
+CHGNet will run on cpu\n"""
     )
     assert stderr == ""
 
