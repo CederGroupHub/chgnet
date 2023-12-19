@@ -7,7 +7,7 @@ import torch
 from pymatgen.core.structure import Structure
 
 from chgnet import utils
-from chgnet.data.dataset import StructureJsonData
+from chgnet.data.dataset import StructureData, StructureJsonData
 from chgnet.graph import CrystalGraphConverter
 
 datatype = torch.float32
@@ -21,7 +21,7 @@ random.seed(100)
 
 
 def make_graphs(
-    data: StructureJsonData,
+    data: StructureJsonData | StructureData,
     graph_dir: str,
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
@@ -40,7 +40,7 @@ def make_graphs(
     failed_graphs = []
     print(f"{len(data.keys)} graphs to make")
 
-    for i, (mp_id, graph_id) in enumerate(data.keys):
+    for idx, (mp_id, graph_id) in enumerate(data.keys):
         dic = make_one_graph(mp_id, graph_id, data, graph_dir)
         if dic is not False:  # graph made successfully
             if mp_id not in labels:
@@ -49,8 +49,8 @@ def make_graphs(
                 labels[mp_id][graph_id] = dic
         else:
             failed_graphs += [(mp_id, graph_id)]
-        if i % 1000 == 0:
-            print(i)
+        if idx % 1000 == 0:
+            print(idx)
 
     utils.write_json(labels, os.path.join(graph_dir, "labels.json"))
     utils.write_json(failed_graphs, os.path.join(graph_dir, "failed_graphs.json"))

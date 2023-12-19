@@ -15,9 +15,9 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
     """
     free_memories = []
     nvidia_smi.nvmlInit()
-    deviceCount = nvidia_smi.nvmlDeviceGetCount()
-    for i in range(deviceCount):
-        handle = nvidia_smi.nvmlDeviceGetHandleByIndex(i)
+    device_count = nvidia_smi.nvmlDeviceGetCount()
+    for idx in range(device_count):
+        handle = nvidia_smi.nvmlDeviceGetHandleByIndex(idx)
         info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
         free_memories.append(info.free)
     nvidia_smi.nvmlShutdown()

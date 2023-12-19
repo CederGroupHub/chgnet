@@ -297,7 +297,6 @@ class GraphData(Dataset):
         else:
             self.excluded_graph = []
 
-        self.keys = []
         self.keys = [
             (mp_id, graph_id) for mp_id, dic in self.labels.items() for graph_id in dic
         ]
@@ -488,7 +487,7 @@ class StructureJsonData(Dataset):
         stress_key: str = "stress",
         magmom_key: str = "magmom",
     ) -> None:
-        """Initialize the dataset by reading Json files.
+        """Initialize the dataset by reading JSON files.
 
         Args:
             data (str | dict): file path or dir name that contain all the JSONs
@@ -504,7 +503,6 @@ class StructureJsonData(Dataset):
                 Default = "stress".
             magmom_key (str, optional): the key of magmom in the labels.
                 Default = "magmom".
-
         """
         if isinstance(data, str):
             self.data = {}
@@ -521,7 +519,6 @@ class StructureJsonData(Dataset):
         else:
             raise ValueError(f"data must be JSON path or dictionary, got {type(data)}")
 
-        self.keys = []
         self.keys = [
             (mp_id, graph_id) for mp_id, dct in self.data.items() for graph_id in dct
         ]
