@@ -475,7 +475,7 @@ class GraphData(Dataset):
 
 class StructureJsonData(Dataset):
     """Read structure and targets from a JSON file.
-    This function is used to load MPtrj dataset.
+    This class is used to load the MPtrj dataset.
     """
 
     def __init__(

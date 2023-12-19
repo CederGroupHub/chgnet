@@ -687,7 +687,7 @@ class MolecularDynamics:
         self.timestep = timestep
         self.crystal_feas_logfile = crystal_feas_logfile
 
-    def run(self, steps: int):
+    def run(self, steps: int) -> None:
         """Thin wrapper of ase MD run.
 
         Args:
@@ -702,7 +702,7 @@ class MolecularDynamics:
         if self.crystal_feas_logfile:
             obs.save(self.crystal_feas_logfile)
 
-    def set_atoms(self, atoms: Atoms):
+    def set_atoms(self, atoms: Atoms) -> None:
         """Set new atoms to run MD.
 
         Args:
@@ -713,7 +713,7 @@ class MolecularDynamics:
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
 
-    def upper_triangular_cell(self, verbose: bool | None = False):
+    def upper_triangular_cell(self, verbose: bool | None = False) -> None:
         """Transform to upper-triangular cell.
         ASE Nose-Hoover implementation only supports upper-triangular cell
         while ASE's canonical description is lower-triangular cell.
