@@ -22,6 +22,7 @@ from chgnet.model.layers import (
     GraphAttentionReadOut,
     GraphPooling,
 )
+from chgnet.utils import cuda_devices_sorted_by_free_mem
 
 if TYPE_CHECKING:
     from chgnet import PredTask
@@ -668,11 +669,15 @@ class CHGNet(nn.Module):
         return CHGNet.from_dict(state["model"], **kwargs)
 
     @classmethod
-    def load(cls, model_name="0.3.0"):
+    def load(cls, model_name="0.3.0", use_device: str | None = None):
         """Load pretrained CHGNet model.
 
         Args:
             model_name (str, optional): Defaults to "0.3.0".
+            use_device (str, optional): The device to be used for predictions,
+                either "cpu", "cuda", or "mps". If not specified, the default device is
+                automatically selected based on the available options.
+                Default = None
 
         Raises:
             ValueError: On unknown model_name.
@@ -685,7 +690,7 @@ class CHGNet(nn.Module):
         if checkpoint_path is None:
             raise ValueError(f"Unknown {model_name=}")
 
-        return cls.from_file(
+        model = cls.from_file(
             os.path.join(module_dir, checkpoint_path),
             # mlp_out_bias=True is set for backward compatible behavior but in rare
             # cases causes unphysical jumps in bonding energy. see
@@ -693,6 +698,19 @@ class CHGNet(nn.Module):
             mlp_out_bias=model_name == "0.2.0",
             version=model_name,
         )
+
+        # Determine the device to use
+        if use_device == "mps" and torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
+            if device == "cuda":
+                device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+
+        # Move the model to the specified device
+        model = model.to(device)
+        print(f"CHGNet will run on {device}")
+        return model
 
 
 @dataclass
