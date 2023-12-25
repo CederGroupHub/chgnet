@@ -275,7 +275,8 @@ class StructOptimizer:
                     f"Invalid {ase_filter=}, must be one of {valid_filter_names}. "
                 ) from exc
         if isinstance(atoms, Structure):
-            atoms = atoms.to_ase_atoms()
+            atoms = AseAtomsAdaptor().get_atoms(atoms)
+            # atoms = atoms.to_ase_atoms()
 
         atoms.calc = self.calculator  # assign model used to predict forces
 
@@ -490,7 +491,8 @@ class MolecularDynamics:
         self.ensemble = ensemble
         self.thermostat = thermostat
         if isinstance(atoms, (Structure, Molecule)):
-            atoms = atoms.to_ase_atoms()
+            atoms = AseAtomsAdaptor().get_atoms(atoms)
+            # atoms = atoms.to_ase_atoms()
 
         if starting_temperature is not None:
             MaxwellBoltzmannDistribution(
