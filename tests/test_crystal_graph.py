@@ -24,7 +24,7 @@ def test_crystal_graph_legacy():
     assert converter_legacy.algorithm == "legacy"
     start = perf_counter()
     graph = converter_legacy(structure)
-    print("Legacy test_crystal_graph time:", perf_counter() - start)
+    print("Legacy test_crystal_graph time:", perf_counter() - start)  # noqa: T201
 
     assert graph.composition == "Li2 Mn2 O4"
     assert graph.atomic_number.tolist() == [3, 3, 25, 25, 8, 8, 8, 8]
@@ -50,7 +50,7 @@ def test_crystal_graph_fast():
     assert converter_fast.algorithm == "fast"
     start = perf_counter()
     graph = converter_fast(structure)
-    print("Fast test_crystal_graph time:", perf_counter() - start)
+    print("Fast test_crystal_graph time:", perf_counter() - start)  # noqa: T201
 
     assert graph.composition == "Li2 Mn2 O4"
     assert graph.atomic_number.tolist() == [3, 3, 25, 25, 8, 8, 8, 8]
@@ -80,7 +80,7 @@ def test_crystal_graph_different_cutoff_legacy():
 
     start = perf_counter()
     graph = converter_legacy_2(structure)
-    print("Legacy test_crystal_graph_different_cutoff time:", perf_counter() - start)
+    print("Legacy test_crystal_graph_different_cutoff time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [624, 2]
@@ -107,7 +107,7 @@ def test_crystal_graph_different_cutoff_fast():
 
     start = perf_counter()
     graph = converter_fast_2(structure)
-    print("Fast test_crystal_graph_different_cutoff time:", perf_counter() - start)
+    print("Fast test_crystal_graph_different_cutoff time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [624, 2]
@@ -133,7 +133,7 @@ def test_crystal_graph_perturb_legacy():
 
     start = perf_counter()
     graph = converter_legacy(structure_perturbed)
-    print("Legacy test_crystal_graph_perturb time:", perf_counter() - start)
+    print("Legacy test_crystal_graph_perturb time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [410, 2]
@@ -159,7 +159,7 @@ def test_crystal_graph_perturb_fast():
 
     start = perf_counter()
     graph = converter_fast(structure_perturbed)
-    print("Fast test_crystal_graph_perturb time:", perf_counter() - start)
+    print("Fast test_crystal_graph_perturb time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [410, 2]
@@ -184,7 +184,7 @@ def test_crystal_graph_isotropic_strained_legacy():
 
     start = perf_counter()
     graph = converter_legacy(structure_strained)
-    print("Legacy test_crystal_graph_isotropic_strained time:", perf_counter() - start)
+    print("Legacy test_crystal_graph_isotropic_strained time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [264, 2]
@@ -204,7 +204,7 @@ def test_crystal_graph_isotropic_strained_fast():
 
     start = perf_counter()
     graph = converter_fast(structure_strained)
-    print("Fast test_crystal_graph_isotropic_strained time:", perf_counter() - start)
+    print("Fast test_crystal_graph_isotropic_strained time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [264, 2]
@@ -224,7 +224,7 @@ def test_crystal_graph_anisotropic_strained_legacy():
 
     start = perf_counter()
     graph = converter_legacy(structure_strained)
-    print(
+    print(  # noqa: T201
         "Legacy test_crystal_graph_anisotropic_strained time:", perf_counter() - start
     )
 
@@ -246,7 +246,7 @@ def test_crystal_graph_anisotropic_strained_fast():
 
     start = perf_counter()
     graph = converter_fast(structure_strained)
-    print("Fast test_crystal_graph_anisotropic_strained time:", perf_counter() - start)
+    print("Fast test_crystal_graph_anisotropic_strained time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
     assert list(graph.atom_graph.shape) == [336, 2]
@@ -265,7 +265,7 @@ def test_crystal_graph_supercell_legacy():
 
     start = perf_counter()
     graph = converter_legacy(supercell)
-    print("Legacy test_crystal_graph_supercell time:", perf_counter() - start)
+    print("Legacy test_crystal_graph_supercell time:", perf_counter() - start)  # noqa: T201
 
     assert graph.composition == "Li48 Mn48 O96"
     assert list(graph.atom_frac_coord.shape) == [192, 3]
@@ -290,7 +290,7 @@ def test_crystal_graph_supercell_fast():
 
     start = perf_counter()
     graph = converter_fast(supercell)
-    print("Fast test_crystal_graph_supercell time:", perf_counter() - start)
+    print("Fast test_crystal_graph_supercell time:", perf_counter() - start)  # noqa: T201# noqa: T201
 
     assert graph.composition == "Li48 Mn48 O96"
     assert list(graph.atom_frac_coord.shape) == [192, 3]
@@ -323,7 +323,7 @@ def test_crystal_graph_stability_legacy():
             graph.directed2undirected.shape[0] == 2 * graph.undirected2directed.shape[0]
         )
         assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
-    print("Legacy test_crystal_graph_stability time:", total_time)
+    print("Legacy test_crystal_graph_stability time:", total_time)  # noqa: T201
 
 
 def test_crystal_graph_stability_fast():
@@ -339,7 +339,7 @@ def test_crystal_graph_stability_fast():
             graph.directed2undirected.shape[0] == 2 * graph.undirected2directed.shape[0]
         )
         assert graph.atom_graph.shape[0] == graph.directed2undirected.shape[0]
-    print("Fast test_crystal_graph_stability time:", total_time)
+    print("Fast test_crystal_graph_stability time:", total_time)  # noqa: T201
 
 
 def test_crystal_graph_repr():

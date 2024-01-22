@@ -63,15 +63,7 @@ def test_predict_structure() -> None:
         return_atom_feas=True,
         return_crystal_feas=True,
     )
-    assert sorted(out) == [
-        "atom_fea",
-        "crystal_fea",
-        "e",
-        "f",
-        "m",
-        "s",
-        "site_energies",
-    ]
+    assert sorted(out) == ["atom_fea", "crystal_fea", *"efms", "site_energies"]
     assert out["e"] == pytest.approx(-7.36769, rel=1e-4, abs=1e-4)
 
     forces = [
@@ -91,7 +83,6 @@ def test_predict_structure() -> None:
         [-1.2128221e-06, 2.2305478e-01, -3.2104114e-07],
         [1.3322200e-06, -8.3219516e-07, -1.0736181e-01],
     ]
-    print("stress", stress)
     assert out["s"] == pytest.approx(np.array(stress), rel=5e-3, abs=1e-4)
 
     magmom = [
@@ -154,15 +145,19 @@ def test_predict_structure_rotated(rotation_angle: float, axis: list) -> None:
     a, b, c = axis_normalized
 
     # Compute the skew-symmetric matrix K
-    K = np.array([[0, -c, b], [c, 0, -a], [-b, a, 0]])
+    skew_mat = np.array([[0, -c, b], [c, 0, -a], [-b, a, 0]])
 
     # Compute the rotation matrix using Rodrigues' formula
-    R = np.eye(3) + np.sin(theta) * K + (1 - np.cos(theta)) * np.dot(K, K)
+    rot_mat = (
+        np.eye(3)
+        + np.sin(theta) * skew_mat
+        + (1 - np.cos(theta)) * np.dot(skew_mat, skew_mat)
+    )
 
-    rotated_force = pristine_prediction["f"] @ R.transpose()
+    rotated_force = pristine_prediction["f"] @ rot_mat.transpose()
     assert out["f"] == pytest.approx(rotated_force, rel=1e-3, abs=1e-3)
 
-    rotated_stress = R @ pristine_prediction["s"] @ R.transpose()
+    rotated_stress = rot_mat @ pristine_prediction["s"] @ rot_mat.transpose()
     assert out["s"] == pytest.approx(rotated_stress, rel=1e-3, abs=1e-3)
 
     assert out["m"] == pytest.approx(pristine_prediction["m"], rel=1e-4, abs=1e-4)

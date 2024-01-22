@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 import pytest
 from pymatgen.core import Lattice, Structure
 from pytest import CaptureFixture
@@ -14,7 +16,7 @@ NaCl = Structure(lattice, species, coords)
 
 
 @pytest.fixture()
-def _set_make_graph():
+def _set_make_graph() -> None:
     # fixture to force make_graph to be None and then restore it after test
     from chgnet.graph import converter
 
@@ -27,7 +29,9 @@ def _set_make_graph():
 @pytest.mark.parametrize(
     "atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (5, None), (4, 2)]
 )
-def test_crystal_graph_converter_cutoff(atom_graph_cutoff, bond_graph_cutoff):
+def test_crystal_graph_converter_cutoff(
+    atom_graph_cutoff: float | None, bond_graph_cutoff: float | None
+):
     converter = CrystalGraphConverter(
         atom_graph_cutoff=atom_graph_cutoff, bond_graph_cutoff=bond_graph_cutoff
     )
@@ -36,14 +40,14 @@ def test_crystal_graph_converter_cutoff(atom_graph_cutoff, bond_graph_cutoff):
 
 
 @pytest.mark.parametrize("algorithm", ["legacy", "fast"])
-def test_crystal_graph_converter_algorithm(algorithm):
+def test_crystal_graph_converter_algorithm(algorithm: Literal["legacy", "fast"]):
     converter = CrystalGraphConverter(
         atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm=algorithm
     )
     assert converter.algorithm == algorithm
 
 
-def test_crystal_graph_converter_warns(_set_make_graph):
+def test_crystal_graph_converter_warns(_set_make_graph: None):
     with pytest.warns(UserWarning, match="Unknown algorithm='foobar', using `legacy`"):
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="foobar"

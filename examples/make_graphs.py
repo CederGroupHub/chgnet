@@ -59,12 +59,12 @@ def make_graphs(
 
 def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
     """Convert a structure to a CrystalGraph and save it."""
-    dic = data.data[mp_id].pop(graph_id)
-    struct = Structure.from_dict(dic.pop("structure"))
+    dct = data.data[mp_id].pop(graph_id)
+    struct = Structure.from_dict(dct.pop("structure"))
     try:
         graph = data.graph_converter(struct, graph_id=graph_id, mp_id=mp_id)
         torch.save(graph, os.path.join(graph_dir, f"{graph_id}.pt"))
-        return dic
+        return dct
     except Exception:
         return False
 

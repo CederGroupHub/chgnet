@@ -123,7 +123,6 @@ def test_md_nve(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert set(os.listdir()) == {"md_out.log", "md_out.traj"}
     with open("md_out.log") as log_file:
         logs = log_file.read()
-    print("nve logs", logs)
     assert logs == (
         "Time[ps]      Etot[eV]     Epot[eV]     Ekin[eV]    T[K]\n"
         "0.0000         -58.9415     -58.9415       0.0000     0.0\n"
@@ -308,8 +307,6 @@ def test_md_crystal_feas_log(
     assert isinstance(crystal_feas, list)
     assert len(crystal_feas) == 101
     assert len(crystal_feas[0]) == 64
-    print(crystal_feas[0][0], crystal_feas[0][1])
-    print(crystal_feas[10][0], crystal_feas[10][1])
     assert crystal_feas[0][0] == approx(-0.002082636, abs=1e-5)
     assert crystal_feas[0][1] == approx(-1.4285042, abs=1e-5)
     assert crystal_feas[10][0] == approx(-0.0020592688, abs=1e-5)

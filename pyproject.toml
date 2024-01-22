@@ -74,6 +74,7 @@ select = [
     "RUF",  # Ruff-specific rules
     "SIM",  # flake8-simplify
     "SLOT", # flakes8-slot
+    "T201",
     "TCH",  # flake8-type-checking
     "TID",  # tidy imports
     "TID",  # flake8-tidy-imports
@@ -82,25 +83,34 @@ select = [
     "YTT",  # flake8-2020
 ]
 ignore = [
+    "ANN001",  # TODO add missing type annotations
+    "ANN101",  # Missing type annotation for self in method
     "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
     "C408",    # unnecessary-collection-call
+    "COM812",  # trailing comma missing
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
+    "FBT001",  # Boolean positional argument in function
+    "FBT002",  # Boolean keyword argument in function
+    "NPY002",  # TODO replace legacy np.random.seed
     "PLR",     # pylint refactor
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "PT006",   # pytest-parametrize-names-wrong-type
     "PT011",   # pytest-raises-too-broad
     "PT013",   # pytest-incorrect-pytest-import
     "PT019",   # pytest-fixture-param-without-value
+    "PTH",     # prefer Path to os.path
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
 isort.split-on-trailing-comma = false
 
 [tool.ruff.per-file-ignores]
-"tests/*" = ["D103"]
-"examples/*" = ["E402", "I002"] # E402 Module level import not at top of file
+"tests/*" = ["ANN201", "D103", "INP001", "S101"]
+# E402 Module level import not at top of file
+"examples/*" = ["E402", "I002", "T201"]
+"chgnet/**/*" = ["T201"]
 "__init__.py" = ["F401"]
 
 

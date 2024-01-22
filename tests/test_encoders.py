@@ -15,7 +15,7 @@ bond_j = torch.tensor([[0, 1, 0], [1, 0, 0]])
 
 @pytest.mark.parametrize("atom_feature_dim", [16, 32, 64])
 @pytest.mark.parametrize("max_num_elements", [94, 89])
-def test_atom_embedding(atom_feature_dim: int, max_num_elements) -> None:
+def test_atom_embedding(atom_feature_dim: int, max_num_elements: int) -> None:
     atom_embedding = AtomEmbedding(atom_feature_dim, max_num_elements=max_num_elements)
     atomic_numbers = torch.tensor([6, 7, 8])
 
@@ -29,7 +29,7 @@ def test_atom_embedding(atom_feature_dim: int, max_num_elements) -> None:
 
 
 @pytest.mark.parametrize("atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (6, 4)])
-def test_bond_encoder(atom_graph_cutoff, bond_graph_cutoff) -> None:
+def test_bond_encoder(atom_graph_cutoff: float, bond_graph_cutoff: float) -> None:
     undirected2directed = torch.tensor([0, 1])
     image = torch.zeros((2, 3))
     lattice = torch.eye(3)
