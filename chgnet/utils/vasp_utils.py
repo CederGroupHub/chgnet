@@ -161,7 +161,8 @@ def solve_charge_by_mag(
     """Solve oxidation states by magmom.
 
     Args:
-        structure: input pymatgen structure
+        structure (Structure): pymatgen structure with magmoms in site_properties. Dict
+            key must be either magmom or final_magmom.
         default_ox (dict[str, float]): default oxidation state for elements.
             Default = dict(Li=1, O=-2)
         ox_ranges (dict[str, dict[tuple[float, float], int]]): user-defined range to
