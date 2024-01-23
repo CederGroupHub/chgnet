@@ -205,7 +205,7 @@ def solve_charge_by_mag(
 
     if solved_ox:
         total_charge = sum(ox_list)
-        print(f"Solvec oxidation state, total charge={total_charge}")
+        print(f"Solved oxidation state, {total_charge=}")
         out_structure.add_oxidation_state_by_site(ox_list)
         return out_structure
     print("Failed to solve oxidation state")
