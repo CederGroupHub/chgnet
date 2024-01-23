@@ -161,7 +161,8 @@ def solve_charge_by_mag(
     """Solve oxidation states by magmom.
 
     Args:
-        structure: input pymatgen structure
+        structure (Structure): pymatgen structure with magmoms in site_properties. Dict
+            key must be either magmom or final_magmom.
         default_ox (dict[str, float]): default oxidation state for elements.
             Default = dict(Li=1, O=-2)
         ox_ranges (dict[str, dict[tuple[float, float], int]]): user-defined range to
@@ -184,15 +185,15 @@ def solve_charge_by_mag(
         "Mn": {(0.5, 1.5): 2, (1.5, 2.5): 3, (2.5, 3.5): 4, (3.5, 4.2): 3, (4.2, 5): 2}
     }
 
-    mag = structure.site_properties.get(
-        "magmom", structure.site_properties.get("magmom")
+    magmoms = structure.site_properties.get(
+        "final_magmom", structure.site_properties.get("magmom")
     )
 
     for idx, site in enumerate(out_structure):
         assigned = False
         if site.species_string in ox_ranges:
             for (min_mag, max_mag), mag_ox in ox_ranges[site.species_string].items():
-                if mag[idx] >= min_mag and mag[idx] < max_mag:
+                if min_mag <= magmoms[idx] < max_mag:
                     ox_list.append(mag_ox)
                     assigned = True
                     break
@@ -204,7 +205,7 @@ def solve_charge_by_mag(
 
     if solved_ox:
         total_charge = sum(ox_list)
-        print(f"Solvec oxidation state, total charge={total_charge}")
+        print(f"Solved oxidation state, {total_charge=}")
         out_structure.add_oxidation_state_by_site(ox_list)
         return out_structure
     print("Failed to solve oxidation state")

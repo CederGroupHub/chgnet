@@ -1,25 +1,26 @@
 from __future__ import annotations
 
 import re
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import pytest
 import torch
 from ase.filters import ExpCellFilter, Filter, FrechetCellFilter
-from pymatgen.core import Structure
 from pytest import approx, mark, param
 
-from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
 
-structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
+if TYPE_CHECKING:
+    from pymatgen.core import Structure
 
 
 @pytest.mark.parametrize(
     "algorithm, ase_filter", [("legacy", FrechetCellFilter), ("fast", ExpCellFilter)]
 )
-def test_relaxation(algorithm: Literal["legacy", "fast"], ase_filter: Filter) -> None:
+def test_relaxation(
+    algorithm: Literal["legacy", "fast"], ase_filter: Filter, li_mn_o2: Structure
+) -> None:
     chgnet = CHGNet.load()
     converter = CrystalGraphConverter(
         atom_graph_cutoff=6, bond_graph_cutoff=3, algorithm=algorithm
@@ -28,7 +29,7 @@ def test_relaxation(algorithm: Literal["legacy", "fast"], ase_filter: Filter) ->
 
     chgnet.graph_converter = converter
     relaxer = StructOptimizer(model=chgnet)
-    result = relaxer.relax(structure, verbose=True, ase_filter=ase_filter)
+    result = relaxer.relax(li_mn_o2, verbose=True, ase_filter=ase_filter)
     assert list(result) == ["final_structure", "trajectory"]
 
     traj = result["trajectory"]
