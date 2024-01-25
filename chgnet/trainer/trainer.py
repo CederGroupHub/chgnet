@@ -467,7 +467,7 @@ class Trainer:
         print(message)
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
-    def get_best_model(self):
+    def get_best_model(self) -> CHGNet:
         """Get best model recorded in the trainer."""
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
@@ -476,7 +476,7 @@ class Trainer:
         return self.best_model
 
     @property
-    def _init_keys(self):
+    def _init_keys(self) -> list[str]:
         return [
             key
             for key in list(inspect.signature(Trainer.__init__).parameters)
@@ -680,13 +680,13 @@ class CombinedLoss(nn.Module):
         # Mag
         if self.mag_loss_ratio != 0 and "m" in targets:
             mag_preds, mag_targets = [], []
-            m_MAE_size = 0
+            m_mae_size = 0
             for mag_pred, mag_target in zip(prediction["m"], targets["m"]):
                 # exclude structures without magmom labels
                 if mag_target is not None:
                     mag_preds.append(mag_pred)
                     mag_targets.append(mag_target)
-                    m_MAE_size += mag_target.shape[0]
+                    m_mae_size += mag_target.shape[0]
             if mag_targets != []:
                 mag_preds = torch.cat(mag_preds, dim=0)
                 mag_targets = torch.cat(mag_targets, dim=0)
@@ -694,9 +694,9 @@ class CombinedLoss(nn.Module):
                     mag_targets, mag_preds
                 )
                 out["m_MAE"] = mae(mag_targets, mag_preds)
-                out["m_MAE_size"] = m_MAE_size
+                out["m_MAE_size"] = m_mae_size
             else:
                 out["m_MAE"] = torch.zeros([1])
-                out["m_MAE_size"] = m_MAE_size
+                out["m_MAE_size"] = m_mae_size
 
         return out

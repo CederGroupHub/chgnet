@@ -393,7 +393,7 @@ class CrystalFeasObserver:
         return len(self.crystal_feature_vectors)
 
     def save(self, filename: str) -> None:
-        """Save the crystal feature vectors to file."""
+        """Save the crystal feature vectors to filename in pickle format."""
         out_pkl = {"crystal_feas": self.crystal_feature_vectors}
         with open(filename, "wb") as file:
             pickle.dump(out_pkl, file)

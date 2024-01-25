@@ -645,31 +645,31 @@ class CHGNet(nn.Module):
 
         return predictions[0] if len(graphs) == 1 else predictions
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """Return the CHGNet weights and args in a dictionary."""
         return {"state_dict": self.state_dict(), "model_args": self.model_args}
 
-    def todict(self):
+    def todict(self) -> dict:
         """Needed for ASE JSON serialization when saving CHGNet potential to
         trajectory file (https://github.com/CederGroupHub/chgnet/issues/48).
         """
         return {"model_name": type(self).__name__, "model_args": self.model_args}
 
     @classmethod
-    def from_dict(cls, dict, **kwargs):
+    def from_dict(cls, dct: dict, **kwargs) -> CHGNet:
         """Build a CHGNet from a saved dictionary."""
-        chgnet = CHGNet(**dict["model_args"], **kwargs)
-        chgnet.load_state_dict(dict["state_dict"])
+        chgnet = CHGNet(**dct["model_args"], **kwargs)
+        chgnet.load_state_dict(dct["state_dict"])
         return chgnet
 
     @classmethod
-    def from_file(cls, path, **kwargs):
+    def from_file(cls, path, **kwargs) -> CHGNet:
         """Build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
         return CHGNet.from_dict(state["model"], **kwargs)
 
     @classmethod
-    def load(cls, model_name="0.3.0", use_device: str | None = None):
+    def load(cls, model_name="0.3.0", use_device: str | None = None) -> CHGNet:
         """Load pretrained CHGNet model.
 
         Args:

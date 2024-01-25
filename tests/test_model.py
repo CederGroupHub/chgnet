@@ -200,9 +200,9 @@ def test_predict_batched_structures() -> None:
     out = model.predict_structure(structs, return_site_energies=True)
     assert len(out) == len(structs)
     for preds in out:
-        for property in ["e", "f", "s", "m", "site_energies"]:
-            assert preds[property] == pytest.approx(
-                pristine_prediction[property], rel=1e-3, abs=1e-3
+        for prop in ["e", "f", "s", "m", "site_energies"]:
+            assert preds[prop] == pytest.approx(
+                pristine_prediction[prop], rel=1e-3, abs=1e-3
             )
 
 

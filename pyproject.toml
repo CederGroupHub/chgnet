@@ -84,13 +84,20 @@ select = [
 ]
 ignore = [
     "ANN001",  # TODO add missing type annotations
+    "ANN003",
     "ANN101",  # Missing type annotation for self in method
+    "ANN102",
     "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
+    "BLE001",
     "C408",    # unnecessary-collection-call
+    "C901",    # function is too complex
     "COM812",  # trailing comma missing
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
+    "DTZ005",  # use of datetime.now() without timezone
+    "EM",
+    "ERA001",  # found commented out code
     "FBT001",  # Boolean positional argument in function
     "FBT002",  # Boolean keyword argument in function
     "NPY002",  # TODO replace legacy np.random.seed
@@ -101,15 +108,19 @@ ignore = [
     "PT013",   # pytest-incorrect-pytest-import
     "PT019",   # pytest-fixture-param-without-value
     "PTH",     # prefer Path to os.path
+    "S301",    # pickle can be unsafe
+    "S310",
+    "TRY003",
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
 isort.split-on-trailing-comma = false
 
 [tool.ruff.per-file-ignores]
+"site/*" = ["INP001", "S602"]
 "tests/*" = ["ANN201", "D103", "INP001", "S101"]
 # E402 Module level import not at top of file
-"examples/*" = ["E402", "I002", "T201"]
+"examples/*" = ["E402", "I002", "INP001", "N816", "S101", "T201"]
 "chgnet/**/*" = ["T201"]
 "__init__.py" = ["F401"]
 
