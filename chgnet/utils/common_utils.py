@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 
 import nvidia_smi
 import torch
@@ -90,3 +91,20 @@ def write_json(dct: dict, filepath: str) -> dict:
     """
     with open(filepath, "w") as file:
         json.dump(dct, file)
+
+
+def mkdir(path: str) -> str:
+    """Make directory.
+
+    Args:
+        path (str): directory name
+
+    Returns:
+        path
+    """
+    folder = os.path.exists(path)
+    if not folder:
+        os.makedirs(path)
+    else:
+        print("Folder exists")
+    return path
