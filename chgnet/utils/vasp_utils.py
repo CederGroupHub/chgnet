@@ -20,7 +20,7 @@ def parse_vasp_dir(
     Args:
         file_root (str): the directory of the VASP calculation outputs
         check_electronic_convergence (bool): if set to True, this function will raise
-            Exception to VASP calculation that did not achieve
+            Exception to VASP calculation that did not achieve electronic convergence.
     """
     try:
         oszicar = Oszicar(f"{file_root}/OSZICAR")
@@ -148,7 +148,7 @@ def parse_vasp_dir(
             dataset["stress"].append(ionic_step["stress"])
 
     if dataset["uncorrected_total_energy"] == []:
-        raise Exception(f"No data parsed from {file_root}!")
+        raise RuntimeError(f"No data parsed from {file_root}!")
 
     return dataset
 

@@ -64,9 +64,10 @@ def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
     try:
         graph = data.graph_converter(struct, graph_id=graph_id, mp_id=mp_id)
         torch.save(graph, os.path.join(graph_dir, f"{graph_id}.pt"))
-        return dct
     except Exception:
         return False
+    else:
+        return dct
 
 
 def make_partition(
