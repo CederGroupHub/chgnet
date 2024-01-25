@@ -13,6 +13,9 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
 
     To get the device with the most free memory, use the last list item.
     """
+    if not torch.cuda.is_available():
+        return []
+
     free_memories = []
     nvidia_smi.nvmlInit()
     device_count = nvidia_smi.nvmlDeviceGetCount()
