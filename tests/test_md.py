@@ -280,10 +280,7 @@ def test_md_npt_nose_hoover(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert_allclose(logs, ref, rtol=1e-2, atol=1e-7)
 
 
-def test_md_crystal_feas_log(
-    tmp_path: Path,
-    monkeypatch: MonkeyPatch,
-):
+def test_md_crystal_feas_log(tmp_path: Path, monkeypatch: MonkeyPatch):
     monkeypatch.chdir(tmp_path)  # run MD in temporary directory
 
     md = MolecularDynamics(
@@ -293,13 +290,13 @@ def test_md_crystal_feas_log(
         timestep=2,  # in fs
         trajectory="md_out.traj",
         logfile="md_out.log",
-        crystal_feas_logfile="md_crystal_feas.p",
+        crystal_feas_logfile=(logfile := "md_crystal_feas.pkl"),
         loginterval=1,
     )
     md.run(100)
 
-    assert os.path.isfile("md_crystal_feas.p")
-    with open("md_crystal_feas.p", "rb") as file:
+    assert os.path.isfile(logfile)
+    with open(logfile, "rb") as file:
         data = pickle.load(file)
 
     crystal_feas = data["crystal_feas"]
