@@ -669,16 +669,23 @@ class CHGNet(nn.Module):
         return CHGNet.from_dict(state["model"], **kwargs)
 
     @classmethod
-    def load(cls, model_name="0.3.0", use_device: str | None = None) -> CHGNet:
+    def load(
+        cls,
+        model_name="0.3.0",
+        use_device: str | None = None,
+        verbose: bool = True,
+    ) -> CHGNet:
         """Load pretrained CHGNet model.
 
         Args:
-            model_name (str, optional): Defaults to "0.3.0".
+            model_name (str, optional):
+                Default = "0.3.0".
             use_device (str, optional): The device to be used for predictions,
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
                 Default = None
-
+            verbose (bool): whether to print model device information
+                Default = True
         Raises:
             ValueError: On unknown model_name.
         """
@@ -709,7 +716,8 @@ class CHGNet(nn.Module):
 
         # Move the model to the specified device
         model = model.to(device)
-        print(f"CHGNet will run on {device}")
+        if verbose:
+            print(f"CHGNet will run on {device}")
         return model
 
 
