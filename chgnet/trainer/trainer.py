@@ -643,7 +643,7 @@ class CombinedLoss(nn.Module):
         """
         out = {"loss": 0.0}
         # Energy
-        if self.energy_loss_ratio != 0 and "e" in targets:
+        if "e" in targets:
             if self.is_intensive:
                 out["loss"] += self.energy_loss_ratio * self.criterion(
                     targets["e"], prediction["e"]
@@ -658,7 +658,7 @@ class CombinedLoss(nn.Module):
                 out["e_MAE_size"] = prediction["e"].shape[0]
 
         # Force
-        if self.force_loss_ratio != 0 and "f" in targets:
+        if "f" in targets:
             forces_pred = torch.cat(prediction["f"], dim=0)
             forces_target = torch.cat(targets["f"], dim=0)
             out["loss"] += self.force_loss_ratio * self.criterion(
@@ -668,7 +668,7 @@ class CombinedLoss(nn.Module):
             out["f_MAE_size"] = forces_target.shape[0]
 
         # Stress
-        if self.stress_loss_ratio != 0 and "s" in targets:
+        if "s" in targets:
             stress_pred = torch.cat(prediction["s"], dim=0)
             stress_target = torch.cat(targets["s"], dim=0)
             out["loss"] += self.stress_loss_ratio * self.criterion(
@@ -678,7 +678,7 @@ class CombinedLoss(nn.Module):
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag
-        if self.mag_loss_ratio != 0 and "m" in targets:
+        if "m" in targets:
             mag_preds, mag_targets = [], []
             m_mae_size = 0
             for mag_pred, mag_target in zip(prediction["m"], targets["m"]):
