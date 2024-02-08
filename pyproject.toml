@@ -85,8 +85,6 @@ select = [
 ignore = [
     "ANN001",  # TODO add missing type annotations
     "ANN003",
-    "ANN101",  # Missing type annotation for self in method
-    "ANN102",
     "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
     "BLE001",
     "C408",    # unnecessary-collection-call
