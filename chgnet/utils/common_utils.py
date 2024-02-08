@@ -73,7 +73,7 @@ def read_json(filepath: str) -> dict:
         filepath (str): file name of json to read.
 
     Returns:
-        dictionary stored in fjson
+        dict: data stored in filepath
     """
     with open(filepath) as file:
         return json.load(file)

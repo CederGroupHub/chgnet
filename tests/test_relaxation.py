@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from typing import TYPE_CHECKING, Literal
 
@@ -44,12 +45,16 @@ def test_relaxation(
 
 
 no_cuda = mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
-no_mps = mark.skipif(not torch.backends.mps.is_available(), reason="No MPS device")
+# skip in macos-14 M1 CI due to OOM error (TODO investigate if
+# PYTORCH_MPS_HIGH_WATERMARK_RATIO can fix)
+no_mps = mark.skipif(
+    not torch.backends.mps.is_available() or "CI" in os.environ, reason="No MPS device"
+)
 
 
 @mark.parametrize(
     "use_device", ["cpu", param("cuda", marks=no_cuda), param("mps", marks=no_mps)]
 )
-def test_structure_optimizer_passes_kwargs_to_model(use_device) -> None:
+def test_structure_optimizer_passes_kwargs_to_model(use_device: str) -> None:
     relaxer = StructOptimizer(use_device=use_device)
     assert re.match(rf"{use_device}(:\d+)?", relaxer.calculator.device)
