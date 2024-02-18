@@ -20,4 +20,8 @@
   :global(a:has(img[alt='Docs'])) {
     display: none;
   }
+  /* hide proprietary models */
+  :global(table tr:has(.proprietary)) {
+    display: none;
+  }
 </style>

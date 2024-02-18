@@ -12,14 +12,14 @@
     $page.url.pathname === `${base}/api` ? `h1, h2, h3, h4` : `h2`
   }):not(.toc-exclude)`
 
-  const file_routes = Object.keys(import.meta.glob(`./**/+page.{svx,svelte,md}`))
+  const file_routes = Object.keys(import.meta.glob(`./*/+page.{svx,svelte,md}`))
     .filter((key) => !key.includes(`/[`))
     .map((filename) => {
       const parts = filename.split(`/`)
       return `/` + parts.slice(1, -1).join(`/`)
     })
 
-  const actions = file_routes.map((name) => {
+  const actions = [`/`, ...file_routes].map((name) => {
     return { label: name, action: () => goto(`${base}${name.toLowerCase()}`) }
   })
 </script>

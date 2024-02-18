@@ -216,6 +216,7 @@ class StructOptimizer:
         loginterval: int | None = 1,
         crystal_feas_save_path: str | None = None,
         verbose: bool = True,
+        assign_magmoms: bool = True,
         **kwargs,
     ) -> dict[str, Structure | TrajectoryObserver]:
         """Relax the Structure/Atoms until maximum force is smaller than fmax.
@@ -242,6 +243,8 @@ class StructOptimizer:
                 Default = None
             verbose (bool): Whether to print the output of the ASE optimizer.
                 Default = True
+            assign_magmoms (bool): Whether to assign magnetic moments to the final
+                structure. Default = True
             **kwargs: Additional parameters for the optimizer.
 
         Returns:
@@ -260,8 +263,8 @@ class StructOptimizer:
                 ase_filter = "ExpCellFilter"
             print(
                 "Failed to import ase.filters. Default filter to ExpCellFilter. "
-                "For better relaxation accuracy with the new FrechetCellFilter,"
-                "Run pip install git+https://gitlab.com/ase/ase"
+                "For better relaxation accuracy with the new FrechetCellFilter, "
+                "run pip install git+https://gitlab.com/ase/ase"
             )
         valid_filter_names = [
             name
@@ -291,7 +294,7 @@ class StructOptimizer:
 
             if relax_cell:
                 atoms = ase_filter(atoms)
-            optimizer = self.optimizer_class(atoms, **kwargs)
+            optimizer: Optimizer = self.optimizer_class(atoms, **kwargs)
             optimizer.attach(obs, interval=loginterval)
 
             if crystal_feas_save_path:
@@ -309,11 +312,13 @@ class StructOptimizer:
         if isinstance(atoms, Filter):
             atoms = atoms.atoms
         struct = AseAtomsAdaptor.get_structure(atoms)
-        for key in struct.site_properties:
-            struct.remove_site_property(property_name=key)
-        struct.add_site_property(
-            "magmom", [float(magmom) for magmom in atoms.get_magnetic_moments()]
-        )
+
+        if assign_magmoms:
+            for key in struct.site_properties:
+                struct.remove_site_property(property_name=key)
+            struct.add_site_property(
+                "magmom", [float(magmom) for magmom in atoms.get_magnetic_moments()]
+            )
         return {"final_structure": struct, "trajectory": obs}
 
 
@@ -336,7 +341,7 @@ class TrajectoryObserver:
         self.atom_positions: list[np.ndarray] = []
         self.cells: list[np.ndarray] = []
 
-    def __call__(self):
+    def __call__(self) -> None:
         """The logic for saving the properties of an Atoms during the relaxation."""
         self.energies.append(self.compute_energy())
         self.forces.append(self.atoms.get_forces())
@@ -792,7 +797,7 @@ class EquationOfState:
         steps: int | None = 500,
         verbose: bool | None = False,
         **kwargs,
-    ):
+    ) -> None:
         """Relax the Structure/Atoms and fit the Birch-Murnaghan equation of state.
 
         Args:
@@ -839,7 +844,7 @@ class EquationOfState:
         self.bm.fit()
         self.fitted = True
 
-    def get_bulk_modulus(self, unit: str = "eV/A^3"):
+    def get_bulk_modulus(self, unit: str = "eV/A^3") -> float:
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
 
         Args:
@@ -859,7 +864,7 @@ class EquationOfState:
             return self.bm.b0_GPa
         raise NotImplementedError("unit has to be eV/A^3 or GPa")
 
-    def get_compressibility(self, unit: str = "A^3/eV"):
+    def get_compressibility(self, unit: str = "A^3/eV") -> float:
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
 
         Args:
@@ -878,6 +883,6 @@ class EquationOfState:
             return 1 / self.bm.b0
         if unit == "GPa^-1":
             return 1 / self.bm.b0_GPa
-        if unit in ["Pa^-1", "m^2/N"]:
+        if unit in ("Pa^-1", "m^2/N"):
             return 1 / (self.bm.b0_GPa * 1e9)
         raise NotImplementedError("unit has to be one of A^3/eV, GPa^-1 Pa^-1 or m^2/N")
