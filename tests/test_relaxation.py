@@ -2,25 +2,27 @@ from __future__ import annotations
 
 import os
 import re
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import pytest
 import torch
 from ase.filters import ExpCellFilter, Filter, FrechetCellFilter
+from pymatgen.core import Structure
 from pytest import approx, mark, param
 
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
 
-if TYPE_CHECKING:
-    from pymatgen.core import Structure
-
 
 @pytest.mark.parametrize(
-    "algorithm, ase_filter", [("legacy", FrechetCellFilter), ("fast", ExpCellFilter)]
+    "algorithm, ase_filter, assign_magmoms",
+    [("legacy", FrechetCellFilter, True), ("fast", ExpCellFilter, False)],
 )
 def test_relaxation(
-    algorithm: Literal["legacy", "fast"], ase_filter: Filter, li_mn_o2: Structure
+    algorithm: Literal["legacy", "fast"],
+    ase_filter: Filter,
+    assign_magmoms: bool,
+    li_mn_o2: Structure,
 ) -> None:
     chgnet = CHGNet.load()
     converter = CrystalGraphConverter(
@@ -30,10 +32,21 @@ def test_relaxation(
 
     chgnet.graph_converter = converter
     relaxer = StructOptimizer(model=chgnet)
-    result = relaxer.relax(li_mn_o2, verbose=True, ase_filter=ase_filter)
+    result = relaxer.relax(
+        li_mn_o2, verbose=True, ase_filter=ase_filter, assign_magmoms=assign_magmoms
+    )
     assert list(result) == ["final_structure", "trajectory"]
+    final_struct, traj = result["final_structure"], result["trajectory"]
+    assert isinstance(final_struct, Structure)
+    if assign_magmoms:
+        assert isinstance(final_struct.site_properties["magmom"], list)
+        assert len(final_struct.site_properties["magmom"]) == len(final_struct)
+        assert all(
+            isinstance(mm, float) for mm in final_struct.site_properties["magmom"]
+        )
+    else:
+        assert "magmom" not in final_struct.site_properties
 
-    traj = result["trajectory"]
     # make sure trajectory has expected attributes
     assert {*traj.__dict__} == {
         *"atoms energies forces stresses magmoms atom_positions cells".split()
