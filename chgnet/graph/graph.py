@@ -52,7 +52,7 @@ class Edge(ABC):
     def __hash__(self) -> int:
         """Hash this edge."""
         img = (self.info or {}).get("image")
-        img_str = "" if img is None else img.tostring()
+        img_str = "" if img is None else img.tobytes()
         return hash((self.nodes[0], self.nodes[1], img_str))
 
     @abstractmethod

@@ -33,7 +33,7 @@ class CrystalGraphConverter(nn.Module):
 
     def __init__(
         self,
-        atom_graph_cutoff: float = 5,
+        atom_graph_cutoff: float = 6,
         bond_graph_cutoff: float = 3,
         algorithm: Literal["legacy", "fast"] = "fast",
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "error",
