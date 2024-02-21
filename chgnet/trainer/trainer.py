@@ -654,7 +654,9 @@ class CombinedLoss(nn.Module):
             else:
                 e_per_atom_target = targets["e"] / prediction["atoms_per_graph"]
                 e_per_atom_pred = prediction["e"] / prediction["atoms_per_graph"]
-                out["loss"] += self.criterion(e_per_atom_target, e_per_atom_pred)
+                out["loss"] += self.energy_loss_ratio * self.criterion(
+                    e_per_atom_target, e_per_atom_pred
+                )
                 out["e_MAE"] = mae(e_per_atom_target, e_per_atom_pred)
                 out["e_MAE_size"] = prediction["e"].shape[0]
 
