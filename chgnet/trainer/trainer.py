@@ -188,7 +188,7 @@ class Trainer:
             self.device = "cpu"
         if self.device == "cuda":
             # Determine cuda device with most available memory
-            device_with_most_available_memory = cuda_devices_sorted_by_free_mem()[0]
+            device_with_most_available_memory = cuda_devices_sorted_by_free_mem()[-1]
             self.device = f"cuda:{device_with_most_available_memory}"
 
         self.print_freq = print_freq
