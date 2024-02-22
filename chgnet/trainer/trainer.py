@@ -263,7 +263,8 @@ class Trainer:
             print("---------Evaluate Model on Test Set---------------")
             for file in os.listdir(save_dir):
                 if file.startswith("bestE_"):
-                    best_checkpoint = torch.load(os.path.join(save_dir, file))
+                    test_file = file
+                    best_checkpoint = torch.load(os.path.join(save_dir, test_file))
 
             self.model.load_state_dict(best_checkpoint["model"]["state_dict"])
             if save_test_result:
@@ -274,8 +275,10 @@ class Trainer:
                 test_mae = self._validate(
                     test_loader, is_test=True, test_result_save_path=None
                 )
-            self.training_history[key]["test"] = [test_mae[key] for key in self.targets]
-            self.save(filename=os.path.join(save_dir, file))
+
+            for key in self.targets:
+                self.training_history[key]["test"] = test_mae[key]
+            self.save(filename=os.path.join(save_dir, test_file))
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
         """Train all data for one epoch.
