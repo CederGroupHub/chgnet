@@ -707,7 +707,7 @@ class CHGNet(nn.Module):
         )
 
         # Determine the device to use
-        if use_device == "mps" and torch.backends.mps.is_available():
+        if use_device in ("mps", None) and torch.backends.mps.is_available():
             device = "mps"
         else:
             device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -763,7 +763,7 @@ class BatchedGraph:
     directed2undirected: Tensor
     atom_positions: Sequence[Tensor]
     strains: Sequence[Tensor]
-    volumes: Sequence[Tensor]
+    volumes: Sequence[Tensor] | Tensor
 
     @classmethod
     def from_graphs(
@@ -790,8 +790,7 @@ class BatchedGraph:
         batched_atom_graph, batched_bond_graph = [], []
         directed2undirected = []
         atom_owners = []
-        atom_offset_idx = 0
-        n_undirected = 0
+        atom_offset_idx = n_undirected = 0
 
         for graph_idx, graph in enumerate(graphs):
             # Atoms
