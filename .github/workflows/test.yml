@@ -43,7 +43,9 @@ jobs:
           pip install -e .[test]
 
       - name: Run Tests
-        run: CHGNET_DEVICE=cpu pytest --capture=no --cov --cov-report=xml .
+        run: pytest --capture=no --cov --cov-report=xml .
+        env:
+          CHGNET_DEVICE: cpu
 
       - name: Codacy coverage reporter
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
