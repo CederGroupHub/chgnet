@@ -44,6 +44,8 @@ jobs:
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml .
+        env:
+          CHGNET_DEVICE: cpu
 
       - name: Codacy coverage reporter
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}

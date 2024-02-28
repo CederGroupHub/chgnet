@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import inspect
 import io
+import os
 import pickle
 import sys
 from typing import TYPE_CHECKING, Literal
@@ -51,7 +52,7 @@ OPTIMIZERS = {
 class CHGNetCalculator(Calculator):
     """CHGNet Calculator for ASE applications."""
 
-    implemented_properties = ("energy", "forces", "stress", "magmoms")
+    implemented_properties = ("energy", "forces", "stress", "magmoms")  # type: ignore
 
     def __init__(
         self,
@@ -81,7 +82,8 @@ class CHGNetCalculator(Calculator):
         super().__init__(**kwargs)
 
         # Determine the device to use
-        if use_device == "mps" and torch.backends.mps.is_available():
+        use_device = use_device or os.getenv("CHGNET_DEVICE")
+        if use_device in ("mps", None) and torch.backends.mps.is_available():
             self.device = "mps"
         else:
             self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -95,7 +97,7 @@ class CHGNetCalculator(Calculator):
         print(f"CHGNet will run on {self.device}")
 
     @property
-    def version(self) -> str:
+    def version(self) -> str | None:
         """The version of CHGNet."""
         return self.model.version
 
