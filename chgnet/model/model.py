@@ -707,6 +707,7 @@ class CHGNet(nn.Module):
         )
 
         # Determine the device to use
+        use_device = use_device or os.getenv("CHGNET_DEVICE")
         if use_device in ("mps", None) and torch.backends.mps.is_available():
             device = "mps"
         else:

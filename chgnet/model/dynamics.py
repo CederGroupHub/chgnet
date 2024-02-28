@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import inspect
 import io
+import os
 import pickle
 import sys
 from typing import TYPE_CHECKING, Literal
@@ -81,6 +82,7 @@ class CHGNetCalculator(Calculator):
         super().__init__(**kwargs)
 
         # Determine the device to use
+        use_device = use_device or os.getenv("CHGNET_DEVICE")
         if use_device in ("mps", None) and torch.backends.mps.is_available():
             self.device = "mps"
         else:
