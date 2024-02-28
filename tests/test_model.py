@@ -220,29 +220,37 @@ def test_as_to_from_dict() -> None:
     assert model_3.todict() == to_dict
 
 
-def test_model_load_version_params(capsys: pytest.CaptureFixture) -> None:
+def test_model_load_version_params(
+    capsys: pytest.CaptureFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
     model = CHGNet.load(use_device="cpu")
-    assert model.version == "0.3.0"
-    assert model.n_params == 412_525
+    v030_key, v030_params = "0.3.0", 412_525
+    assert model.version == v030_key
+    assert model.n_params == v030_params
     stdout, stderr = capsys.readouterr()
-    assert (
-        stdout
-        == f"""CHGNet v{model.version} initialized with {model.n_params:,} parameters
-CHGNet will run on cpu\n"""
+    expected_stdout = lambda version, params: (
+        f"CHGNet v{version} initialized with {params:,} parameters\n"
+        "CHGNet will run on cpu\n"
     )
+    assert stdout == expected_stdout(v030_key, v030_params)
     assert stderr == ""
 
-    model = CHGNet.load(model_name="0.2.0", use_device="cpu")
-    assert model.version == "0.2.0"
-    assert model.n_params == 400_438
+    v020_key, v020_params = "0.2.0", 400_438
+    model = CHGNet.load(model_name=v020_key, use_device="cpu")
+    assert model.version == v020_key
+    assert model.n_params == v020_params
     stdout, stderr = capsys.readouterr()
-    assert (
-        stdout
-        == f"""CHGNet v{model.version} initialized with {model.n_params:,} parameters
-CHGNet will run on cpu\n"""
-    )
+    assert stdout == expected_stdout(v020_key, v020_params)
     assert stderr == ""
 
     model_name = "0.1.0"  # invalid
     with pytest.raises(ValueError, match=f"Unknown {model_name=}"):
         CHGNet.load(model_name=model_name)
+
+    #     # set CHGNET_DEVICE to "cuda" and test
+    monkeypatch.setenv("CHGNET_DEVICE", env_device := "foobar")
+    with pytest.raises(
+        RuntimeError,
+        match=f"Expected one of cpu, .+type at start of device string: {env_device}",
+    ):
+        CHGNet.load()
