@@ -93,9 +93,9 @@ def test_trainer_composition_model(tmp_path: Path) -> None:
     new_chgnet = CHGNet.from_file(weights_path)
     for param in new_chgnet.composition_model.parameters():
         assert param.requires_grad is False
-    comparison = (
-        new_chgnet.composition_model.state_dict()["fc.weight"] == initial_weights
-    )
+    comparison = new_chgnet.composition_model.state_dict()["fc.weight"].to(
+        "cpu"
+    ) == initial_weights.to("cpu")
     expect = torch.ones_like(comparison)
     # Only Na and Cl should have updated
     expect[0][10] = 0
