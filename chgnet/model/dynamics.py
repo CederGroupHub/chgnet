@@ -439,7 +439,7 @@ class MolecularDynamics:
             model (CHGNet): instance of a CHGNet model or CHGNetCalculator.
                 If set to None, the pretrained CHGNet is loaded.
                 Default = None
-            ensemble (str): choose from 'nve', 'nvt', 'npt', 'npt_berendsen'
+            ensemble (str): choose from 'nve', 'nvt', 'npt'
                 Default = "nvt"
             thermostat (str): Thermostat to use
                 choose from "Nose-Hoover", "Berendsen", "Berendsen_inhomogeneous"
