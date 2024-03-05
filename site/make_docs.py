@@ -3,6 +3,7 @@ and tweaks the output for
 - prettier badges linking to source code on GitHub
 - remove bold tags since they break inline code.
 """
+
 from __future__ import annotations
 
 import json
