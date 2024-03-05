@@ -42,8 +42,9 @@ jobs:
           # install ase from main branch until FrechetCellFilter is released
           # TODO remove uv pip install git+https://gitlab.com/ase/ase
           uv pip install --upgrade 'ase@git+https://gitlab.com/ase/ase' --system
+          uv pip freeze | grep == | sed 's/==/>=/' > constraints.txt
           python setup.py build_ext --inplace
-          uv pip install -e .[test] --system
+          uv pip install -e .[test] --system -c constraints.txt
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml .

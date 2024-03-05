@@ -99,6 +99,7 @@ ignore = [
     "EM",
     "ERA001",  # found commented out code
     "FBT001",  # Boolean positional argument in function
+    "ISC001",
     "FBT002",  # Boolean keyword argument in function
     "NPY002",  # TODO replace legacy np.random.seed
     "PLR",     # pylint refactor
