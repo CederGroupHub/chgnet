@@ -33,14 +33,17 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
+      - name: Install uv
+        run: pip install uv
+
       - name: Install dependencies
         run: |
-          pip install cython
+          uv pip install cython --system
           # install ase from main branch until FrechetCellFilter is released
-          # TODO remove pip install git+https://gitlab.com/ase/ase
-          pip install git+https://gitlab.com/ase/ase
+          # TODO remove uv pip install git+https://gitlab.com/ase/ase
           python setup.py build_ext --inplace
-          pip install -e .[test]
+          uv pip install -e .[test] --system
+          uv pip install --upgrade 'ase@git+https://gitlab.com/ase/ase' --system
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml .

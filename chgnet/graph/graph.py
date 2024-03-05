@@ -186,9 +186,9 @@ class Graph:
                     # is the reverse of our DE
                     if added_DE == this_directed_edge:
                         # Add UDE index to this DE
-                        this_directed_edge.info[
-                            "undirected_edge_index"
-                        ] = added_DE.info["undirected_edge_index"]
+                        this_directed_edge.info["undirected_edge_index"] = (
+                            added_DE.info["undirected_edge_index"]
+                        )
 
                         # At the center node, draw edge with this DE
                         self.nodes[center_index].add_neighbor(
