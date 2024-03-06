@@ -32,7 +32,7 @@ class Trainer:
 
     def __init__(
         self,
-        model: nn.Module | None = None,
+        model: CHGNet | None = None,
         targets: TrainTask = "ef",
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
@@ -382,11 +382,11 @@ class Trainer:
             test_pred = []
 
         end = time.perf_counter()
-        for idx, (graphs, targets) in enumerate(val_loader):
+        for ii, (graphs, targets) in enumerate(val_loader):
             if "f" in self.targets or "s" in self.targets:
-                for g in graphs:
+                for graph in graphs:
                     requires_force = "f" in self.targets
-                    g.atom_frac_coord.requires_grad = requires_force
+                    graph.atom_frac_coord.requires_grad = requires_force
                 graphs = [g.to(self.device) for g in graphs]
                 targets = {k: self.move_to(v, self.device) for k, v in targets.items()}
             else:
@@ -407,33 +407,33 @@ class Trainer:
                     combined_loss[f"{key}_MAE_size"],
                 )
             if is_test and test_result_save_path:
-                for idx, graph_i in enumerate(graphs):
+                for jj, graph_i in enumerate(graphs):
                     tmp = {
                         "mp_id": graph_i.mp_id,
                         "graph_id": graph_i.graph_id,
                         "energy": {
-                            "ground_truth": targets["e"][idx].cpu().detach().tolist(),
-                            "prediction": prediction["e"][idx].cpu().detach().tolist(),
+                            "ground_truth": targets["e"][jj].cpu().detach().tolist(),
+                            "prediction": prediction["e"][jj].cpu().detach().tolist(),
                         },
                     }
                     if "f" in self.targets:
                         tmp["force"] = {
-                            "ground_truth": targets["f"][idx].cpu().detach().tolist(),
-                            "prediction": prediction["f"][idx].cpu().detach().tolist(),
+                            "ground_truth": targets["f"][jj].cpu().detach().tolist(),
+                            "prediction": prediction["f"][jj].cpu().detach().tolist(),
                         }
                     if "s" in self.targets:
                         tmp["stress"] = {
-                            "ground_truth": targets["s"][idx].cpu().detach().tolist(),
-                            "prediction": prediction["s"][idx].cpu().detach().tolist(),
+                            "ground_truth": targets["s"][jj].cpu().detach().tolist(),
+                            "prediction": prediction["s"][jj].cpu().detach().tolist(),
                         }
                     if "m" in self.targets:
-                        if targets["m"][idx] is not None:
-                            m_ground_truth = targets["m"][idx].cpu().detach().tolist()
+                        if targets["m"][jj] is not None:
+                            m_ground_truth = targets["m"][jj].cpu().detach().tolist()
                         else:
                             m_ground_truth = None
                         tmp["mag"] = {
                             "ground_truth": m_ground_truth,
-                            "prediction": prediction["m"][idx].cpu().detach().tolist(),
+                            "prediction": prediction["m"][jj].cpu().detach().tolist(),
                         }
                     test_pred.append(tmp)
 
@@ -445,10 +445,10 @@ class Trainer:
             batch_time.update(time.perf_counter() - end)
             end = time.perf_counter()
 
-            if (idx + 1) % self.print_freq == 0:
+            if (ii + 1) % self.print_freq == 0:
                 name = "Test" if is_test else "Val"
                 message = (
-                    f"{name}: [{idx + 1}/{len(val_loader)}] | "
+                    f"{name}: [{ii + 1}/{len(val_loader)}] | "
                     f"Time ({batch_time.avg:.3f}) | "
                     f"Loss {losses.val:.4f}({losses.avg:.4f}) | MAE "
                 )

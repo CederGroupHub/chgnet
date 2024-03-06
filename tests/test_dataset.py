@@ -56,7 +56,7 @@ def test_structure_data(structure_data: StructureData) -> None:
 
 
 def test_data_loader(structure_data: StructureData) -> None:
-    train_loader, val_loader, test_loader = get_train_val_test_loader(
+    train_loader, _val_loader, _test_loader = get_train_val_test_loader(
         structure_data, batch_size=16, train_ratio=0.9, val_ratio=0.05
     )
     graphs, targets = next(iter(train_loader))
