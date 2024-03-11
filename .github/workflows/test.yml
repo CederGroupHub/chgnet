@@ -4,15 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
-  release:
-    types: [published]
   workflow_dispatch:
-    inputs:
-      task:
-        type: choice
-        options: [tests, release, test-release]
-        default: tests
-        description: Run tests, release to PyPI, or release to TestPyPI.
+  workflow_call:
 
 jobs:
   tests:
@@ -20,6 +13,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
+        python-version: ["3.10", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: pyproject.toml
 
@@ -38,15 +32,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install cython --system
-          # install ase from main branch until FrechetCellFilter is released
-          # TODO remove uv pip install git+https://gitlab.com/ase/ase
+          uv pip install cython setuptools --system
+
           python setup.py build_ext --inplace
+
           uv pip install -e .[test] --system
+
+          # TODO remove next line installing ase from main branch when FrechetCellFilter is released
           uv pip install --upgrade 'ase@git+https://gitlab.com/ase/ase' --system
 
       - name: Run Tests
-        run: pytest --capture=no --cov --cov-report=xml .
+        run: pytest --capture=no --cov --cov-report=xml
         env:
           CHGNET_DEVICE: cpu
 
@@ -56,71 +52,3 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: coverage.xml
-
-  build_source_dist:
-    name: Build source distribution
-    needs: tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        name: Install Python
-        with:
-          python-version: "3.10"
-
-      - name: Build source distribution
-        run: |
-          pip install build
-          python -m build --sdist
-
-      - uses: actions/upload-artifact@v3
-        with:
-          path: dist/*.tar.gz
-
-  build_wheels:
-    name: Build wheels for Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    needs: tests
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
-        python-version: ["39", "310", "311"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
-        env:
-          CIBW_BUILD: cp${{ matrix.python-version }}-*
-          CIBW_ARCHS_MACOS: universal2
-
-      - name: Save artifact
-        uses: actions/upload-artifact@v3
-        with:
-          path: wheelhouse
-
-  release:
-    name: Release wheels and source distribution to PyPI
-    needs: [build_wheels, build_source_dist]
-    runs-on: ubuntu-latest
-    permissions:
-      # For pypi trusted publishing
-      id-token: write
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: artifact
-          path: dist
-
-      - name: Publish to PyPi or TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
-          verbose: true
-          repository-url: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.task == 'test-release' && 'https://test.pypi.org/legacy/' || '' }}
