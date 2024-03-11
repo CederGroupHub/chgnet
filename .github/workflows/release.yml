@@ -1,4 +1,4 @@
-name: Tests
+name: Release
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
         type: choice
         options: [release, test-release]
         default: test-release
-        description: Run tests, release to PyPI, or release to TestPyPI.
+        description: Release to PyPI or TestPyPI.
 
 jobs:
   tests:
