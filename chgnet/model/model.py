@@ -663,7 +663,7 @@ class CHGNet(nn.Module):
         return chgnet
 
     @classmethod
-    def from_file(cls, path, **kwargs) -> CHGNet:
+    def from_file(cls, path: str, **kwargs) -> CHGNet:
         """Build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
         return CHGNet.from_dict(state["model"], **kwargs)

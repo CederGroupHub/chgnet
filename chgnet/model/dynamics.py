@@ -96,6 +96,15 @@ class CHGNetCalculator(Calculator):
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
 
+    @classmethod
+    def from_file(cls, path: str, use_device: str | None = None, **kwargs):
+        """Load a user's CHGNet model and initialize the Calculator."""
+        return CHGNetCalculator(
+            model=CHGNet.from_file(path),
+            use_device=use_device,
+            **kwargs,
+        )
+
     @property
     def version(self) -> str | None:
         """The version of CHGNet."""
