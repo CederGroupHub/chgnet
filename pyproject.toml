@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chgnet"
-version = "0.3.4"
+version = "0.3.5"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.9"
@@ -20,10 +20,11 @@ dependencies = [
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Chemistry",
@@ -100,6 +101,7 @@ ignore = [
     "ERA001",  # found commented out code
     "FBT001",  # Boolean positional argument in function
     "FBT002",  # Boolean keyword argument in function
+    "ISC001",
     "NPY002",  # TODO replace legacy np.random.seed
     "PLR",     # pylint refactor
     "PLW2901", # Outer for loop variable overwritten by inner assignment target

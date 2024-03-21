@@ -47,7 +47,8 @@ def test_crystal_graph_converter_algorithm(algorithm: Literal["legacy", "fast"])
     assert converter.algorithm == algorithm
 
 
-def test_crystal_graph_converter_warns(_set_make_graph: None):
+@pytest.mark.usefixtures("_set_make_graph")
+def test_crystal_graph_converter_warns():
     with pytest.warns(UserWarning, match="Unknown algorithm='foobar', using `legacy`"):
         CrystalGraphConverter(
             atom_graph_cutoff=5, bond_graph_cutoff=3, algorithm="foobar"
