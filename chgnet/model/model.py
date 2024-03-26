@@ -22,7 +22,7 @@ from chgnet.model.layers import (
     GraphAttentionReadOut,
     GraphPooling,
 )
-from chgnet.utils import cuda_devices_sorted_by_free_mem
+from chgnet.utils import determine_device
 
 if TYPE_CHECKING:
     from chgnet import PredTask
@@ -673,6 +673,7 @@ class CHGNet(nn.Module):
         cls,
         model_name="0.3.0",
         use_device: str | None = None,
+        check_cuda_mem: bool = True,
         verbose: bool = True,
     ) -> CHGNet:
         """Load pretrained CHGNet model.
@@ -684,6 +685,8 @@ class CHGNet(nn.Module):
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
                 Default = None
+            check_cuda_mem (bool): Whether to use cuda with most available memory
+                Default = True
             verbose (bool): whether to print model device information
                 Default = True
         Raises:
@@ -707,13 +710,7 @@ class CHGNet(nn.Module):
         )
 
         # Determine the device to use
-        use_device = use_device or os.getenv("CHGNET_DEVICE")
-        if use_device in ("mps", None) and torch.backends.mps.is_available():
-            device = "mps"
-        else:
-            device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
-            if device == "cuda":
-                device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+        device = determine_device(use_device=use_device, check_cuda_mem=check_cuda_mem)
 
         # Move the model to the specified device
         model = model.to(device)

@@ -3,13 +3,11 @@ from __future__ import annotations
 import contextlib
 import inspect
 import io
-import os
 import pickle
 import sys
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.md.npt import NPT
@@ -28,7 +26,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from chgnet.model.model import CHGNet
-from chgnet.utils import cuda_devices_sorted_by_free_mem
+from chgnet.utils import determine_device
 
 if TYPE_CHECKING:
     from ase.io import Trajectory
@@ -58,6 +56,7 @@ class CHGNetCalculator(Calculator):
         self,
         model: CHGNet | None = None,
         use_device: str | None = None,
+        check_cuda_mem: bool = True,
         stress_weight: float | None = 1 / 160.21766208,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
         **kwargs,
@@ -72,6 +71,8 @@ class CHGNetCalculator(Calculator):
                 either "cpu", "cuda", or "mps". If not specified, the default device is
                 automatically selected based on the available options.
                 Default = None
+            check_cuda_mem (bool): Whether to use cuda with most available memory
+                Default = True
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
@@ -82,13 +83,8 @@ class CHGNetCalculator(Calculator):
         super().__init__(**kwargs)
 
         # Determine the device to use
-        use_device = use_device or os.getenv("CHGNET_DEVICE")
-        if use_device in ("mps", None) and torch.backends.mps.is_available():
-            self.device = "mps"
-        else:
-            self.device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
-            if self.device == "cuda":
-                self.device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+        device = determine_device(use_device=use_device, check_cuda_mem=check_cuda_mem)
+        self.device = device
 
         # Move the model to the specified device
         self.model = (model or CHGNet.load(verbose=False)).to(self.device)

@@ -8,6 +8,30 @@ import torch
 from torch import Tensor
 
 
+def determine_device(
+    use_device: str | None = None,
+    check_cuda_mem: bool = True,
+):
+    """Determine the device to use for torch model.
+
+    Args:
+        use_device (str): User specify device name
+        check_cuda_mem (bool): Whether to return cuda with most available memory
+
+    Returns:
+        device (str): device name to be passed to model.to(device)
+    """
+    use_device = use_device or os.getenv("CHGNET_DEVICE")
+    if use_device in ("mps", None) and torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
+        if device == "cuda" and check_cuda_mem:
+            device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+
+    return device
+
+
 def cuda_devices_sorted_by_free_mem() -> list[int]:
     """List available CUDA devices sorted by increasing available memory.
 
