@@ -34,6 +34,8 @@ def test_parse_vasp_dir_with_magmoms(tmp_path: Path):
 
 
 def test_parse_vasp_dir_without_magmoms(tmp_path: Path):
+    # using test.zip shared for error repro in
+    # https://github.com/CederGroupHub/chgnet/issues/147
     with ZipFile(f"{ROOT}/tests/files/parse-vasp-no-magmoms.zip") as zip_ref:
         zip_ref.extractall(tmp_path)
     dataset_dict = parse_vasp_dir(tmp_path)
