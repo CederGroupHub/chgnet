@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os.path
 import re
 from typing import TYPE_CHECKING
 
@@ -22,28 +23,29 @@ def parse_vasp_dir(
         check_electronic_convergence (bool): if set to True, this function will raise
             Exception to VASP calculation that did not achieve electronic convergence.
     """
-    try:
-        oszicar = Oszicar(f"{file_root}/OSZICAR")
-        vasprun_orig = Vasprun(
-            f"{file_root}/vasprun.xml",
-            parse_dos=False,
-            parse_eigen=False,
-            parse_projected_eigen=False,
-            parse_potcar_file=False,
-            exception_on_bad_xml=False,
-        )
-        outcar_filename = f"{file_root}/OUTCAR"
-    except Exception:
-        oszicar = Oszicar(f"{file_root}/OSZICAR.gz")
-        vasprun_orig = Vasprun(
-            f"{file_root}/vasprun.xml.gz",
-            parse_dos=False,
-            parse_eigen=False,
-            parse_projected_eigen=False,
-            parse_potcar_file=False,
-            exception_on_bad_xml=False,
-        )
-        outcar_filename = f"{file_root}/OUTCAR.gz"
+    if os.path.exists(file_root) is False:
+        raise FileNotFoundError("No such file or directory")
+
+    if os.path.exists(f"{file_root}/OSZICAR"):
+        oszicar_path = f"{file_root}/OSZICAR"
+        vasprun_path = f"{file_root}/vasprun.xml"
+        outcar_path = f"{file_root}/OUTCAR"
+    elif os.path.exists(f"{file_root}/OSZICAR"):
+        oszicar_path = f"{file_root}/OSZICAR.gz"
+        vasprun_path = f"{file_root}/vasprun.xml.gz"
+        outcar_path = f"{file_root}/OUTCAR.gz"
+    else:
+        raise RuntimeError(f"No data parsed from {file_root}!")
+
+    oszicar = Oszicar(oszicar_path)
+    vasprun_orig = Vasprun(
+        vasprun_path,
+        parse_dos=False,
+        parse_eigen=False,
+        parse_projected_eigen=False,
+        parse_potcar_file=False,
+        exception_on_bad_xml=False,
+    )
 
     charge = []
     mag_x = []
@@ -52,7 +54,7 @@ def parse_vasp_dir(
     header = []
     all_lines = []
 
-    for line in reverse_readfile(outcar_filename):
+    for line in reverse_readfile(outcar_path):
         clean = line.strip()
         all_lines.append(clean)
 
@@ -132,7 +134,7 @@ def parse_vasp_dir(
         "stress": None if "stress" not in vasprun_orig.ionic_steps[0] else [],
     }
 
-    for ionic_step, mag_step in zip(vasprun_orig.ionic_steps, mag_x_all):
+    for index, ionic_step in enumerate(vasprun_orig.ionic_steps):
         if (
             check_electronic_convergence
             and len(ionic_step["electronic_steps"]) >= vasprun_orig.parameters["NELM"]
@@ -143,7 +145,8 @@ def parse_vasp_dir(
         dataset["uncorrected_total_energy"].append(ionic_step["e_0_energy"])
         dataset["energy_per_atom"].append(ionic_step["e_0_energy"] / n_atoms)
         dataset["force"].append(ionic_step["forces"])
-        dataset["magmom"].append([site["tot"] for site in mag_step])
+        if mag_x_all != []:
+            dataset["magmom"].append([site["tot"] for site in mag_x_all[index]])
         if "stress" in ionic_step:
             dataset["stress"].append(ionic_step["stress"])
 
