@@ -2,9 +2,6 @@ default_stages: [commit]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
-default_language_version:
-  node: 21.7.2
-
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.7
