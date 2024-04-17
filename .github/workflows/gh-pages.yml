@@ -22,3 +22,4 @@ jobs:
       pre-build: |
         pip install '..[docs]'
         python make_docs.py
+      install-cmd: npm install --force
