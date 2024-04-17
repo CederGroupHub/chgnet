@@ -2,16 +2,19 @@ default_stages: [commit]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
+default_language_version:
+  node: 21.7.2
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.3.7
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -46,17 +49,16 @@ repos:
           - svelte
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-rc.0
+    rev: v9.0.0
     hooks:
       - id: eslint
         types: [file]
-        args: [--fix]
+        args: [--fix, --config, site/eslint.config.js]
         files: \.(js|ts|svelte)$
         additional_dependencies:
           - eslint
-          - svelte
-          - typescript
           - eslint-plugin-svelte
-          - "@typescript-eslint/eslint-plugin"
-          - "@typescript-eslint/parser"
+          - svelte
           - svelte-eslint-parser
+          - typescript
+          - typescript-eslint
