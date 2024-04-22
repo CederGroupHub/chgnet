@@ -60,6 +60,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: wheelhouse
+          # https://github.com/actions/upload-artifact/issues/478#issuecomment-1885470013
+          name: dist-${{ matrix.os }}-${{ matrix.python-version }}
 
   release:
     name: Release wheels and source distribution to PyPI
@@ -74,6 +76,8 @@ jobs:
         with:
           name: artifact
           path: dist
+          merge-multiple: true
+          pattern: dist-*
 
       - name: Publish to PyPi or TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
