@@ -92,33 +92,18 @@ def test_structure_data_inconsistent_length():
 
 
 def test_dataset_no_shuffling():
-    structures, energies, forces, stresses, magmoms, structure_ids = (
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-    )
-    for index in range(100):
-        struct = NaCl.copy()
-        struct.perturb(0.1)
-        structures.append(struct)
-        energies.append(np.random.random(1))
-        forces.append(np.random.random([2, 3]))
-        stresses.append(np.random.random([3, 3]))
-        magmoms.append(np.random.random([2, 1]))
-        structure_ids.append(index)
+    n_samples = 100
+    structure_ids = list(range(n_samples))
+
     structure_data = StructureData(
-        structures=structures,
-        energies=energies,
-        forces=forces,
-        stresses=stresses,
-        magmoms=magmoms,
+        structures=[NaCl.copy().perturb(0.1) for _ in range(n_samples)],
+        energies=np.random.random(n_samples),
+        forces=np.random.random([n_samples, 2, 3]),
+        stresses=np.random.random([n_samples, 3, 3]),
+        magmoms=np.random.random([n_samples, 2, 1]),
         structure_ids=structure_ids,
         shuffle=False,
     )
-
-    assert structure_data[0][0].mp_id == 0
-    assert structure_data[1][0].mp_id == 1
-    assert structure_data[2][0].mp_id == 2
+    sample_ids = [data[0].mp_id for data in structure_data]
+    # shuffle=False means structure_ids should be in order
+    assert sample_ids == structure_ids

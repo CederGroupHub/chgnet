@@ -20,7 +20,7 @@ class Node:
         self.info = info
         self.neighbors: dict[int, list[DirectedEdge | UndirectedEdge]] = {}
 
-    def add_neighbor(self, index, edge):
+    def add_neighbor(self, index, edge) -> None:
         """Draw an directed edge between self and the node specified by index.
 
         Args:
@@ -44,7 +44,7 @@ class Edge(ABC):
         self.index = index
         self.info = info
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation of this edge."""
         nodes, index, info = self.nodes, self.index, self.info
         return f"{type(self).__name__}({nodes=}, {index=}, {info=})"
@@ -336,7 +336,7 @@ class Graph:
             "undirected_edges_list": self.undirected_edges_list,
         }
 
-    def to(self, filename="graph.json"):
+    def to(self, filename="graph.json") -> None:
         """Save graph dictionary to file."""
         write_json(self.as_dict(), filename)
 

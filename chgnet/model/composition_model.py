@@ -12,6 +12,7 @@ from chgnet.model.functions import GatedMLP, find_activation
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
     from chgnet.graph.crystalgraph import CrystalGraph
 
@@ -199,7 +200,7 @@ class AtomRef(nn.Module):
             for graph in graphs
         ]
 
-    def initialize_from(self, dataset: str):
+    def initialize_from(self, dataset: str) -> None:
         """Initialize pre-fitted weights from a dataset."""
         if dataset in ["MPtrj", "MPtrj_e"]:
             self.initialize_from_MPtrj()
@@ -208,7 +209,7 @@ class AtomRef(nn.Module):
         else:
             raise NotImplementedError(f"{dataset=} not supported yet")
 
-    def initialize_from_MPtrj(self):
+    def initialize_from_MPtrj(self) -> None:
         """Initialize pre-fitted weights from MPtrj dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
@@ -313,7 +314,7 @@ class AtomRef(nn.Module):
         self.is_intensive = True
         self.fitted = True
 
-    def initialize_from_MPF(self):
+    def initialize_from_MPF(self) -> None:
         """Initialize pre-fitted weights from MPF dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
@@ -418,7 +419,7 @@ class AtomRef(nn.Module):
         self.is_intensive = False
         self.fitted = True
 
-    def initialize_from_numpy(self, file_name):
+    def initialize_from_numpy(self, file_name: str | Path) -> None:
         """Initialize pre-fitted weights from numpy file."""
         atom_ref_np = np.load(file_name)
         state_dict = collections.OrderedDict()
