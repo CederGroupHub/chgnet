@@ -35,7 +35,7 @@ class StructureData(Dataset):
         forces: list[Sequence[Sequence[float]]],
         stresses: list[Sequence[Sequence[float]]] | None = None,
         magmoms: list[Sequence[Sequence[float]]] | None = None,
-        structure_ids: list[str] | None = None,
+        structure_ids: list | None = None,
         graph_converter: CrystalGraphConverter | None = None,
         shuffle: bool = True,
     ) -> None:
@@ -49,7 +49,7 @@ class StructureData(Dataset):
                 Default = None
             magmoms (list[list[float]], optional): [data_size, n_atoms, 1]
                 Default = None
-            structure_ids (list[str], optional): a list of ids to track the structures
+            structure_ids (list, optional): a list of ids to track the structures
                 Default = None
             graph_converter (CrystalGraphConverter, optional): Converts the structures
                 to graphs. If None, it will be set to CHGNet 0.3.0 converter
@@ -86,6 +86,51 @@ class StructureData(Dataset):
         )
         self.failed_idx: list[int] = []
         self.failed_graph_id: dict[str, str] = {}
+
+    @classmethod
+    def from_vasp(
+        cls,
+        file_root: str,
+        check_electronic_convergence: bool = True,
+        save_path: str | None = None,
+        graph_converter: CrystalGraphConverter | None = None,
+        shuffle: bool = True,
+    ):
+        """Parse VASP output files into structures and labels and feed into the dataset.
+
+        Args:
+            file_root (str): the directory of the VASP calculation outputs
+            check_electronic_convergence (bool): if set to True, this function will
+                raise Exception to VASP calculation that did not achieve
+                electronic convergence.
+                Default = True
+            save_path (str): path to save the parsed VASP labels
+                Default = None
+            graph_converter (CrystalGraphConverter, optional): Converts the structures
+                to graphs. If None, it will be set to CHGNet 0.3.0 converter
+                with AtomGraph cutoff = 6A.
+            shuffle (bool): whether to shuffle the sequence of dataset
+                Default = True
+        """
+        result_dict = utils.parse_vasp_dir(
+            file_root=file_root,
+            check_electronic_convergence=check_electronic_convergence,
+            save_path=save_path,
+        )
+        return cls(
+            structures=result_dict["structure"],
+            energies=result_dict["energy_per_atom"],
+            forces=result_dict["force"],
+            stresses=None
+            if result_dict["stress"] in [None, []]
+            else result_dict["stress"],
+            magmoms=None
+            if result_dict["magmom"] in [None, []]
+            else result_dict["magmom"],
+            structure_ids=np.arange(len(result_dict["structure"])),
+            graph_converter=graph_converter,
+            shuffle=shuffle,
+        )
 
     def __len__(self) -> int:
         """Get the number of structures in this dataset."""

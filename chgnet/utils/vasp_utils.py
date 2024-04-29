@@ -7,12 +7,16 @@ from typing import TYPE_CHECKING
 from monty.io import reverse_readfile
 from pymatgen.io.vasp.outputs import Oszicar, Vasprun
 
+from chgnet.utils import write_json
+
 if TYPE_CHECKING:
     from pymatgen.core import Structure
 
 
 def parse_vasp_dir(
-    file_root: str, check_electronic_convergence: bool = True
+    file_root: str,
+    check_electronic_convergence: bool = True,
+    save_path: str | None = None,
 ) -> dict[str, list]:
     """Parse VASP output files into structures and labels
     By default, the magnetization is read from mag_x from VASP,
@@ -22,6 +26,8 @@ def parse_vasp_dir(
         file_root (str): the directory of the VASP calculation outputs
         check_electronic_convergence (bool): if set to True, this function will raise
             Exception to VASP calculation that did not achieve electronic convergence.
+            Default = True
+        save_path (str): path to save the parsed VASP labels
     """
     if os.path.exists(file_root) is False:
         raise FileNotFoundError("No such file or directory")
@@ -153,6 +159,10 @@ def parse_vasp_dir(
     if dataset["uncorrected_total_energy"] == []:
         raise RuntimeError(f"No data parsed from {file_root}!")
 
+    if save_path is not None:
+        save_dict = dataset.copy()
+        save_dict["structure"] = [struct.as_dict() for struct in dataset["structure"]]
+        write_json(save_dict, save_path)
     return dataset
 
 

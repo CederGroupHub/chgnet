@@ -8,6 +8,7 @@ import pytest
 from pymatgen.core import Structure
 
 from chgnet import ROOT
+from chgnet.data.dataset import StructureData
 from chgnet.utils import parse_vasp_dir
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ def test_parse_vasp_dir_with_magmoms(tmp_path: Path):
     with ZipFile(f"{ROOT}/tests/files/parse-vasp-with-magmoms.zip") as zip_ref:
         zip_ref.extractall(tmp_path)
     vasp_path = os.path.join(tmp_path, "parse-vasp-with-magmoms")
-    dataset_dict = parse_vasp_dir(vasp_path)
+    dataset_dict = parse_vasp_dir(vasp_path, save_path=f"{tmp_path}/tmp.json")
 
     assert isinstance(dataset_dict, dict)
     assert len(dataset_dict["structure"]) > 0
@@ -67,3 +68,16 @@ def test_parse_vasp_dir_no_data():
     # test existing directory without VASP files
     with pytest.raises(RuntimeError, match="No data parsed from"):
         parse_vasp_dir(f"{ROOT}/tests/files")
+
+
+def test_dataset_from_vasp_dir(tmp_path: Path):
+    with ZipFile(f"{ROOT}/tests/files/parse-vasp-with-magmoms.zip") as zip_ref:
+        zip_ref.extractall(tmp_path)
+    vasp_path = os.path.join(tmp_path, "parse-vasp-with-magmoms")
+    dataset = StructureData.from_vasp(vasp_path, save_path=f"{tmp_path}/tmp.json")
+    assert len(dataset.structures) > 0
+    assert isinstance(dataset.structures[0], Structure)
+    assert len(dataset.structures) == len(dataset.energies)
+    assert len(dataset.structures) == len(dataset.forces)
+    assert len(dataset.structures) == len(dataset.stresses)
+    assert len(dataset.structures) == len(dataset.magmoms)

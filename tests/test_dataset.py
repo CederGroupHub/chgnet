@@ -96,7 +96,7 @@ def test_dataset_no_shuffling():
     structure_ids = list(range(n_samples))
 
     structure_data = StructureData(
-        structures=[NaCl.copy().perturb(0.1) for _ in range(n_samples)],
+        structures=[NaCl.copy() for _ in range(n_samples)],
         energies=np.random.random(n_samples),
         forces=np.random.random([n_samples, 2, 3]),
         stresses=np.random.random([n_samples, 3, 3]),
