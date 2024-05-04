@@ -113,7 +113,7 @@ class StructureData(Dataset):
                 Default = True
         """
         result_dict = utils.parse_vasp_dir(
-            file_root=file_root,
+            base_dir=file_root,
             check_electronic_convergence=check_electronic_convergence,
             save_path=save_path,
         )

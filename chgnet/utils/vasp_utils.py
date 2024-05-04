@@ -5,6 +5,7 @@ import re
 from typing import TYPE_CHECKING
 
 from monty.io import reverse_readfile
+from monty.os.path import zpath
 from pymatgen.io.vasp.outputs import Oszicar, Vasprun
 
 from chgnet.utils import write_json
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def parse_vasp_dir(
-    file_root: str,
+    base_dir: str,
     check_electronic_convergence: bool = True,
     save_path: str | None = None,
 ) -> dict[str, list]:
@@ -23,25 +24,20 @@ def parse_vasp_dir(
     plz modify the code if magnetization is for (y) and (z).
 
     Args:
-        file_root (str): the directory of the VASP calculation outputs
+        base_dir (str): the directory of the VASP calculation outputs
         check_electronic_convergence (bool): if set to True, this function will raise
             Exception to VASP calculation that did not achieve electronic convergence.
             Default = True
         save_path (str): path to save the parsed VASP labels
     """
-    if os.path.exists(file_root) is False:
-        raise FileNotFoundError("No such file or directory")
+    if os.path.isdir(base_dir) is False:
+        raise FileNotFoundError(f"{base_dir=} is not a directory")
 
-    if os.path.exists(f"{file_root}/OSZICAR"):
-        oszicar_path = f"{file_root}/OSZICAR"
-        vasprun_path = f"{file_root}/vasprun.xml"
-        outcar_path = f"{file_root}/OUTCAR"
-    elif os.path.exists(f"{file_root}/OSZICAR"):
-        oszicar_path = f"{file_root}/OSZICAR.gz"
-        vasprun_path = f"{file_root}/vasprun.xml.gz"
-        outcar_path = f"{file_root}/OUTCAR.gz"
-    else:
-        raise RuntimeError(f"No data parsed from {file_root}!")
+    oszicar_path = zpath(f"{base_dir}/OSZICAR")
+    vasprun_path = zpath(f"{base_dir}/vasprun.xml")
+    outcar_path = zpath(f"{base_dir}/OUTCAR")
+    if not os.path.exists(oszicar_path) or not os.path.exists(vasprun_path):
+        raise RuntimeError(f"No data parsed from {base_dir}!")
 
     oszicar = Oszicar(oszicar_path)
     vasprun_orig = Vasprun(
@@ -53,12 +49,7 @@ def parse_vasp_dir(
         exception_on_bad_xml=False,
     )
 
-    charge = []
-    mag_x = []
-    mag_y = []
-    mag_z = []
-    header = []
-    all_lines = []
+    charge, mag_x, mag_y, mag_z, header, all_lines = [], [], [], [], [], []
 
     for line in reverse_readfile(outcar_path):
         clean = line.strip()
@@ -67,10 +58,8 @@ def parse_vasp_dir(
     all_lines.reverse()
     # For single atom systems, VASP doesn't print a total line, so
     # reverse parsing is very difficult
-    read_charge = False
-    read_mag_x = False
-    read_mag_y = False  # for SOC calculations only
-    read_mag_z = False
+    # for SOC calculations only
+    read_charge = read_mag_x = read_mag_y = read_mag_z = False
     mag_x_all = []
     ion_step_count = 0
 
@@ -97,32 +86,24 @@ def parse_vasp_dir(
                 elif clean.startswith("tot"):
                     if ion_step_count == (len(mag_x_all) + 1):
                         mag_x_all.append(mag_x)
-                    read_charge = False
-                    read_mag_x = False
-                    read_mag_y = False
-                    read_mag_z = False
+                    read_charge = read_mag_x = read_mag_y = read_mag_z = False
         if clean == "total charge":
             read_charge = True
-            read_mag_x, read_mag_y, read_mag_z = False, False, False
+            read_mag_x = read_mag_y = read_mag_z = False
         elif clean == "magnetization (x)":
             mag_x = []
             read_mag_x = True
-            read_charge, read_mag_y, read_mag_z = False, False, False
+            read_charge = read_mag_y = read_mag_z = False
         elif clean == "magnetization (y)":
             mag_y = []
             read_mag_y = True
-            read_charge, read_mag_x, read_mag_z = False, False, False
+            read_charge = read_mag_x = read_mag_z = False
         elif clean == "magnetization (z)":
             mag_z = []
             read_mag_z = True
-            read_charge, read_mag_x, read_mag_y = False, False, False
+            read_charge = read_mag_x = read_mag_y = False
         elif re.search("electrostatic", clean):
-            read_charge, read_mag_x, read_mag_y, read_mag_z = (
-                False,
-                False,
-                False,
-                False,
-            )
+            read_charge = read_mag_x = read_mag_y = read_mag_z = False
 
     if len(oszicar.ionic_steps) == len(mag_x_all):  # unfinished VASP job
         print("Unfinished OUTCAR")
@@ -157,7 +138,7 @@ def parse_vasp_dir(
             dataset["stress"].append(ionic_step["stress"])
 
     if dataset["uncorrected_total_energy"] == []:
-        raise RuntimeError(f"No data parsed from {file_root}!")
+        raise RuntimeError(f"No data parsed from {base_dir}!")
 
     if save_path is not None:
         save_dict = dataset.copy()

@@ -228,11 +228,11 @@ def test_model_load_version_params(
     assert model.version == v030_key
     assert model.n_params == v030_params
     stdout, stderr = capsys.readouterr()
-    expected_stdout = lambda version, params: (
-        f"CHGNet v{version} initialized with {params:,} parameters\n"
+
+    assert stdout == (
+        f"CHGNet v{v030_key} initialized with {v030_params:,} parameters\n"
         "CHGNet will run on cpu\n"
     )
-    assert stdout == expected_stdout(v030_key, v030_params)
     assert stderr == ""
 
     v020_key, v020_params = "0.2.0", 400_438
@@ -240,7 +240,10 @@ def test_model_load_version_params(
     assert model.version == v020_key
     assert model.n_params == v020_params
     stdout, stderr = capsys.readouterr()
-    assert stdout == expected_stdout(v020_key, v020_params)
+    assert stdout == (
+        f"CHGNet v{v020_key} initialized with {v020_params:,} parameters\n"
+        "CHGNet will run on cpu\n"
+    )
     assert stderr == ""
 
     model_name = "0.1.0"  # invalid
