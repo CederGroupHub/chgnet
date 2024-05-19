@@ -24,6 +24,7 @@ class CompositionModel(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_fea_dim: int = 64,
         activation: str = "silu",
         is_intensive: bool = True,
@@ -88,7 +89,9 @@ class AtomRef(nn.Module):
     From: https://github.com/materialsvirtuallab/m3gnet/.
     """
 
-    def __init__(self, is_intensive: bool = True, max_num_elements: int = 94) -> None:
+    def __init__(
+        self, *, is_intensive: bool = True, max_num_elements: int = 94
+    ) -> None:
         """Initialize an AtomRef model."""
         super().__init__()
         self.is_intensive = is_intensive

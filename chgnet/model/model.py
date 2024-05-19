@@ -37,6 +37,7 @@ class CHGNet(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
@@ -327,6 +328,7 @@ class CHGNet(nn.Module):
     def forward(
         self,
         graphs: Sequence[CrystalGraph],
+        *,
         task: PredTask = "e",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -381,7 +383,8 @@ class CHGNet(nn.Module):
 
     def _compute(
         self,
-        g,
+        g: BatchedGraph,
+        *,
         compute_force: bool = False,
         compute_stress: bool = False,
         compute_magmom: bool = False,
@@ -530,6 +533,7 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Structure | Sequence[Structure],
+        *,
         task: PredTask = "efsm",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -578,6 +582,7 @@ class CHGNet(nn.Module):
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
+        *,
         task: PredTask = "efsm",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -671,7 +676,8 @@ class CHGNet(nn.Module):
     @classmethod
     def load(
         cls,
-        model_name="0.3.0",
+        *,
+        model_name: str = "0.3.0",
         use_device: str | None = None,
         check_cuda_mem: bool = True,
         verbose: bool = True,
@@ -769,6 +775,7 @@ class BatchedGraph:
         graphs: Sequence[CrystalGraph],
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
+        *,
         compute_stress: bool = False,
     ) -> BatchedGraph:
         """Featurize and assemble a list of graphs.

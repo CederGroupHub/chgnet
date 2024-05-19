@@ -8,7 +8,7 @@ from torch import Tensor, nn
 class Fourier(nn.Module):
     """Fourier Expansion for angle features."""
 
-    def __init__(self, order: int = 5, learnable: bool = False) -> None:
+    def __init__(self, *, order: int = 5, learnable: bool = False) -> None:
         """Initialize the Fourier expansion.
 
         Args:
@@ -47,6 +47,7 @@ class RadialBessel(torch.nn.Module):
 
     def __init__(
         self,
+        *,
         num_radial: int = 9,
         cutoff: float = 5,
         learnable: bool = False,
@@ -90,7 +91,7 @@ class RadialBessel(torch.nn.Module):
             self.smooth_cutoff = None
 
     def forward(
-        self, dist: Tensor, return_smooth_factor: bool = False
+        self, dist: Tensor, *, return_smooth_factor: bool = False
     ) -> Tensor | tuple[Tensor, Tensor]:
         """Apply Bessel expansion to a feature Tensor.
 

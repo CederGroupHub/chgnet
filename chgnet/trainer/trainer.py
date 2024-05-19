@@ -33,6 +33,7 @@ class Trainer:
     def __init__(
         self,
         model: CHGNet | None = None,
+        *,
         targets: TrainTask = "ef",
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
@@ -199,6 +200,7 @@ class Trainer:
         train_loader: DataLoader,
         val_loader: DataLoader,
         test_loader: DataLoader | None = None,
+        *,
         save_dir: str | None = None,
         save_test_result: bool = False,
         train_composition_model: bool = False,
@@ -353,6 +355,7 @@ class Trainer:
     def _validate(
         self,
         val_loader: DataLoader,
+        *,
         is_test: bool = False,
         test_result_save_path: str | None = None,
     ) -> dict:
@@ -572,6 +575,7 @@ class CombinedLoss(nn.Module):
 
     def __init__(
         self,
+        *,
         target_str: str = "ef",
         criterion: str = "MSE",
         is_intensive: bool = True,

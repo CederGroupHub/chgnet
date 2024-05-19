@@ -10,6 +10,7 @@ from torch import Tensor
 
 def determine_device(
     use_device: str | None = None,
+    *,
     check_cuda_mem: bool = True,
 ):
     """Determine the device to use for torch model.

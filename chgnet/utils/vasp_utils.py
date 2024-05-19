@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 def parse_vasp_dir(
     base_dir: str,
+    *,
     check_electronic_convergence: bool = True,
     save_path: str | None = None,
 ) -> dict[str, list]:

@@ -55,6 +55,7 @@ class CHGNetCalculator(Calculator):
     def __init__(
         self,
         model: CHGNet | None = None,
+        *,
         use_device: str | None = None,
         check_cuda_mem: bool = True,
         stress_weight: float | None = 1 / 160.21766208,
@@ -215,6 +216,7 @@ class StructOptimizer:
     def relax(
         self,
         atoms: Structure | Atoms,
+        *,
         fmax: float | None = 0.1,
         steps: int | None = 500,
         relax_cell: bool | None = True,
@@ -419,6 +421,7 @@ class MolecularDynamics:
     def __init__(
         self,
         atoms: Atoms | Structure,
+        *,
         model: CHGNet | CHGNetCalculator | None = None,
         ensemble: str = "nvt",
         thermostat: str = "Berendsen_inhomogeneous",
@@ -729,7 +732,7 @@ class MolecularDynamics:
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
 
-    def upper_triangular_cell(self, verbose: bool | None = False) -> None:
+    def upper_triangular_cell(self, *, verbose: bool | None = False) -> None:
         """Transform to upper-triangular cell.
         ASE Nose-Hoover implementation only supports upper-triangular cell
         while ASE's canonical description is lower-triangular cell.
@@ -799,6 +802,7 @@ class EquationOfState:
     def fit(
         self,
         atoms: Structure | Atoms,
+        *,
         n_points: int = 11,
         fmax: float | None = 0.1,
         steps: int | None = 500,

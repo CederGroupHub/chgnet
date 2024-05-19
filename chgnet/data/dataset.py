@@ -33,6 +33,7 @@ class StructureData(Dataset):
         structures: list[Structure],
         energies: list[float],
         forces: list[Sequence[Sequence[float]]],
+        *,
         stresses: list[Sequence[Sequence[float]]] | None = None,
         magmoms: list[Sequence[Sequence[float]]] | None = None,
         structure_ids: list | None = None,
@@ -91,6 +92,7 @@ class StructureData(Dataset):
     def from_vasp(
         cls,
         file_root: str,
+        *,
         check_electronic_convergence: bool = True,
         save_path: str | None = None,
         graph_converter: CrystalGraphConverter | None = None,
@@ -196,6 +198,7 @@ class CIFData(Dataset):
     def __init__(
         self,
         cif_path: str,
+        *,
         labels: str | dict = "labels.json",
         targets: TrainTask = "efsm",
         graph_converter: CrystalGraphConverter | None = None,
@@ -311,6 +314,7 @@ class GraphData(Dataset):
     def __init__(
         self,
         graph_path: str,
+        *,
         labels: str | dict = "labels.json",
         targets: TrainTask = "efsm",
         exclude: str | list | None = None,
@@ -429,6 +433,7 @@ class GraphData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
+        *,
         train_key: list[str] | None = None,
         val_key: list[str] | None = None,
         test_key: list[str] | None = None,
@@ -541,6 +546,7 @@ class StructureJsonData(Dataset):
         self,
         data: str | dict,
         graph_converter: CrystalGraphConverter,
+        *,
         targets: TrainTask = "efsm",
         energy_key: str = "energy_per_atom",
         force_key: str = "force",
@@ -654,6 +660,7 @@ class StructureJsonData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
+        *,
         train_key: list[str] | None = None,
         val_key: list[str] | None = None,
         test_key: list[str] | None = None,
@@ -777,6 +784,7 @@ def collate_graphs(batch_data: list):
 
 def get_train_val_test_loader(
     dataset: Dataset,
+    *,
     batch_size: int = 64,
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
@@ -842,7 +850,9 @@ def get_train_val_test_loader(
     return train_loader, val_loader
 
 
-def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
+def get_loader(
+    dataset, *, batch_size: int = 64, num_workers: int = 0, pin_memory: bool = True
+):
     """Get a dataloader from a dataset.
 
     Args:
