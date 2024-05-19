@@ -93,7 +93,7 @@ class Trainer:
         self.trainer_args = {
             k: v
             for k, v in locals().items()
-            if k not in ["self", "__class__", "model", "kwargs"]
+            if k not in {"self", "__class__", "model", "kwargs"}
         }
         self.trainer_args.update(kwargs)
 
@@ -132,7 +132,7 @@ class Trainer:
             )
 
         # Define learning rate scheduler
-        if scheduler in ["MultiStepLR", "multistep"]:
+        if scheduler in {"MultiStepLR", "multistep"}:
             scheduler_params = kwargs.pop(
                 "scheduler_params",
                 {
@@ -142,11 +142,11 @@ class Trainer:
             )
             self.scheduler = MultiStepLR(self.optimizer, **scheduler_params)
             self.scheduler_type = "multistep"
-        elif scheduler in ["ExponentialLR", "Exp", "Exponential"]:
+        elif scheduler in {"ExponentialLR", "Exp", "Exponential"}:
             scheduler_params = kwargs.pop("scheduler_params", {"gamma": 0.98})
             self.scheduler = ExponentialLR(self.optimizer, **scheduler_params)
             self.scheduler_type = "exp"
-        elif scheduler in ["CosineAnnealingLR", "CosLR", "Cos", "cos"]:
+        elif scheduler in {"CosineAnnealingLR", "CosLR", "Cos", "cos"}:
             scheduler_params = kwargs.pop("scheduler_params", {"decay_fraction": 1e-2})
             decay_fraction = scheduler_params.pop("decay_fraction")
             self.scheduler = CosineAnnealingLR(
@@ -481,7 +481,7 @@ class Trainer:
         return [
             key
             for key in list(inspect.signature(Trainer.__init__).parameters)
-            if key not in (["self", "model", "kwargs"])
+            if key not in {"self", "model", "kwargs"}
         ]
 
     def save(self, filename: str = "training_result.pth.tar") -> None:
@@ -602,9 +602,9 @@ class CombinedLoss(nn.Module):
         """
         super().__init__()
         # Define loss criterion
-        if criterion in ["MSE", "mse"]:
+        if criterion in {"MSE", "mse"}:
             self.criterion = nn.MSELoss()
-        elif criterion in ["MAE", "mae", "l1"]:
+        elif criterion in {"MAE", "mae", "l1"}:
             self.criterion = nn.L1Loss()
         elif criterion == "Huber":
             self.criterion = nn.HuberLoss(delta=delta)

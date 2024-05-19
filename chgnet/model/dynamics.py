@@ -890,6 +890,6 @@ class EquationOfState:
             return 1 / self.bm.b0
         if unit == "GPa^-1":
             return 1 / self.bm.b0_GPa
-        if unit in ("Pa^-1", "m^2/N"):
+        if unit in {"Pa^-1", "m^2/N"}:
             return 1 / (self.bm.b0_GPa * 1e9)
         raise NotImplementedError("unit has to be one of A^3/eV, GPa^-1 Pa^-1 or m^2/N")

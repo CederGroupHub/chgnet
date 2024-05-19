@@ -99,8 +99,6 @@ ignore = [
     "E731",    # do not assign a lambda expression, use a def
     "EM",
     "ERA001",  # found commented out code
-    "FBT001",  # Boolean positional argument in function
-    "FBT002",  # Boolean keyword argument in function
     "ISC001",
     "NPY002",  # TODO replace legacy np.random.seed
     "PLR",     # pylint refactor
@@ -120,7 +118,7 @@ isort.split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "site/*" = ["INP001", "S602"]
-"tests/*" = ["ANN201", "D103", "INP001", "S101"]
+"tests/*" = ["ANN201", "D100", "D103", "FBT001", "FBT002", "INP001", "S101"]
 # E402 Module level import not at top of file
 "examples/*" = ["E402", "I002", "INP001", "N816", "S101", "T201"]
 "chgnet/**/*" = ["T201"]

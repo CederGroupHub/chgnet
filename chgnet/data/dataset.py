@@ -80,7 +80,7 @@ class StructureData(Dataset):
         self.keys = np.arange(len(structures))
         if shuffle:
             random.shuffle(self.keys)
-        print(f"{len(structures)} structures imported")
+        print(f"{type(self).__name__} imported {len(structures):,} structures")
         self.graph_converter = graph_converter or CrystalGraphConverter(
             atom_graph_cutoff=6, bond_graph_cutoff=3
         )
@@ -587,7 +587,7 @@ class StructureJsonData(Dataset):
         ]
         if shuffle:
             random.shuffle(self.keys)
-        print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
+        print(f"{len(self.data)} MP IDs, {len(self)} structures imported")
         self.graph_converter = graph_converter
         self.energy_key = energy_key
         self.force_key = force_key

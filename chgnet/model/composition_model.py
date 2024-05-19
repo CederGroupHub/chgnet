@@ -202,7 +202,7 @@ class AtomRef(nn.Module):
 
     def initialize_from(self, dataset: str) -> None:
         """Initialize pre-fitted weights from a dataset."""
-        if dataset in ["MPtrj", "MPtrj_e"]:
+        if dataset in {"MPtrj", "MPtrj_e"}:
             self.initialize_from_MPtrj()
         elif dataset == "MPF":
             self.initialize_from_MPF()

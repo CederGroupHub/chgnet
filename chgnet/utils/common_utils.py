@@ -22,7 +22,7 @@ def determine_device(
         device (str): device name to be passed to model.to(device)
     """
     use_device = use_device or os.getenv("CHGNET_DEVICE")
-    if use_device in ("mps", None) and torch.backends.mps.is_available():
+    if use_device in {"mps", None} and torch.backends.mps.is_available():
         device = "mps"
     else:
         device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")

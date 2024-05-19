@@ -150,9 +150,9 @@ class CHGNet(nn.Module):
         """
         # Store model args for reconstruction
         self.model_args = {
-            k: v
-            for k, v in locals().items()
-            if k not in ["self", "__class__", "kwargs"]
+            key: val
+            for key, val in locals().items()
+            if key not in {"self", "__class__", "kwargs"}
         }
         self.model_args.update(kwargs)
         if version:
@@ -279,7 +279,7 @@ class CHGNet(nn.Module):
             self.read_out_type = "sum"
             input_dim = atom_fea_dim
             self.pooling = GraphPooling(average=False)
-        elif read_out in ["attn", "weighted"]:
+        elif read_out in {"attn", "weighted"}:
             self.read_out_type = "attn"
             num_heads = kwargs.pop("num_heads", 3)
             self.pooling = GraphAttentionReadOut(
@@ -290,7 +290,7 @@ class CHGNet(nn.Module):
             self.read_out_type = "ave"
             input_dim = atom_fea_dim
             self.pooling = GraphPooling(average=True)
-        if kwargs.pop("final_mlp", "MLP") in ["normal", "MLP"]:
+        if kwargs.pop("final_mlp", "MLP") in {"normal", "MLP"}:
             self.mlp = MLP(
                 input_dim=input_dim,
                 hidden_dim=mlp_hidden_dims,
