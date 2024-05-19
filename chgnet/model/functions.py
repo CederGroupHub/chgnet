@@ -94,16 +94,16 @@ class MLP(nn.Module):
             )
         self.layers = nn.Sequential(*layers)
 
-    def forward(self, X: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """Performs a forward pass through the MLP.
 
         Args:
-            X (Tensor): a tensor of shape (batch_size, input_dim)
+            x (Tensor): a tensor of shape (batch_size, input_dim)
 
         Returns:
             Tensor: a tensor of shape (batch_size, output_dim)
         """
-        return self.layers(X)
+        return self.layers(x)
 
 
 class GatedMLP(nn.Module):
@@ -164,21 +164,21 @@ class GatedMLP(nn.Module):
         self.bn1 = find_normalization(name=norm, dim=output_dim)
         self.bn2 = find_normalization(name=norm, dim=output_dim)
 
-    def forward(self, X: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """Performs a forward pass through the MLP.
 
         Args:
-            X (Tensor): a tensor of shape (batch_size, input_dim)
+            x (Tensor): a tensor of shape (batch_size, input_dim)
 
         Returns:
             Tensor: a tensor of shape (batch_size, output_dim)
         """
         if self.norm is None:
-            core = self.activation(self.mlp_core(X))
-            gate = self.sigmoid(self.mlp_gate(X))
+            core = self.activation(self.mlp_core(x))
+            gate = self.sigmoid(self.mlp_gate(x))
         else:
-            core = self.activation(self.bn1(self.mlp_core(X)))
-            gate = self.sigmoid(self.bn2(self.mlp_gate(X)))
+            core = self.activation(self.bn1(self.mlp_core(x)))
+            gate = self.sigmoid(self.bn2(self.mlp_gate(x)))
         return core * gate
 
 

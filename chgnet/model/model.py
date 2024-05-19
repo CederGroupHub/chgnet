@@ -62,7 +62,7 @@ class CHGNet(nn.Module):
         graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
         cutoff_coeff: int = 8,
         learnable_rbf: bool = True,
-        gMLP_norm: str | None = "layer",
+        gMLP_norm: str | None = "layer",  # noqa: N803
         readout_norm: str | None = "layer",
         version: str | None = None,
         **kwargs,
@@ -613,7 +613,7 @@ class CHGNet(nn.Module):
                     magneton mu_B
         """
         if not isinstance(graph, (CrystalGraph, Sequence)):
-            raise ValueError(
+            raise TypeError(
                 f"{type(graph)=} must be CrystalGraph or list of CrystalGraphs"
             )
 

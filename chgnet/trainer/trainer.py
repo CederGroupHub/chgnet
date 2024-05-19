@@ -475,7 +475,7 @@ class Trainer:
         """Get best model recorded in the trainer."""
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
-        MAE = min(self.training_history["e"]["val"])
+        MAE = min(self.training_history["e"]["val"])  # noqa: N806
         print(f"Best model has val {MAE =:.4}")
         return self.best_model
 

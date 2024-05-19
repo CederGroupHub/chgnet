@@ -183,7 +183,7 @@ class CrystalGraph:
         )
 
     @property
-    def num_isolated_atoms(self):
+    def num_isolated_atoms(self) -> int:
         """Number of isolated atoms given the atom graph cutoff
         Isolated atoms are disconnected nodes in the atom graph
         that will not get updated in CHGNet.

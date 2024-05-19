@@ -64,7 +64,7 @@ class StructureData(Dataset):
         """
         for idx, struct in enumerate(structures):
             if not isinstance(struct, Structure):
-                raise ValueError(f"{idx} is not a pymatgen Structure object: {struct}")
+                raise TypeError(f"{idx} is not a pymatgen Structure object: {struct}")
         for name in "energies forces stresses magmoms structure_ids".split():
             labels = locals()[name]
             if labels is not None and len(labels) != len(structures):
@@ -97,7 +97,7 @@ class StructureData(Dataset):
         save_path: str | None = None,
         graph_converter: CrystalGraphConverter | None = None,
         shuffle: bool = True,
-    ):
+    ) -> StructureData:
         """Parse VASP output files into structures and labels and feed into the dataset.
 
         Args:
@@ -586,7 +586,7 @@ class StructureJsonData(Dataset):
         elif isinstance(data, dict):
             self.data = data
         else:
-            raise ValueError(f"data must be JSON path or dictionary, got {type(data)}")
+            raise TypeError(f"data must be JSON path or dictionary, got {type(data)}")
 
         self.keys = [
             (mp_id, graph_id) for mp_id, dct in self.data.items() for graph_id in dct
@@ -608,7 +608,7 @@ class StructureJsonData(Dataset):
         return len(self.keys)
 
     @functools.cache  # Cache loaded structures
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
         Returns:
@@ -754,7 +754,7 @@ class StructureJsonData(Dataset):
         return train_loader, val_loader, test_loader
 
 
-def collate_graphs(batch_data: list):
+def collate_graphs(batch_data: list) -> tuple[list[CrystalGraph], dict[str, Tensor]]:
     """Collate of list of (graph, target) into batch data.
 
     Args:
@@ -791,7 +791,7 @@ def get_train_val_test_loader(
     return_test: bool = True,
     num_workers: int = 0,
     pin_memory: bool = True,
-):
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """Randomly partition a dataset into train, val, test loaders.
 
     Args:
@@ -852,7 +852,7 @@ def get_train_val_test_loader(
 
 def get_loader(
     dataset, *, batch_size: int = 64, num_workers: int = 0, pin_memory: bool = True
-):
+) -> DataLoader:
     """Get a dataloader from a dataset.
 
     Args:

@@ -27,7 +27,7 @@ class AtomConv(nn.Module):
         use_mlp_out: bool = True,
         mlp_out_bias: bool = False,
         resnet: bool = True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the AtomConv layer.
 
@@ -153,7 +153,7 @@ class BondConv(nn.Module):
         use_mlp_out: bool = True,
         mlp_out_bias: bool = False,
         resnet=True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the BondConv layer.
 
@@ -279,7 +279,7 @@ class AngleUpdate(nn.Module):
         activation: str = "silu",
         norm: str | None = None,
         resnet: bool = True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the AngleUpdate layer.
 

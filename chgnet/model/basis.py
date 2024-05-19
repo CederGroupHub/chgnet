@@ -123,8 +123,8 @@ class GaussianExpansion(nn.Module):
 
     def __init__(
         self,
-        min: float = 0,
-        max: float = 5,
+        min: float = 0,  # noqa: A002
+        max: float = 5,  # noqa: A002
         step: float = 0.5,
         var: float | None = None,
     ) -> None:
@@ -138,8 +138,10 @@ class GaussianExpansion(nn.Module):
             var (float): variance in gaussian filter, default to step
         """
         super().__init__()
-        assert min < max
-        assert max - min > step
+        if min >= max:
+            raise ValueError(f"{min=} must be less than {max=}")
+        if max - min <= step:
+            raise ValueError(f"{max - min=} must be greater than {step=}")
         self.register_buffer("gaussian_centers", torch.arange(min, max + step, step))
         self.var = var or step
         if self.var <= 0:

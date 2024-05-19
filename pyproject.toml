@@ -52,41 +52,12 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 target-version = "py39"
 include = ["**/pyproject.toml", "*.ipynb", "*.py", "*.pyi"]
 [tool.ruff.lint]
-select = [
-    "B",    # flake8-bugbear
-    "C4",   # flake8-comprehensions
-    "D",    # pydocstyle
-    "E",    # pycodestyle error
-    "EXE",  # flake8-executable
-    "F",    # pyflakes
-    "FA",   # flake8-future-annotations
-    "FLY",  # flynt
-    "I",    # isort
-    "ICN",  # flake8-import-conventions
-    "ISC",  # flake8-implicit-str-concat
-    "PD",   # pandas-vet
-    "PERF", # perflint
-    "PIE",  # flake8-pie
-    "PL",   # pylint
-    "PT",   # flake8-pytest-style
-    "PYI",  # flakes8-pyi
-    "Q",    # flake8-quotes
-    "RET",  # flake8-return
-    "RSE",  # flake8-raise
-    "RUF",  # Ruff-specific rules
-    "SIM",  # flake8-simplify
-    "SLOT", # flakes8-slot
-    "T201",
-    "TCH",  # flake8-type-checking
-    "TID",  # tidy imports
-    "TID",  # flake8-tidy-imports
-    "UP",   # pyupgrade
-    "W",    # pycodestyle warning
-    "YTT",  # flake8-2020
-]
+select = ["ALL"]
 ignore = [
     "ANN001",  # TODO add missing type annotations
     "ANN003",
+    "ANN101",
+    "ANN102",
     "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
     "BLE001",
     "C408",    # unnecessary-collection-call
@@ -108,9 +79,12 @@ ignore = [
     "PT013",   # pytest-incorrect-pytest-import
     "PT019",   # pytest-fixture-param-without-value
     "PTH",     # prefer Path to os.path
+    "S108",
     "S301",    # pickle can be unsafe
     "S310",
+    "S311",
     "TRY003",
+    "TRY300",
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]

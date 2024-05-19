@@ -63,7 +63,7 @@ class CompositionModel(nn.Module):
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
-    def _assemble_graphs(self, graphs: list[CrystalGraph]):
+    def _assemble_graphs(self, graphs: list[CrystalGraph]) -> Tensor:
         """Assemble a list of graphs into one-hot composition encodings.
 
         Args:
@@ -99,7 +99,7 @@ class AtomRef(nn.Module):
         self.fc = nn.Linear(max_num_elements, 1, bias=False)
         self.fitted = False
 
-    def forward(self, graphs: list[CrystalGraph]):
+    def forward(self, graphs: list[CrystalGraph]) -> Tensor:
         """Get the energy of a list of CrystalGraphs.
 
         Args:
@@ -108,7 +108,8 @@ class AtomRef(nn.Module):
         Returns:
             energy (tensor)
         """
-        assert self.fitted is True, "composition model need to be fitted first!"
+        if not self.fitted:
+            raise ValueError("composition model needs to be fitted first!")
         composition_feas = self._assemble_graphs(graphs)
         return self._get_energy(composition_feas)
 
@@ -171,7 +172,7 @@ class AtomRef(nn.Module):
         self.fc.load_state_dict(state_dict)
         self.fitted = True
 
-    def _assemble_graphs(self, graphs: list[CrystalGraph]):
+    def _assemble_graphs(self, graphs: list[CrystalGraph]) -> Tensor:
         """Assemble a list of graphs into one-hot composition encodings
         Args:
             graphs (list[Tensor]): a list of CrystalGraphs
@@ -189,7 +190,7 @@ class AtomRef(nn.Module):
             composition_feas.append(composition_fea)
         return torch.stack(composition_feas, dim=0).float()
 
-    def get_site_energies(self, graphs: list[CrystalGraph]):
+    def get_site_energies(self, graphs: list[CrystalGraph]) -> list[Tensor]:
         """Predict the site energies given a list of CrystalGraphs.
 
         Args:
@@ -212,7 +213,7 @@ class AtomRef(nn.Module):
         else:
             raise NotImplementedError(f"{dataset=} not supported yet")
 
-    def initialize_from_MPtrj(self) -> None:
+    def initialize_from_MPtrj(self) -> None:  # noqa: N802
         """Initialize pre-fitted weights from MPtrj dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(
@@ -317,7 +318,7 @@ class AtomRef(nn.Module):
         self.is_intensive = True
         self.fitted = True
 
-    def initialize_from_MPF(self) -> None:
+    def initialize_from_MPF(self) -> None:  # noqa: N802
         """Initialize pre-fitted weights from MPF dataset."""
         state_dict = collections.OrderedDict()
         state_dict["weight"] = torch.tensor(

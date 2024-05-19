@@ -94,7 +94,9 @@ class CHGNetCalculator(Calculator):
         print(f"CHGNet will run on {self.device}")
 
     @classmethod
-    def from_file(cls, path: str, use_device: str | None = None, **kwargs):
+    def from_file(
+        cls, path: str, use_device: str | None = None, **kwargs
+    ) -> CHGNetCalculator:
         """Load a user's CHGNet model and initialize the Calculator."""
         return CHGNetCalculator(
             model=CHGNet.from_file(path),
@@ -402,7 +404,7 @@ class CrystalFeasObserver:
 
     def __call__(self) -> None:
         """Record Atoms crystal feature vectors after an MD/relaxation step."""
-        self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])
+        self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])  # noqa: SLF001
 
     def __len__(self) -> int:
         """Number of recorded steps."""
@@ -741,7 +743,7 @@ class MolecularDynamics:
             verbose (bool): Whether to notify user about upper-triangular cell
                 transformation. Default = False
         """
-        if not NPT._isuppertriangular(self.atoms.get_cell()):
+        if not NPT._isuppertriangular(self.atoms.get_cell()):  # noqa: SLF001
             a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
             angles = np.radians((alpha, beta, gamma))
             sin_a, sin_b, _sin_g = np.sin(angles)
