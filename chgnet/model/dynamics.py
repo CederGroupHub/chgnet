@@ -55,6 +55,7 @@ class CHGNetCalculator(Calculator):
     def __init__(
         self,
         model: CHGNet | None = None,
+        *,
         use_device: str | None = None,
         check_cuda_mem: bool = True,
         stress_weight: float | None = 1 / 160.21766208,
@@ -93,7 +94,9 @@ class CHGNetCalculator(Calculator):
         print(f"CHGNet will run on {self.device}")
 
     @classmethod
-    def from_file(cls, path: str, use_device: str | None = None, **kwargs):
+    def from_file(
+        cls, path: str, use_device: str | None = None, **kwargs
+    ) -> CHGNetCalculator:
         """Load a user's CHGNet model and initialize the Calculator."""
         return CHGNetCalculator(
             model=CHGNet.from_file(path),
@@ -215,6 +218,7 @@ class StructOptimizer:
     def relax(
         self,
         atoms: Structure | Atoms,
+        *,
         fmax: float | None = 0.1,
         steps: int | None = 500,
         relax_cell: bool | None = True,
@@ -400,7 +404,7 @@ class CrystalFeasObserver:
 
     def __call__(self) -> None:
         """Record Atoms crystal feature vectors after an MD/relaxation step."""
-        self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])
+        self.crystal_feature_vectors.append(self.atoms._calc.results["crystal_fea"])  # noqa: SLF001
 
     def __len__(self) -> int:
         """Number of recorded steps."""
@@ -419,6 +423,7 @@ class MolecularDynamics:
     def __init__(
         self,
         atoms: Atoms | Structure,
+        *,
         model: CHGNet | CHGNetCalculator | None = None,
         ensemble: str = "nvt",
         thermostat: str = "Berendsen_inhomogeneous",
@@ -729,7 +734,7 @@ class MolecularDynamics:
         self.dyn.atoms = atoms
         self.dyn.atoms.calc = calculator
 
-    def upper_triangular_cell(self, verbose: bool | None = False) -> None:
+    def upper_triangular_cell(self, *, verbose: bool | None = False) -> None:
         """Transform to upper-triangular cell.
         ASE Nose-Hoover implementation only supports upper-triangular cell
         while ASE's canonical description is lower-triangular cell.
@@ -738,7 +743,7 @@ class MolecularDynamics:
             verbose (bool): Whether to notify user about upper-triangular cell
                 transformation. Default = False
         """
-        if not NPT._isuppertriangular(self.atoms.get_cell()):
+        if not NPT._isuppertriangular(self.atoms.get_cell()):  # noqa: SLF001
             a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
             angles = np.radians((alpha, beta, gamma))
             sin_a, sin_b, _sin_g = np.sin(angles)
@@ -799,6 +804,7 @@ class EquationOfState:
     def fit(
         self,
         atoms: Structure | Atoms,
+        *,
         n_points: int = 11,
         fmax: float | None = 0.1,
         steps: int | None = 500,
@@ -890,6 +896,6 @@ class EquationOfState:
             return 1 / self.bm.b0
         if unit == "GPa^-1":
             return 1 / self.bm.b0_GPa
-        if unit in ("Pa^-1", "m^2/N"):
+        if unit in {"Pa^-1", "m^2/N"}:
             return 1 / (self.bm.b0_GPa * 1e9)
         raise NotImplementedError("unit has to be one of A^3/eV, GPa^-1 Pa^-1 or m^2/N")

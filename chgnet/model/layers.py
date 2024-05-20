@@ -17,6 +17,7 @@ class AtomConv(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_fea_dim: int,
         bond_fea_dim: int,
         hidden_dim: int = 64,
@@ -26,7 +27,7 @@ class AtomConv(nn.Module):
         use_mlp_out: bool = True,
         mlp_out_bias: bool = False,
         resnet: bool = True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the AtomConv layer.
 
@@ -144,6 +145,7 @@ class BondConv(nn.Module):
         atom_fea_dim: int,
         bond_fea_dim: int,
         angle_fea_dim: int,
+        *,
         hidden_dim: int = 64,
         dropout: float = 0,
         activation: str = "silu",
@@ -151,7 +153,7 @@ class BondConv(nn.Module):
         use_mlp_out: bool = True,
         mlp_out_bias: bool = False,
         resnet=True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the BondConv layer.
 
@@ -271,12 +273,13 @@ class AngleUpdate(nn.Module):
         atom_fea_dim: int,
         bond_fea_dim: int,
         angle_fea_dim: int,
+        *,
         hidden_dim: int = 0,
         dropout: float = 0,
         activation: str = "silu",
         norm: str | None = None,
         resnet: bool = True,
-        gMLP_norm: str | None = None,
+        gMLP_norm: str | None = None,  # noqa: N803
     ) -> None:
         """Initialize the AngleUpdate layer.
 
@@ -363,7 +366,7 @@ class AngleUpdate(nn.Module):
 class GraphPooling(nn.Module):
     """Pooling the sub-graphs in the batched graph."""
 
-    def __init__(self, average: bool = False) -> None:
+    def __init__(self, *, average: bool = False) -> None:
         """Args:
         average (bool): whether to average the features.
         """
@@ -392,7 +395,12 @@ class GraphAttentionReadOut(nn.Module):
     """
 
     def __init__(
-        self, atom_fea_dim: int, num_head: int = 3, hidden_dim: int = 32, average=False
+        self,
+        atom_fea_dim: int,
+        num_head: int = 3,
+        hidden_dim: int = 32,
+        *,
+        average=False,
     ) -> None:
         """Initialize the layer.
 

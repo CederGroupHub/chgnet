@@ -39,6 +39,7 @@ class BondEncoder(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_graph_cutoff: float = 5,
         bond_graph_cutoff: float = 3,
         num_radial: int = 9,
@@ -113,7 +114,7 @@ class BondEncoder(nn.Module):
 class AngleEncoder(nn.Module):
     """Encode an angle given the two bond vectors using Fourier Expansion."""
 
-    def __init__(self, num_angular: int = 9, learnable: bool = True) -> None:
+    def __init__(self, *, num_angular: int = 9, learnable: bool = True) -> None:
         """Initialize the angle encoder.
 
         Args:

@@ -8,7 +8,7 @@ from torch import Tensor, nn
 class Fourier(nn.Module):
     """Fourier Expansion for angle features."""
 
-    def __init__(self, order: int = 5, learnable: bool = False) -> None:
+    def __init__(self, *, order: int = 5, learnable: bool = False) -> None:
         """Initialize the Fourier expansion.
 
         Args:
@@ -47,6 +47,7 @@ class RadialBessel(torch.nn.Module):
 
     def __init__(
         self,
+        *,
         num_radial: int = 9,
         cutoff: float = 5,
         learnable: bool = False,
@@ -90,7 +91,7 @@ class RadialBessel(torch.nn.Module):
             self.smooth_cutoff = None
 
     def forward(
-        self, dist: Tensor, return_smooth_factor: bool = False
+        self, dist: Tensor, *, return_smooth_factor: bool = False
     ) -> Tensor | tuple[Tensor, Tensor]:
         """Apply Bessel expansion to a feature Tensor.
 
@@ -122,8 +123,8 @@ class GaussianExpansion(nn.Module):
 
     def __init__(
         self,
-        min: float = 0,
-        max: float = 5,
+        min: float = 0,  # noqa: A002
+        max: float = 5,  # noqa: A002
         step: float = 0.5,
         var: float | None = None,
     ) -> None:
@@ -137,8 +138,10 @@ class GaussianExpansion(nn.Module):
             var (float): variance in gaussian filter, default to step
         """
         super().__init__()
-        assert min < max
-        assert max - min > step
+        if min >= max:
+            raise ValueError(f"{min=} must be less than {max=}")
+        if max - min <= step:
+            raise ValueError(f"{max - min=} must be greater than {step=}")
         self.register_buffer("gaussian_centers", torch.arange(min, max + step, step))
         self.var = var or step
         if self.var <= 0:

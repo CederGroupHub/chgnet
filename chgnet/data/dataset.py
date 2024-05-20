@@ -33,6 +33,7 @@ class StructureData(Dataset):
         structures: list[Structure],
         energies: list[float],
         forces: list[Sequence[Sequence[float]]],
+        *,
         stresses: list[Sequence[Sequence[float]]] | None = None,
         magmoms: list[Sequence[Sequence[float]]] | None = None,
         structure_ids: list | None = None,
@@ -63,7 +64,7 @@ class StructureData(Dataset):
         """
         for idx, struct in enumerate(structures):
             if not isinstance(struct, Structure):
-                raise ValueError(f"{idx} is not a pymatgen Structure object: {struct}")
+                raise TypeError(f"{idx} is not a pymatgen Structure object: {struct}")
         for name in "energies forces stresses magmoms structure_ids".split():
             labels = locals()[name]
             if labels is not None and len(labels) != len(structures):
@@ -80,7 +81,7 @@ class StructureData(Dataset):
         self.keys = np.arange(len(structures))
         if shuffle:
             random.shuffle(self.keys)
-        print(f"{len(structures)} structures imported")
+        print(f"{type(self).__name__} imported {len(structures):,} structures")
         self.graph_converter = graph_converter or CrystalGraphConverter(
             atom_graph_cutoff=6, bond_graph_cutoff=3
         )
@@ -91,11 +92,12 @@ class StructureData(Dataset):
     def from_vasp(
         cls,
         file_root: str,
+        *,
         check_electronic_convergence: bool = True,
         save_path: str | None = None,
         graph_converter: CrystalGraphConverter | None = None,
         shuffle: bool = True,
-    ):
+    ) -> StructureData:
         """Parse VASP output files into structures and labels and feed into the dataset.
 
         Args:
@@ -196,6 +198,7 @@ class CIFData(Dataset):
     def __init__(
         self,
         cif_path: str,
+        *,
         labels: str | dict = "labels.json",
         targets: TrainTask = "efsm",
         graph_converter: CrystalGraphConverter | None = None,
@@ -311,6 +314,7 @@ class GraphData(Dataset):
     def __init__(
         self,
         graph_path: str,
+        *,
         labels: str | dict = "labels.json",
         targets: TrainTask = "efsm",
         exclude: str | list | None = None,
@@ -429,6 +433,7 @@ class GraphData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
+        *,
         train_key: list[str] | None = None,
         val_key: list[str] | None = None,
         test_key: list[str] | None = None,
@@ -541,6 +546,7 @@ class StructureJsonData(Dataset):
         self,
         data: str | dict,
         graph_converter: CrystalGraphConverter,
+        *,
         targets: TrainTask = "efsm",
         energy_key: str = "energy_per_atom",
         force_key: str = "force",
@@ -580,14 +586,14 @@ class StructureJsonData(Dataset):
         elif isinstance(data, dict):
             self.data = data
         else:
-            raise ValueError(f"data must be JSON path or dictionary, got {type(data)}")
+            raise TypeError(f"data must be JSON path or dictionary, got {type(data)}")
 
         self.keys = [
             (mp_id, graph_id) for mp_id, dct in self.data.items() for graph_id in dct
         ]
         if shuffle:
             random.shuffle(self.keys)
-        print(f"{len(self.data)} mp_ids, {len(self)} structures imported")
+        print(f"{len(self.data)} MP IDs, {len(self)} structures imported")
         self.graph_converter = graph_converter
         self.energy_key = energy_key
         self.force_key = force_key
@@ -602,7 +608,7 @@ class StructureJsonData(Dataset):
         return len(self.keys)
 
     @functools.cache  # Cache loaded structures
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[CrystalGraph, dict[str, Tensor]]:
         """Get one item in the dataset.
 
         Returns:
@@ -654,6 +660,7 @@ class StructureJsonData(Dataset):
         self,
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
+        *,
         train_key: list[str] | None = None,
         val_key: list[str] | None = None,
         test_key: list[str] | None = None,
@@ -747,7 +754,7 @@ class StructureJsonData(Dataset):
         return train_loader, val_loader, test_loader
 
 
-def collate_graphs(batch_data: list):
+def collate_graphs(batch_data: list) -> tuple[list[CrystalGraph], dict[str, Tensor]]:
     """Collate of list of (graph, target) into batch data.
 
     Args:
@@ -777,13 +784,14 @@ def collate_graphs(batch_data: list):
 
 def get_train_val_test_loader(
     dataset: Dataset,
+    *,
     batch_size: int = 64,
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
     return_test: bool = True,
     num_workers: int = 0,
     pin_memory: bool = True,
-):
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """Randomly partition a dataset into train, val, test loaders.
 
     Args:
@@ -842,7 +850,9 @@ def get_train_val_test_loader(
     return train_loader, val_loader
 
 
-def get_loader(dataset, batch_size=64, num_workers=0, pin_memory=True):
+def get_loader(
+    dataset, *, batch_size: int = 64, num_workers: int = 0, pin_memory: bool = True
+) -> DataLoader:
     """Get a dataloader from a dataset.
 
     Args:

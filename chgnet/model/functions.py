@@ -6,7 +6,7 @@ import torch
 from torch import Tensor, nn
 
 
-def aggregate(data: Tensor, owners: Tensor, average=True, num_owner=None) -> Tensor:
+def aggregate(data: Tensor, owners: Tensor, *, average=True, num_owner=None) -> Tensor:
     """Aggregate rows in data by specifying the owners.
 
     Args:
@@ -45,6 +45,7 @@ class MLP(nn.Module):
     def __init__(
         self,
         input_dim: int,
+        *,
         output_dim: int = 1,
         hidden_dim: int | Sequence[int] | None = (64, 64),
         dropout: float = 0,
@@ -67,7 +68,7 @@ class MLP(nn.Module):
                 Default = True
         """
         super().__init__()
-        if hidden_dim in (None, 0):
+        if hidden_dim is None or hidden_dim == 0:
             layers = [nn.Dropout(dropout), nn.Linear(input_dim, output_dim, bias=bias)]
         elif isinstance(hidden_dim, int):
             layers = [
@@ -93,16 +94,16 @@ class MLP(nn.Module):
             )
         self.layers = nn.Sequential(*layers)
 
-    def forward(self, X: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """Performs a forward pass through the MLP.
 
         Args:
-            X (Tensor): a tensor of shape (batch_size, input_dim)
+            x (Tensor): a tensor of shape (batch_size, input_dim)
 
         Returns:
             Tensor: a tensor of shape (batch_size, output_dim)
         """
-        return self.layers(X)
+        return self.layers(x)
 
 
 class GatedMLP(nn.Module):
@@ -114,6 +115,7 @@ class GatedMLP(nn.Module):
         self,
         input_dim: int,
         output_dim: int,
+        *,
         hidden_dim: int | list[int] | None = None,
         dropout: float = 0,
         activation: str = "silu",
@@ -162,21 +164,21 @@ class GatedMLP(nn.Module):
         self.bn1 = find_normalization(name=norm, dim=output_dim)
         self.bn2 = find_normalization(name=norm, dim=output_dim)
 
-    def forward(self, X: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """Performs a forward pass through the MLP.
 
         Args:
-            X (Tensor): a tensor of shape (batch_size, input_dim)
+            x (Tensor): a tensor of shape (batch_size, input_dim)
 
         Returns:
             Tensor: a tensor of shape (batch_size, output_dim)
         """
         if self.norm is None:
-            core = self.activation(self.mlp_core(X))
-            gate = self.sigmoid(self.mlp_gate(X))
+            core = self.activation(self.mlp_core(x))
+            gate = self.sigmoid(self.mlp_gate(x))
         else:
-            core = self.activation(self.bn1(self.mlp_core(X)))
-            gate = self.sigmoid(self.bn2(self.mlp_gate(X)))
+            core = self.activation(self.bn1(self.mlp_core(x)))
+            gate = self.sigmoid(self.bn2(self.mlp_gate(x)))
         return core * gate
 
 

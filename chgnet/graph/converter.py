@@ -33,6 +33,7 @@ class CrystalGraphConverter(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_graph_cutoff: float = 6,
         bond_graph_cutoff: float = 3,
         algorithm: Literal["legacy", "fast"] = "fast",
@@ -274,7 +275,6 @@ class CrystalGraphConverter(nn.Module):
             None
         """
         self.on_isolated_atoms = on_isolated_atoms
-        return
 
     def as_dict(self) -> dict[str, str | float]:
         """Save the args of the graph converter."""

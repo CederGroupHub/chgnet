@@ -37,6 +37,7 @@ class CHGNet(nn.Module):
 
     def __init__(
         self,
+        *,
         atom_fea_dim: int = 64,
         bond_fea_dim: int = 64,
         angle_fea_dim: int = 64,
@@ -61,7 +62,7 @@ class CHGNet(nn.Module):
         graph_converter_algorithm: Literal["legacy", "fast"] = "fast",
         cutoff_coeff: int = 8,
         learnable_rbf: bool = True,
-        gMLP_norm: str | None = "layer",
+        gMLP_norm: str | None = "layer",  # noqa: N803
         readout_norm: str | None = "layer",
         version: str | None = None,
         **kwargs,
@@ -150,9 +151,9 @@ class CHGNet(nn.Module):
         """
         # Store model args for reconstruction
         self.model_args = {
-            k: v
-            for k, v in locals().items()
-            if k not in ["self", "__class__", "kwargs"]
+            key: val
+            for key, val in locals().items()
+            if key not in {"self", "__class__", "kwargs"}
         }
         self.model_args.update(kwargs)
         if version:
@@ -279,7 +280,7 @@ class CHGNet(nn.Module):
             self.read_out_type = "sum"
             input_dim = atom_fea_dim
             self.pooling = GraphPooling(average=False)
-        elif read_out in ["attn", "weighted"]:
+        elif read_out in {"attn", "weighted"}:
             self.read_out_type = "attn"
             num_heads = kwargs.pop("num_heads", 3)
             self.pooling = GraphAttentionReadOut(
@@ -290,7 +291,7 @@ class CHGNet(nn.Module):
             self.read_out_type = "ave"
             input_dim = atom_fea_dim
             self.pooling = GraphPooling(average=True)
-        if kwargs.pop("final_mlp", "MLP") in ["normal", "MLP"]:
+        if kwargs.pop("final_mlp", "MLP") in {"normal", "MLP"}:
             self.mlp = MLP(
                 input_dim=input_dim,
                 hidden_dim=mlp_hidden_dims,
@@ -327,6 +328,7 @@ class CHGNet(nn.Module):
     def forward(
         self,
         graphs: Sequence[CrystalGraph],
+        *,
         task: PredTask = "e",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -381,7 +383,8 @@ class CHGNet(nn.Module):
 
     def _compute(
         self,
-        g,
+        g: BatchedGraph,
+        *,
         compute_force: bool = False,
         compute_stress: bool = False,
         compute_magmom: bool = False,
@@ -530,6 +533,7 @@ class CHGNet(nn.Module):
     def predict_structure(
         self,
         structure: Structure | Sequence[Structure],
+        *,
         task: PredTask = "efsm",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -578,6 +582,7 @@ class CHGNet(nn.Module):
     def predict_graph(
         self,
         graph: CrystalGraph | Sequence[CrystalGraph],
+        *,
         task: PredTask = "efsm",
         return_site_energies: bool = False,
         return_atom_feas: bool = False,
@@ -608,7 +613,7 @@ class CHGNet(nn.Module):
                     magneton mu_B
         """
         if not isinstance(graph, (CrystalGraph, Sequence)):
-            raise ValueError(
+            raise TypeError(
                 f"{type(graph)=} must be CrystalGraph or list of CrystalGraphs"
             )
 
@@ -671,7 +676,8 @@ class CHGNet(nn.Module):
     @classmethod
     def load(
         cls,
-        model_name="0.3.0",
+        *,
+        model_name: str = "0.3.0",
         use_device: str | None = None,
         check_cuda_mem: bool = True,
         verbose: bool = True,
@@ -769,6 +775,7 @@ class BatchedGraph:
         graphs: Sequence[CrystalGraph],
         bond_basis_expansion: nn.Module,
         angle_basis_expansion: nn.Module,
+        *,
         compute_stress: bool = False,
     ) -> BatchedGraph:
         """Featurize and assemble a list of graphs.

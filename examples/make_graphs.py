@@ -71,7 +71,7 @@ def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
 
 
 def make_partition(
-    data, graph_dir, train_ratio=0.8, val_ratio=0.1, partition_with_frame=False
+    data, graph_dir, train_ratio=0.8, val_ratio=0.1, *, partition_with_frame=False
 ) -> None:
     """Make a train val test partition."""
     random.seed(42)
