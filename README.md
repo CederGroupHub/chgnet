@@ -83,7 +83,7 @@ for key, unit in [
 ### Molecular Dynamics
 
 Charge-informed molecular dynamics can be simulated with pretrained `CHGNet` through `ASE` python interface (see below),
-or through [LAMMPS](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Jun2022/src/ML-CHGNET).
+or through [LAMMPS](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Aug2023/src/ML-CHGNET).
 
 ```python
 from chgnet.model.model import CHGNet
