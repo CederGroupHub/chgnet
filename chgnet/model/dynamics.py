@@ -242,13 +242,13 @@ class StructOptimizer:
                 Default = True
             ase_filter (str | ase.filters.Filter): The filter to apply to the atoms
                 object for relaxation. Default = FrechetCellFilter
-                Used to default to ExpCellFilter but was removed due to bug reported in
-                https://gitlab.com/ase/ase/-/issues/1321 and fixed in
+                Default used to be ExpCellFilter which was removed due to bug reported
+                in https://gitlab.com/ase/ase/-/issues/1321 and fixed in
                 https://gitlab.com/ase/ase/-/merge_requests/3024.
             save_path (str | None): The path to save the trajectory.
                 Default = None
-            loginterval (int | None): Interval for logging trajectory and crystal feas
-                Default = 1
+            loginterval (int | None): Interval for logging trajectory and crystal
+                features. Default = 1
             crystal_feas_save_path (str | None): Path to save crystal feature vectors
                 which are logged at a loginterval rage
                 Default = None
@@ -262,30 +262,18 @@ class StructOptimizer:
             dict[str, Structure | TrajectoryObserver]:
                 A dictionary with 'final_structure' and 'trajectory'.
         """
-        try:
-            import ase.filters as filter_classes
-            from ase.filters import Filter
+        import ase.filters as filters
+        from ase.filters import Filter
 
-        except ImportWarning:
-            import ase.constraints as filter_classes
-            from ase.constraints import Filter
-
-            if ase_filter == "FrechetCellFilter":
-                ase_filter = "ExpCellFilter"
-            print(
-                "Failed to import ase.filters. Default filter to ExpCellFilter. "
-                "For better relaxation accuracy with the new FrechetCellFilter, "
-                "run pip install git+https://gitlab.com/ase/ase"
-            )
         valid_filter_names = [
             name
-            for name, cls in inspect.getmembers(filter_classes, inspect.isclass)
+            for name, cls in inspect.getmembers(filters, inspect.isclass)
             if issubclass(cls, Filter)
         ]
 
         if isinstance(ase_filter, str):
             if ase_filter in valid_filter_names:
-                ase_filter = getattr(filter_classes, ase_filter)
+                ase_filter = getattr(filters, ase_filter)
             else:
                 raise ValueError(
                     f"Invalid {ase_filter=}, must be one of {valid_filter_names}. "

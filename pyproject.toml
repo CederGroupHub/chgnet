@@ -1,7 +1,3 @@
-[build-system]
-requires = ["Cython", "setuptools>=65.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "chgnet"
 version = "0.3.6"
@@ -11,7 +7,7 @@ requires-python = ">=3.9"
 readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
-    "ase",
+    "ase>=3.23.0",
     "cython>=0.29.26",
     "numpy>=1.21.6",
     "nvidia-ml-py3>=7.352.0",
@@ -48,9 +44,14 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 "chgnet" = ["*.json"]
 "chgnet.pretrained" = ["*", "**/*"]
 
+[build-system]
+requires = ["Cython", "setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.ruff]
 target-version = "py39"
-include = ["**/pyproject.toml", "*.ipynb", "*.py", "*.pyi"]
+extend-include = ["*.ipynb"]
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
@@ -90,6 +91,9 @@ pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
 isort.split-on-trailing-comma = false
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint.per-file-ignores]
 "site/*" = ["INP001", "S602"]
 "tests/*" = ["ANN201", "D100", "D103", "FBT001", "FBT002", "INP001", "S101"]
@@ -97,7 +101,6 @@ isort.split-on-trailing-comma = false
 "examples/*" = ["E402", "I002", "INP001", "N816", "S101", "T201"]
 "chgnet/**/*" = ["T201"]
 "__init__.py" = ["F401"]
-
 
 [tool.coverage.run]
 source = ["chgnet"]
