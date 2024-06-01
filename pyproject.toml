@@ -1,6 +1,6 @@
 [project]
 name = "chgnet"
-version = "0.3.6"
+version = "0.3.7"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
 requires-python = ">=3.9"
