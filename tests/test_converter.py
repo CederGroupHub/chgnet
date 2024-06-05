@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import pytest
 from pymatgen.core import Lattice, Structure
-from pytest import CaptureFixture
 
 from chgnet.graph import CrystalGraph
 from chgnet.graph.converter import CrystalGraphConverter
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 lattice = Lattice.cubic(4)
 species = ["Na", "Cl"]
@@ -16,7 +18,7 @@ NaCl = Structure(lattice, species, coords)
 
 
 @pytest.fixture()
-def _set_make_graph() -> None:
+def _set_make_graph() -> Generator[None, None, None]:
     # fixture to force make_graph to be None and then restore it after test
     from chgnet.graph import converter
 
@@ -63,7 +65,7 @@ def test_crystal_graph_converter_warns():
 
 @pytest.mark.parametrize("on_isolated_atoms", ["ignore", "warn", "error"])
 def test_crystal_graph_converter_forward(
-    on_isolated_atoms, capsys: CaptureFixture[str]
+    on_isolated_atoms, capsys: pytest.CaptureFixture[str]
 ):
     atom_graph_cutoff = 5
     converter = CrystalGraphConverter(
@@ -75,13 +77,15 @@ def test_crystal_graph_converter_forward(
     strained.apply_strain(5)
     graph_id = "strained"
     err_msg = (
-        f"Structure {graph_id=} has 2 isolated atom(s) with "
+        f"Structure {graph_id=} has {len(NaCl)} isolated atom(s) with "
         f"{atom_graph_cutoff=}. "
         f"CHGNet calculation will likely go wrong"
     )
 
     if on_isolated_atoms == "error":
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(
+            ValueError, match=f"Structure {graph_id=} has {len(NaCl)} isolated atom"
+        ) as exc_info:
             converter.forward(strained, graph_id=graph_id)
         assert err_msg in str(exc_info.value)
     else:

@@ -15,7 +15,7 @@ from numpy.testing import assert_allclose
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
-from pytest import MonkeyPatch, approx
+from pytest import MonkeyPatch, approx  # noqa: PT013
 
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter

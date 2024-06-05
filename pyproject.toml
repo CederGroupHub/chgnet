@@ -76,9 +76,6 @@ ignore = [
     "PLR",     # pylint refactor
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "PT006",   # pytest-parametrize-names-wrong-type
-    "PT011",   # pytest-raises-too-broad
-    "PT013",   # pytest-incorrect-pytest-import
-    "PT019",   # pytest-fixture-param-without-value
     "PTH",     # prefer Path to os.path
     "S108",
     "S301",    # pickle can be unsafe

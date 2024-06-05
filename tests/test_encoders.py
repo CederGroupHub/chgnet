@@ -58,10 +58,8 @@ def test_angle_encoder(num_angular: int, learnable: bool) -> None:
 
 @pytest.mark.parametrize("num_angular", [-2, 8])
 def test_angle_encoder_num_angular(num_angular: int) -> None:
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match=f"{num_angular=} must be an odd integer"):
         AngleEncoder(num_angular=num_angular)
-
-    assert f"{num_angular=} must be an odd integer" in str(exc_info.value)
 
 
 @pytest.mark.parametrize("learnable", [True, False])
