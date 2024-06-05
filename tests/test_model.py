@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from pymatgen.core import Structure
-from pytest import mark
 
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
@@ -14,13 +13,13 @@ graph = CrystalGraphConverter()(structure, graph_id="test-model")
 model = CHGNet.load()
 
 
-@mark.parametrize("atom_fea_dim", [1, 64])
-@mark.parametrize("bond_fea_dim", [1, 64])
-@mark.parametrize("angle_fea_dim", [1, 64])
-@mark.parametrize("num_radial", [1, 9])
-@mark.parametrize("num_angular", [1, 9])
-@mark.parametrize("n_conv", [1, 4])
-@mark.parametrize("composition_model", ["MPtrj", "MPtrj_e", "MPF"])
+@pytest.mark.parametrize("atom_fea_dim", [1, 64])
+@pytest.mark.parametrize("bond_fea_dim", [1, 64])
+@pytest.mark.parametrize("angle_fea_dim", [1, 64])
+@pytest.mark.parametrize("num_radial", [1, 9])
+@pytest.mark.parametrize("num_angular", [1, 9])
+@pytest.mark.parametrize("n_conv", [1, 4])
+@pytest.mark.parametrize("composition_model", ["MPtrj", "MPtrj_e", "MPF"])
 def test_model(
     atom_fea_dim: int,
     bond_fea_dim: int,
@@ -118,8 +117,8 @@ def test_predict_structure() -> None:
     assert out["atom_fea"].shape == (8, 64)
 
 
-@mark.parametrize("axis", [[0, 0, 1], [1, 1, 0], [-2, 3, 1]])
-@mark.parametrize("rotation_angle", [5, 30, 45, 120])
+@pytest.mark.parametrize("axis", [[0, 0, 1], [1, 1, 0], [-2, 3, 1]])
+@pytest.mark.parametrize("rotation_angle", [5, 30, 45, 120])
 def test_predict_structure_rotated(rotation_angle: float, axis: list) -> None:
     from pymatgen.transformations.standard_transformations import RotationTransformation
 

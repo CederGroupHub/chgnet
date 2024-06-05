@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: cp${{ matrix.python-version }}-*
           CIBW_ARCHS_MACOS: universal2
@@ -74,10 +74,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: artifact
           path: dist
           merge-multiple: true
-          pattern: dist-*
 
       - name: Publish to PyPi or TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1

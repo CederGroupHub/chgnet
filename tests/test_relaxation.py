@@ -8,7 +8,6 @@ import pytest
 import torch
 from ase.filters import ExpCellFilter, Filter, FrechetCellFilter
 from pymatgen.core import Structure
-from pytest import approx, mark, param
 
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import CHGNet, StructOptimizer
@@ -54,19 +53,20 @@ def test_relaxation(
     assert len(traj) == 2 if algorithm == "legacy" else 4
 
     # make sure final structure is more relaxed than initial one
-    assert traj.energies[-1] == approx(-58.94209, rel=1e-4)
+    assert traj.energies[-1] == pytest.approx(-58.94209, rel=1e-4)
 
 
-no_cuda = mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
+no_cuda = pytest.mark.skipif(not torch.cuda.is_available(), reason="No CUDA device")
 # skip in macos-14 M1 CI due to OOM error (TODO investigate if
 # PYTORCH_MPS_HIGH_WATERMARK_RATIO can fix)
-no_mps = mark.skipif(
+no_mps = pytest.mark.skipif(
     not torch.backends.mps.is_available() or "CI" in os.environ, reason="No MPS device"
 )
 
 
-@mark.parametrize(
-    "use_device", ["cpu", param("cuda", marks=no_cuda), param("mps", marks=no_mps)]
+@pytest.mark.parametrize(
+    "use_device",
+    ["cpu", pytest.param("cuda", marks=no_cuda), pytest.param("mps", marks=no_mps)],
 )
 def test_structure_optimizer_passes_kwargs_to_model(use_device: str) -> None:
     relaxer = StructOptimizer(use_device=use_device)

@@ -8,7 +8,7 @@ readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.23.0",
-    "cython>=0.29.26",
+    "cython>=3",
     "numpy>=1.26",
     "nvidia-ml-py3>=7.352.0",
     "pymatgen>=2023.10.11",
@@ -73,12 +73,11 @@ ignore = [
     "ERA001",  # found commented out code
     "ISC001",
     "NPY002",  # TODO replace legacy np.random.seed
-    "PLR",     # pylint refactor
+    "PLR0912", # too many branches
+    "PLR0913", # too many args in function def
+    "PLR0915", # too many statements
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
     "PT006",   # pytest-parametrize-names-wrong-type
-    "PT011",   # pytest-raises-too-broad
-    "PT013",   # pytest-incorrect-pytest-import
-    "PT019",   # pytest-fixture-param-without-value
     "PTH",     # prefer Path to os.path
     "S108",
     "S301",    # pickle can be unsafe
@@ -96,7 +95,16 @@ docstring-code-format = true
 
 [tool.ruff.lint.per-file-ignores]
 "site/*" = ["INP001", "S602"]
-"tests/*" = ["ANN201", "D100", "D103", "FBT001", "FBT002", "INP001", "S101"]
+"tests/*" = [
+    "ANN201",
+    "D100",
+    "D103",
+    "FBT001",
+    "FBT002",
+    "INP001",
+    "PLR2004",
+    "S101",
+]
 # E402 Module level import not at top of file
 "examples/*" = ["E402", "I002", "INP001", "N816", "S101", "T201"]
 "chgnet/**/*" = ["T201"]
