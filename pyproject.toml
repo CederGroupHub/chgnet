@@ -28,7 +28,10 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest-cov>=4.1", "pytest>=8.1"]
+# TODO remove jinja2, chgnet doesn't actually need it, just a transitive dep but was installing as v2
+# which errors: Failed to download and build `jinja2==2.0` except CCompilerError, x:
+# SyntaxError: multiple exception types must be parenthesized
+test = ["jinja2>=3", "pytest-cov>=4.1", "pytest>=8.1"]
 # needed to run interactive example notebooks
 examples = ["crystal-toolkit>=2023.11.3", "pandas>=2.2"]
 docs = ["lazydocs>=0.4"]
