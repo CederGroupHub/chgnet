@@ -127,7 +127,9 @@ class Graph:
         self.undirected_edges: dict[frozenset[int], list[UndirectedEdge]] = {}
         self.undirected_edges_list: list[UndirectedEdge] = []
 
-    def add_edge(self, center_index, neighbor_index, image, distance) -> None:
+    def add_edge(
+        self, center_index, neighbor_index, image, distance, dist_tol: float = 1e-6
+    ) -> None:
         """Add an directed edge to the graph.
 
         Args:
@@ -135,6 +137,8 @@ class Graph:
             neighbor_index (int): neighbor node index
             image (np.array): the periodic cell image the neighbor is from
             distance (float): distance between center and neighbor.
+            dist_tol (float): tolerance for distance comparison between edges.
+                Default = 1e-6
         """
         # Create directed_edge (DE) index using the length of added DEs
         directed_edge_index = len(self.directed_edges_list)
@@ -173,7 +177,7 @@ class Graph:
             # different image and distance (this is possible consider periodicity)
             for undirected_edge in self.undirected_edges[tmp]:
                 if (
-                    abs(undirected_edge.info["distance"] - distance) < 1e-6
+                    abs(undirected_edge.info["distance"] - distance) < dist_tol
                     and len(undirected_edge.info["directed_edge_index"]) == 1
                 ):
                     # There is an undirected edge with similar length and only one of
@@ -286,7 +290,7 @@ class Graph:
             # if encountered exception,
             # it means after Atom_Graph creation, the UDE has only 1 DE associated
             # This exception is not encountered from the develop team's experience
-            if len(u_edge.info["directed_edge_index"]) != 2:
+            if len(u_edge.info["directed_edge_index"]) != 2:  # noqa: PLR2004
                 raise ValueError(
                     "Did not find 2 Directed_edges !!!"
                     f"undirected edge {u_edge} has:"

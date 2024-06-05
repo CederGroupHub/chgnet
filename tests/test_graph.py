@@ -100,7 +100,7 @@ def test_directed_edge() -> None:
     info = {"image": np.zeros(3), "distance": 1}
     edge = DirectedEdge([0, 1], index=0, info=info)
     undirected = edge.make_undirected(index=0, info=info)
-    assert edge == edge
+    assert edge == edge  # noqa: PLR0124
     assert edge == undirected
     assert edge.nodes == [0, 1]
     assert edge.index == 0

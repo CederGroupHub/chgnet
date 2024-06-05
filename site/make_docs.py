@@ -33,7 +33,8 @@ for path in glob(f"{route}/*.md"):
 
     # remove all files with less than 20 lines
     # these correspond to mostly empty __init__.py files
-    if markdown.count("\n") < 20:
+    min_line_cnt = 20
+    if markdown.count("\n") < min_line_cnt:
         os.remove(path)
         continue
 

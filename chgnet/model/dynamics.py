@@ -262,7 +262,7 @@ class StructOptimizer:
             dict[str, Structure | TrajectoryObserver]:
                 A dictionary with 'final_structure' and 'trajectory'.
         """
-        import ase.filters as filters
+        from ase import filters
         from ase.filters import Filter
 
         valid_filter_names = [
