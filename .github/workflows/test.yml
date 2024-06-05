@@ -12,11 +12,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
-        version:
-          - { python: "3.10", resolution: highest }
-          - { python: "3.12", resolution: lowest-direct }
-    runs-on: ${{ matrix.os }}
+        config:
+          - { os: ubuntu-latest, python: "3.9", resolution: highest }
+          - { os: macos-latest, python: "3.10", resolution: lowest }
+          - { os: windows-latest, python: "3.12", resolution: lowest-direct }
+    runs-on: ${{ matrix.config.os }}
 
     steps:
       - name: Check out repo
@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.version.python }}
+          python-version: ${{ matrix.config.python }}
           cache: pip
           cache-dependency-path: pyproject.toml
 
@@ -38,7 +38,7 @@ jobs:
 
           python setup.py build_ext --inplace
 
-          uv pip install -e .[test] --system --resolution=${{ matrix.version.resolution }}
+          uv pip install -e .[test] --system --resolution=${{ matrix.config.resolution }}
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml
@@ -46,7 +46,7 @@ jobs:
           CHGNET_DEVICE: cpu
 
       - name: Codacy coverage reporter
-        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
+        if: ${{ matrix.config.os == 'ubuntu-latest' && github.event_name == 'push' }}
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
