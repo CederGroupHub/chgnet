@@ -57,7 +57,7 @@ class CHGNetCalculator(Calculator):
         model: CHGNet | None = None,
         *,
         use_device: str | None = None,
-        check_cuda_mem: bool = True,
+        check_cuda_mem: bool = False,
         stress_weight: float | None = 1 / 160.21766208,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
         **kwargs,

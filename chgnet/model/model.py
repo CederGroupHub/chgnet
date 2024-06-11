@@ -679,7 +679,7 @@ class CHGNet(nn.Module):
         *,
         model_name: str = "0.3.0",
         use_device: str | None = None,
-        check_cuda_mem: bool = True,
+        check_cuda_mem: bool = False,
         verbose: bool = True,
     ) -> CHGNet:
         """Load pretrained CHGNet model.
