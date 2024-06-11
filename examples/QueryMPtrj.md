@@ -31,22 +31,22 @@ opt_task_types = [
 optimization_task_ids = {}
 for doc in material_ids:
     material_id = doc.material_id
-    tmp = mpr.materials.get_data_by_id(material_id)
+    mp_doc = mpr.materials.get_data_by_id(material_id)
 
-    for task_id, task_type in tmp.calc_types.items():
+    for task_id, task_type in mp_doc.calc_types.items():
         if task_type in opt_task_types:
             optimization_task_ids[material_id.string].append(task_id)
 ```
 
-### Query Materials Project Thermodoc entry and the relaxation tasks
+### Query Materials Project `ThermoDoc` entry and the relaxation tasks
 
-The thermodoc entry is the entry you normally see on the MP website
+The `ThermoDoc` entry is the entry you normally see on the MP website
 
 ```python
 # ThermoDoc: Query MP main entries
 main_entry = mpr.get_entry_by_material_id(material_id=material_id)[0]
 # Query one relaxation task
-taskdoc = mpr.tasks.get_data_by_id(task_id, fields=["input", "output", "calcs_reversed", 'task_id', "run_type"])
+task_doc = mpr.tasks.get_data_by_id(task_id, fields=["input", "output", "calcs_reversed", 'task_id', "run_type"])
 ```
 
 ## Filtering the data
@@ -61,58 +61,58 @@ This is done in two steps:
 Check whether a task is compatible to Materials Project main entry, by comparing its DFT settings
 and converged results with MP main entry.
 
-- Note this step can no longer work for the current MP data, since a lot of `thermodoc` entry (main entry) have changed to `r2SCAN`
+- Note this step no longer works for the current MP data, since a lot of `ThermoDoc` entries (main entry) have changed to `r2SCAN`
 
 ```python
 def calc_type_equal(
-    taskdoc,
+    task_doc,
     main_entry,
-    trjdata
+    trj_data
 ) -> bool:
     # Check the LDAU of task
     try:
-        is_hubbard = taskdoc.calcs_reversed[0].input['parameters']['LDAU']
+        is_hubbard = task_doc.calcs_reversed[0].input['parameters']['LDAU']
     except:
-        is_hubbard = taskdoc.calcs_reversed[0].input['incar']['LDAU']
+        is_hubbard = task_doc.calcs_reversed[0].input['incar']['LDAU']
 
     # Make sure we don't include both GGA and GGA+U for the same mp_id
     if main_entry.parameters['is_hubbard'] != is_hubbard:
-        print(f'{main_entry.entry_id}, {taskdoc.task_id} is_hubbard= {is_hubbard}')
-        trjdata.exception[taskdoc.task_id] = f'is_hubbard inconsistent task is_hubbard={is_hubbard}'
+        print(f'{main_entry.entry_id}, {task_doc.task_id} is_hubbard= {is_hubbard}')
+        trj_data.exception[task_doc.task_id] = f'is_hubbard inconsistent task is_hubbard={is_hubbard}'
         return False
     elif is_hubbard == True:
         # If the task is calculated with GGA+U
         # Make sure the +U values are the same for each element
-        composition = taskdoc.output.structure.composition
+        composition = task_doc.output.structure.composition
         hubbards = {element.symbol: U for element, U in
                     zip(composition.elements,
-                        taskdoc.calcs_reversed[0].input['incar']['LDAUU'])}
+                        task_doc.calcs_reversed[0].input['incar']['LDAUU'])}
         if main_entry.parameters['hubbards'] != hubbards:
             thermo_hubbards = main_entry.parameters['hubbards']
-            trjdata.exception[taskdoc.task_id] = f'hubbards inconsistent task hubbards={hubbards}, thermo hubbards={thermo_hubbards}'
+            trj_data.exception[task_doc.task_id] = f'hubbards inconsistent task hubbards={hubbards}, thermo hubbards={thermo_hubbards}'
             return False
         else:
             # Check the energy convergence of the task wrt. the main entry
             return check_energy_convergence(
-                taskdoc,
+                task_doc,
                 main_entry.uncorrected_energy_per_atom,
-                trjdata=trjdata
+                trj_data=trj_data
             )
     else:
         # Check energy convergence for pure GGA tasks
         check_energy_convergence(
-            taskdoc,
+            task_doc,
             main_entry.uncorrected_energy_per_atom,
-            trjdata=trjdata
+            trj_data=trj_data
         )
 
 def check_energy_convergence(
-    taskdoc,
+    task_doc,
     relaxed_entry_uncorrected_energy_per_atom,
-    trjdata
+    trj_data
 ) -> bool:
-    task_energy = taskdoc.calcs_reversed[0].output['ionic_steps'][-1]['e_fr_energy']
-    n_atom = taskdoc.calcs_reversed[0].output['ionic_steps'][-1][
+    task_energy = task_doc.calcs_reversed[0].output['ionic_steps'][-1]['e_fr_energy']
+    n_atom = task_doc.calcs_reversed[0].output['ionic_steps'][-1][
         'structure'].composition.num_atoms
     e_per_atom = task_energy / n_atom
     # This is the energy difference of the last frame of the task vs main_entry energy
@@ -125,7 +125,7 @@ def check_energy_convergence(
         # The task is falsely relaxed, we will discard the whole task
         # This step will filter out tasks that relaxed into different spin states
         # that caused large energy discrepancies
-        trjdata.exception[taskdoc.task_id] =
+        trj_data.exception[task_doc.task_id] =
         f'e_diff is too large, '
         f'task last step energy_per_atom = {e_per_atom}, '
         f'relaxed_entry_uncorrected_e_per_atom = {relaxed_entry_uncorrected_energy_per_atom}'
