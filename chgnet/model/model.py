@@ -692,7 +692,7 @@ class CHGNet(nn.Module):
                 automatically selected based on the available options.
                 Default = None
             check_cuda_mem (bool): Whether to use cuda with most available memory
-                Default = True
+                Default = False
             verbose (bool): whether to print model device information
                 Default = True
         Raises:

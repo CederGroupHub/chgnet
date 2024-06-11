@@ -18,6 +18,7 @@ def determine_device(
     Args:
         use_device (str): User specify device name
         check_cuda_mem (bool): Whether to return cuda with most available memory
+            Default = False
 
     Returns:
         device (str): device name to be passed to model.to(device)

@@ -73,7 +73,7 @@ class CHGNetCalculator(Calculator):
                 automatically selected based on the available options.
                 Default = None
             check_cuda_mem (bool): Whether to use cuda with most available memory
-                Default = True
+                Default = False
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
