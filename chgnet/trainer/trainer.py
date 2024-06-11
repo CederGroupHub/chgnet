@@ -49,7 +49,7 @@ class Trainer:
         torch_seed: int | None = None,
         data_seed: int | None = None,
         use_device: str | None = None,
-        check_cuda_mem: bool = True,
+        check_cuda_mem: bool = False,
         **kwargs,
     ) -> None:
         """Initialize all hyper-parameters for trainer.
@@ -87,7 +87,7 @@ class Trainer:
                 automatically selected based on the available options.
                 Default = None
             check_cuda_mem (bool): Whether to use cuda with most available memory
-                Default = True
+                Default = False
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
         # Store trainer args for reproducibility

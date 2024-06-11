@@ -11,13 +11,14 @@ from torch import Tensor
 def determine_device(
     use_device: str | None = None,
     *,
-    check_cuda_mem: bool = True,
+    check_cuda_mem: bool = False,
 ) -> str:
     """Determine the device to use for torch model.
 
     Args:
         use_device (str): User specify device name
         check_cuda_mem (bool): Whether to return cuda with most available memory
+            Default = False
 
     Returns:
         device (str): device name to be passed to model.to(device)
