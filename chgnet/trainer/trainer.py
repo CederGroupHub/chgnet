@@ -207,7 +207,7 @@ class Trainer:
         self.best_model = None
 
         # Initialize wandb if project/run specified
-        if wandb_path is not None:
+        if wandb_path:
             if wandb is None:
                 raise ImportError(
                     "Weights and Biases not installed. pip install wandb to use "
@@ -284,7 +284,7 @@ class Trainer:
             self.save_checkpoint(epoch, val_mae, save_dir=save_dir)
 
             # Log train/val metrics to wandb
-            if wandb is not None:
+            if wandb is not None and self.trainer_args.get("wandb_path"):
                 wandb.log(
                     {f"train_{k}_mae": v for k, v in train_mae.items()}
                     | {f"val_{k}_mae": v for k, v in val_mae.items()}
@@ -313,7 +313,7 @@ class Trainer:
             self.save(filename=os.path.join(save_dir, test_file))
 
             # Log test metrics to wandb
-            if wandb is not None:
+            if wandb is not None and self.trainer_args.get("wandb_path"):
                 wandb.log({f"test_{k}_mae": v for k, v in test_mae.items()})
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:

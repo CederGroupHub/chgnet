@@ -48,8 +48,8 @@ def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         optimizer="Adam",
         criterion="MSE",
         learning_rate=1e-2,
-        epochs=500,
-        wandb_path="/",
+        epochs=5,
+        wandb_path="",
         wandb_kwargs=dict(anonymous="allow"),
     )
     dir_name = "test_tmp_dir"
