@@ -90,6 +90,7 @@ ignore = [
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
 isort.split-on-trailing-comma = false
+isort.known-third-party = ["wandb"]
 
 [tool.ruff.format]
 docstring-code-format = true

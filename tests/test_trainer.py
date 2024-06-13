@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 import torch
+import wandb
 from pymatgen.core import Lattice, Structure
 
-import wandb
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
 from chgnet.model import CHGNet
 from chgnet.trainer import Trainer
