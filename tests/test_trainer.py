@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pytest
 import torch
+import wandb
 from pymatgen.core import Lattice, Structure
 
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
@@ -36,11 +38,12 @@ data = StructureData(
 )
 
 
-def test_trainer(tmp_path: Path) -> None:
+def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     chgnet = CHGNet.load()
     train_loader, val_loader, _test_loader = get_train_val_test_loader(
         data, batch_size=16, train_ratio=0.9, val_ratio=0.05
     )
+    extra_run_config = dict(some_other_hyperparam=42)
     trainer = Trainer(
         model=chgnet,
         targets="efsm",
@@ -48,7 +51,11 @@ def test_trainer(tmp_path: Path) -> None:
         criterion="MSE",
         learning_rate=1e-2,
         epochs=5,
+        wandb_path="test/run",
+        wandb_init_kwargs=dict(anonymous="must"),
+        extra_run_config=extra_run_config,
     )
+    assert dict(wandb.config).items() >= extra_run_config.items()
     dir_name = "test_tmp_dir"
     test_dir = tmp_path / dir_name
     trainer.train(train_loader, val_loader, save_dir=test_dir)
@@ -62,6 +69,12 @@ def test_trainer(tmp_path: Path) -> None:
         assert (
             n_matches == 1
         ), f"Expected 1 {prefix} file, found {n_matches} in {output_files}"
+
+    # expect ImportError when passing wandb_path without wandb installed
+    err_msg = "Weights and Biases not installed. pip install wandb to use wandb logging"
+    with monkeypatch.context() as ctx, pytest.raises(ImportError, match=err_msg):  # noqa: PT012
+        ctx.setattr("chgnet.trainer.trainer.wandb", None)
+        _ = Trainer(model=chgnet, wandb_path="some-org/some-project")
 
 
 def test_trainer_composition_model(tmp_path: Path) -> None:
