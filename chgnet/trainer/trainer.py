@@ -57,7 +57,8 @@ class Trainer:
         use_device: str | None = None,
         check_cuda_mem: bool = False,
         wandb_path: str | None = None,
-        wandb_kwargs: dict | None = None,
+        wandb_init_kwargs: dict | None = None,
+        extra_run_config: dict | None = None,
         **kwargs,
     ) -> None:
         """Initialize all hyper-parameters for trainer.
@@ -99,7 +100,11 @@ class Trainer:
             wandb_path (str | None): The project and run name separated by a slash:
                 "project/run_name". If None, wandb logging is not used.
                 Default = None
-            wandb_kwargs (dict): additional kwargs for wandb.init. Default = None
+            wandb_init_kwargs (dict): Additional kwargs to pass to wandb.init.
+                Default = None
+            extra_run_config (dict): Additional hyper-params to be recorded by wandb
+                that are not included in the trainer_args. Default = None
+
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
         # Store trainer args for reproducibility
@@ -213,12 +218,18 @@ class Trainer:
                     "Weights and Biases not installed. pip install wandb to use "
                     "wandb logging."
                 )
-            project, run_name = wandb_path.split("/")
+            if wandb_path.count("/") == 1:
+                project, run_name = wandb_path.split("/")
+            else:
+                raise ValueError(
+                    f"{wandb_path=} should be in the format 'project/run_name' "
+                    "(no extra slashes)"
+                )
             wandb.init(
                 project=project,
                 name=run_name,
-                config=self.trainer_args,
-                **(wandb_kwargs or {}),
+                config=self.trainer_args | (extra_run_config or {}),
+                **(wandb_init_kwargs or {}),
             )
 
     def train(
