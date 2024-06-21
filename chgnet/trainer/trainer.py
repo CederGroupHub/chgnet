@@ -149,6 +149,7 @@ class Trainer:
             )
 
         # Define learning rate scheduler
+        default_decay_frac = 1e-2
         if scheduler in {"MultiStepLR", "multistep"}:
             scheduler_params = kwargs.pop(
                 "scheduler_params",
@@ -164,8 +165,10 @@ class Trainer:
             self.scheduler = ExponentialLR(self.optimizer, **scheduler_params)
             self.scheduler_type = "exp"
         elif scheduler in {"CosineAnnealingLR", "CosLR", "Cos", "cos"}:
-            scheduler_params = kwargs.pop("scheduler_params", {"decay_fraction": 1e-2})
-            decay_fraction = scheduler_params.pop("decay_fraction")
+            scheduler_params = kwargs.pop(
+                "scheduler_params", {"decay_fraction": default_decay_frac}
+            )
+            decay_fraction = scheduler_params.pop("decay_fraction", default_decay_frac)
             self.scheduler = CosineAnnealingLR(
                 self.optimizer,
                 T_max=10 * epochs,  # Maximum number of iterations.
@@ -174,9 +177,10 @@ class Trainer:
             self.scheduler_type = "cos"
         elif scheduler == "CosRestartLR":
             scheduler_params = kwargs.pop(
-                "scheduler_params", {"decay_fraction": 1e-2, "T_0": 10, "T_mult": 2}
+                "scheduler_params",
+                {"decay_fraction": default_decay_frac, "T_0": 10, "T_mult": 2},
             )
-            decay_fraction = scheduler_params.pop("decay_fraction")
+            decay_fraction = scheduler_params.pop("decay_fraction", default_decay_frac)
             self.scheduler = CosineAnnealingWarmRestarts(
                 self.optimizer,
                 eta_min=decay_fraction * learning_rate,

@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install cython setuptools --system
+          uv pip install cython 'setuptools<70' --system
 
           python setup.py build_ext --inplace
 
