@@ -27,3 +27,6 @@ coverage.xml
 .ipynb_checkpoints
 bond_graph_error.cif
 test.py
+
+# training logs
+wandb

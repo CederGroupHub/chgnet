@@ -21,6 +21,12 @@ from torch.optim.lr_scheduler import (
 from chgnet.model.model import CHGNet
 from chgnet.utils import AverageMeter, determine_device, mae, write_json
 
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
+
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader
 
@@ -49,7 +55,10 @@ class Trainer:
         torch_seed: int | None = None,
         data_seed: int | None = None,
         use_device: str | None = None,
-        check_cuda_mem: bool = True,
+        check_cuda_mem: bool = False,
+        wandb_path: str | None = None,
+        wandb_init_kwargs: dict | None = None,
+        extra_run_config: dict | None = None,
         **kwargs,
     ) -> None:
         """Initialize all hyper-parameters for trainer.
@@ -87,7 +96,15 @@ class Trainer:
                 automatically selected based on the available options.
                 Default = None
             check_cuda_mem (bool): Whether to use cuda with most available memory
-                Default = True
+                Default = False
+            wandb_path (str | None): The project and run name separated by a slash:
+                "project/run_name". If None, wandb logging is not used.
+                Default = None
+            wandb_init_kwargs (dict): Additional kwargs to pass to wandb.init.
+                Default = None
+            extra_run_config (dict): Additional hyper-params to be recorded by wandb
+                that are not included in the trainer_args. Default = None
+
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
         """
         # Store trainer args for reproducibility
@@ -95,8 +112,7 @@ class Trainer:
             k: v
             for k, v in locals().items()
             if k not in {"self", "__class__", "model", "kwargs"}
-        }
-        self.trainer_args.update(kwargs)
+        } | kwargs
 
         self.model = model
         self.targets = targets
@@ -199,6 +215,27 @@ class Trainer:
         ] = {key: {"train": [], "val": [], "test": []} for key in self.targets}
         self.best_model = None
 
+        # Initialize wandb if project/run specified
+        if wandb_path:
+            if wandb is None:
+                raise ImportError(
+                    "Weights and Biases not installed. pip install wandb to use "
+                    "wandb logging."
+                )
+            if wandb_path.count("/") == 1:
+                project, run_name = wandb_path.split("/")
+            else:
+                raise ValueError(
+                    f"{wandb_path=} should be in the format 'project/run_name' "
+                    "(no extra slashes)"
+                )
+            wandb.init(
+                project=project,
+                name=run_name,
+                config=self.trainer_args | (extra_run_config or {}),
+                **(wandb_init_kwargs or {}),
+            )
+
     def train(
         self,
         train_loader: DataLoader,
@@ -261,6 +298,13 @@ class Trainer:
 
             self.save_checkpoint(epoch, val_mae, save_dir=save_dir)
 
+            # Log train/val metrics to wandb
+            if wandb is not None and self.trainer_args.get("wandb_path"):
+                wandb.log(
+                    {f"train_{k}_mae": v for k, v in train_mae.items()}
+                    | {f"val_{k}_mae": v for k, v in val_mae.items()}
+                )
+
         if test_loader is not None:
             # test best model
             print("---------Evaluate Model on Test Set---------------")
@@ -282,6 +326,10 @@ class Trainer:
             for key in self.targets:
                 self.training_history[key]["test"] = test_mae[key]
             self.save(filename=os.path.join(save_dir, test_file))
+
+            # Log test metrics to wandb
+            if wandb is not None and self.trainer_args.get("wandb_path"):
+                wandb.log({f"test_{k}_mae": v for k, v in test_mae.items()})
 
     def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
         """Train all data for one epoch.

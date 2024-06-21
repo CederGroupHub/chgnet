@@ -38,7 +38,7 @@ jobs:
 
           python setup.py build_ext --inplace
 
-          uv pip install -e .[test] --system --resolution=${{ matrix.version.resolution }}
+          uv pip install -e .[test,logging] --system --resolution=${{ matrix.version.resolution }}
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml
