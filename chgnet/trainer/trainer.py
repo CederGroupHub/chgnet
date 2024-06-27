@@ -6,7 +6,7 @@ import random
 import shutil
 import time
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 import numpy as np
 import torch
@@ -31,6 +31,9 @@ if TYPE_CHECKING:
     from torch.utils.data import DataLoader
 
     from chgnet import TrainTask
+
+LogFreq = Literal["epoch", "batch"]
+LogEachEpoch, LogEachBatch = get_args(LogFreq)
 
 
 class Trainer:
@@ -245,6 +248,7 @@ class Trainer:
         save_dir: str | None = None,
         save_test_result: bool = False,
         train_composition_model: bool = False,
+        wandb_log_freq: LogFreq = LogEachBatch,
     ) -> None:
         """Train the model using torch data_loaders.
 
@@ -263,13 +267,15 @@ class Trainer:
                 elemental energy shift from the pretrained CHGNet, which typically comes
                 from different DFT pseudo-potentials.
                 Default = False
+            wandb_log_freq ("epoch" | "batch"): Frequency of logging to wandb.
+                'epoch' logs once per epoch, 'batch' logs after every batch.
+                Default = "batch"
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
         global best_checkpoint  # noqa: PLW0603
         if save_dir is None:
             save_dir = f"{datetime.now():%m-%d-%Y}"
-        os.makedirs(save_dir, exist_ok=True)
 
         print(f"Begin Training: using {self.device} device")
         print(f"training targets: {self.targets}")
@@ -281,13 +287,15 @@ class Trainer:
 
         for epoch in range(self.starting_epoch, self.epochs):
             # train
-            train_mae = self._train(train_loader, epoch)
+            train_mae = self._train(train_loader, epoch, wandb_log_freq)
             if "e" in train_mae and train_mae["e"] != train_mae["e"]:
                 print("Exit due to NaN")
                 break
 
             # val
-            val_mae = self._validate(val_loader)
+            val_mae = self._validate(
+                val_loader, is_test=False, wandb_log_freq=wandb_log_freq
+            )
             for key in self.targets:
                 self.training_history[key]["train"].append(train_mae[key])
                 self.training_history[key]["val"].append(val_mae[key])
@@ -296,13 +304,19 @@ class Trainer:
                 print("Exit due to NaN")
                 break
 
-            self.save_checkpoint(epoch, val_mae, save_dir=save_dir)
+            if save_dir:
+                self.save_checkpoint(epoch, val_mae, save_dir=save_dir)
 
-            # Log train/val metrics to wandb
-            if wandb is not None and self.trainer_args.get("wandb_path"):
+            # Log epoch metrics to wandb
+            if (
+                wandb is not None
+                and wandb_log_freq == LogEachEpoch
+                and self.trainer_args.get("wandb_path")
+            ):
                 wandb.log(
                     {f"train_{k}_mae": v for k, v in train_mae.items()}
                     | {f"val_{k}_mae": v for k, v in val_mae.items()}
+                    | {"epoch": epoch}
                 )
 
         if test_loader is not None:
@@ -314,14 +328,11 @@ class Trainer:
                     best_checkpoint = torch.load(os.path.join(save_dir, test_file))
 
             self.model.load_state_dict(best_checkpoint["model"]["state_dict"])
-            if save_test_result:
-                test_mae = self._validate(
-                    test_loader, is_test=True, test_result_save_path=save_dir
-                )
-            else:
-                test_mae = self._validate(
-                    test_loader, is_test=True, test_result_save_path=None
-                )
+            test_mae = self._validate(
+                test_loader,
+                is_test=True,
+                test_result_save_path=save_dir if save_test_result else None,
+            )
 
             for key in self.targets:
                 self.training_history[key]["test"] = test_mae[key]
@@ -331,12 +342,18 @@ class Trainer:
             if wandb is not None and self.trainer_args.get("wandb_path"):
                 wandb.log({f"test_{k}_mae": v for k, v in test_mae.items()})
 
-    def _train(self, train_loader: DataLoader, current_epoch: int) -> dict:
+    def _train(
+        self,
+        train_loader: DataLoader,
+        current_epoch: int,
+        wandb_log_freq: LogFreq = LogEachBatch,
+    ) -> dict:
         """Train all data for one epoch.
 
         Args:
             train_loader (DataLoader): train loader to update CHGNet weights
             current_epoch (int): used for resume unfinished training
+            wandb_log_freq ("epoch" | "batch"): Frequency of logging to wandb
 
         Returns:
             dictionary of training errors
@@ -402,6 +419,18 @@ class Trainer:
                         f"{key} {mae_errors[key].val:.3f}({mae_errors[key].avg:.3f})  "
                     )
                 print(message)
+
+            # Log train metrics to wandb after each batch if specified
+            if (
+                wandb is not None
+                and wandb_log_freq == "batch"
+                and self.trainer_args.get("wandb_path")
+            ):
+                wandb.log(
+                    {f"train_{k}_mae": v.avg for k, v in mae_errors.items()}
+                    | {"train_loss": losses.avg, "epoch": current_epoch, "batch": idx}
+                )
+
         return {key: round(err.avg, 6) for key, err in mae_errors.items()}
 
     def _validate(
@@ -410,6 +439,7 @@ class Trainer:
         *,
         is_test: bool = False,
         test_result_save_path: str | None = None,
+        wandb_log_freq: LogFreq = LogEachBatch,
     ) -> dict:
         """Validation or test step.
 
@@ -417,6 +447,8 @@ class Trainer:
             val_loader (DataLoader): val loader to test accuracy after each epoch
             is_test (bool): whether it's test step
             test_result_save_path (str): path to save test_result
+            wandb_log_freq ("epoch" | "batch"): Frequency of logging to wandb.
+                'epoch' logs once per epoch, 'batch' logs after every batch.
 
         Returns:
             dictionary of training errors
@@ -510,6 +542,18 @@ class Trainer:
                     )
                 print(message)
 
+            # Log val metrics to wandb after each batch if specified
+            if (
+                wandb is not None
+                and not is_test
+                and wandb_log_freq == "batch"
+                and self.trainer_args.get("wandb_path")
+            ):
+                wandb.log(
+                    {f"val_{k}_mae": v.avg for k, v in mae_errors.items()}
+                    | {"val_loss": losses.avg, "batch": ii}
+                )
+
         if is_test:
             message = "**  "
             if test_result_save_path:
@@ -521,6 +565,16 @@ class Trainer:
         for key in self.targets:
             message += f"{key}_MAE ({mae_errors[key].avg:.3f}) \t"
         print(message)
+
+        # Log val metrics to wandb at the end of epoch if specified
+        if (
+            wandb is not None
+            and not is_test
+            and wandb_log_freq == LogEachEpoch
+            and self.trainer_args.get("wandb_path")
+        ):
+            wandb.log({f"val_{k}_mae": v.avg for k, v in mae_errors.items()})
+
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
     def get_best_model(self) -> CHGNet:
@@ -550,9 +604,7 @@ class Trainer:
         }
         torch.save(state, filename)
 
-    def save_checkpoint(
-        self, epoch: int, mae_error: dict, save_dir: str | None = None
-    ) -> None:
+    def save_checkpoint(self, epoch: int, mae_error: dict, save_dir: str) -> None:
         """Function to save CHGNet trained weights after each epoch.
 
         Args:
@@ -560,6 +612,8 @@ class Trainer:
             mae_error (dict): dictionary that stores the MAEs
             save_dir (str): the directory to save trained weights
         """
+        os.makedirs(save_dir, exist_ok=True)
+
         for fname in os.listdir(save_dir):
             if fname.startswith("epoch"):
                 os.remove(os.path.join(save_dir, fname))
@@ -727,7 +781,7 @@ class CombinedLoss(nn.Module):
             out["f_MAE_size"] = forces_target.shape[0]
 
         # Stress
-        if "s" in targets:
+        if "s" in targets and "s" in prediction:
             stress_pred = torch.cat(prediction["s"], dim=0)
             stress_target = torch.cat(targets["s"], dim=0)
             out["loss"] += self.stress_loss_ratio * self.criterion(
@@ -737,7 +791,7 @@ class CombinedLoss(nn.Module):
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag
-        if "m" in targets:
+        if "m" in targets and "m" in prediction:
             mag_preds, mag_targets = [], []
             m_mae_size = 0
             for mag_pred, mag_target in zip(prediction["m"], targets["m"]):
