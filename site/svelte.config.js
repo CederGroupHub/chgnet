@@ -23,7 +23,7 @@ const rehypePlugins = [
 ]
 
 const { default: pkg } = await import(`./package.json`, {
-  assert: { type: `json` },
+  with: { type: `json` },
 })
 
 /** @type {import('@sveltejs/kit').Config} */
