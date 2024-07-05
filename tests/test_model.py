@@ -4,7 +4,7 @@ import inspect
 
 import numpy as np
 import pytest
-from pymatgen.core import Structure
+from pymatgen.core import Lattice, Structure
 
 from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
@@ -205,6 +205,18 @@ def test_predict_batched_structures() -> None:
             assert preds[prop] == pytest.approx(
                 pristine_prediction[prop], rel=1e-3, abs=1e-3
             )
+
+
+def test_predict_isolated_structures() -> None:
+    lattice10 = Lattice.cubic(10)
+    lattice20 = Lattice.cubic(20)
+    positions = [[0, 0, 0], [0.5, 0.5, 0.5]]
+
+    # Create the structure
+    model.graph_converter.set_isolated_atom_response("ignore")
+    prediction10 = model.predict_structure(Structure(lattice10, ["H", "H"], positions))
+    prediction20 = model.predict_structure(Structure(lattice20, ["H", "H"], positions))
+    assert prediction10["e"] == pytest.approx(prediction20["e"], rel=1e-5, abs=1e-5)
 
 
 def test_as_to_from_dict() -> None:
