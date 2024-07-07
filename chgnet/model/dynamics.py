@@ -31,6 +31,7 @@ from chgnet.utils import determine_device
 if TYPE_CHECKING:
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
+    from typing_extensions import Self
 
 # We would like to thank M3GNet develop team for this module
 # source: https://github.com/materialsvirtuallab/m3gnet
@@ -94,11 +95,9 @@ class CHGNetCalculator(Calculator):
         print(f"CHGNet will run on {self.device}")
 
     @classmethod
-    def from_file(
-        cls, path: str, use_device: str | None = None, **kwargs
-    ) -> CHGNetCalculator:
+    def from_file(cls, path: str, use_device: str | None = None, **kwargs) -> Self:
         """Load a user's CHGNet model and initialize the Calculator."""
-        return CHGNetCalculator(
+        return cls(
             model=CHGNet.from_file(path),
             use_device=use_device,
             **kwargs,

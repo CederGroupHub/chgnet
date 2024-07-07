@@ -19,6 +19,8 @@ from chgnet.graph import CrystalGraph, CrystalGraphConverter
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from typing_extensions import Self
+
     from chgnet import TrainTask
 
 warnings.filterwarnings("ignore")
@@ -97,7 +99,7 @@ class StructureData(Dataset):
         save_path: str | None = None,
         graph_converter: CrystalGraphConverter | None = None,
         shuffle: bool = True,
-    ) -> StructureData:
+    ) -> Self:
         """Parse VASP output files into structures and labels and feed into the dataset.
 
         Args:
