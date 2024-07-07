@@ -25,6 +25,8 @@ from chgnet.model.layers import (
 from chgnet.utils import determine_device
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from chgnet import PredTask
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -661,17 +663,17 @@ class CHGNet(nn.Module):
         return {"model_name": type(self).__name__, "model_args": self.model_args}
 
     @classmethod
-    def from_dict(cls, dct: dict, **kwargs) -> CHGNet:
+    def from_dict(cls, dct: dict, **kwargs) -> Self:
         """Build a CHGNet from a saved dictionary."""
-        chgnet = CHGNet(**dct["model_args"], **kwargs)
+        chgnet = cls(**dct["model_args"], **kwargs)
         chgnet.load_state_dict(dct["state_dict"])
         return chgnet
 
     @classmethod
-    def from_file(cls, path: str, **kwargs) -> CHGNet:
+    def from_file(cls, path: str, **kwargs) -> Self:
         """Build a CHGNet from a saved file."""
         state = torch.load(path, map_location=torch.device("cpu"))
-        return CHGNet.from_dict(state["model"], **kwargs)
+        return cls.from_dict(state["model"], **kwargs)
 
     @classmethod
     def load(
@@ -681,7 +683,7 @@ class CHGNet(nn.Module):
         use_device: str | None = None,
         check_cuda_mem: bool = False,
         verbose: bool = True,
-    ) -> CHGNet:
+    ) -> Self:
         """Load pretrained CHGNet model.
 
         Args:
@@ -777,7 +779,7 @@ class BatchedGraph:
         angle_basis_expansion: nn.Module,
         *,
         compute_stress: bool = False,
-    ) -> BatchedGraph:
+    ) -> Self:
         """Featurize and assemble a list of graphs.
 
         Args:

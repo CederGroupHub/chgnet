@@ -29,10 +29,11 @@ def make_graphs(
     """Make graphs from a StructureJsonData dataset.
 
     Args:
-        data (StructureJsonData): a StructureJsonData
-        graph_dir (str): a directory to save the graphs
-        train_ratio (float): train ratio
-        val_ratio (float): val ratio
+        data (StructureJsonData | StructureData): Input structures to convert to graphs.
+        graph_dir (str): a directory to save the graphs and labels.
+        train_ratio (float): train ratio. Default = 0.8
+        val_ratio (float): val ratio. Default = 0.1. The test ratio is
+            1 - train_ratio - val_ratio
     """
     os.makedirs(graph_dir, exist_ok=True)
     random.shuffle(data.keys)

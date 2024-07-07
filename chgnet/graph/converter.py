@@ -14,6 +14,7 @@ from chgnet.graph.graph import Graph, Node
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
+    from typing_extensions import Self
 
 try:
     from chgnet.graph.cygraph import make_graph
@@ -285,6 +286,6 @@ class CrystalGraphConverter(nn.Module):
         }
 
     @classmethod
-    def from_dict(cls, dct: dict) -> CrystalGraphConverter:
+    def from_dict(cls, dct: dict) -> Self:
         """Create converter from dictionary."""
-        return CrystalGraphConverter(**dct)
+        return cls(**dct)

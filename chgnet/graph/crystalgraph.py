@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import torch
 from torch import Tensor
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 datatype = torch.float32
 
@@ -152,7 +155,7 @@ class CrystalGraph:
         return save_name
 
     @classmethod
-    def from_file(cls, file_name: str) -> CrystalGraph:
+    def from_file(cls, file_name: str) -> Self:
         """Load a crystal graph from a file.
 
         Args:
@@ -164,9 +167,9 @@ class CrystalGraph:
         return torch.load(file_name)
 
     @classmethod
-    def from_dict(cls, dic: dict[str, Any]) -> CrystalGraph:
+    def from_dict(cls, dic: dict[str, Any]) -> Self:
         """Load a CrystalGraph from a dictionary."""
-        return CrystalGraph(**dic)
+        return cls(**dic)
 
     def __repr__(self) -> str:
         """String representation of the graph."""

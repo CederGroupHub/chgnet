@@ -29,6 +29,7 @@ except ImportError:
 
 if TYPE_CHECKING:
     from torch.utils.data import DataLoader
+    from typing_extensions import Self
 
     from chgnet import TrainTask
 
@@ -645,14 +646,14 @@ class Trainer:
             )
 
     @classmethod
-    def load(cls, path: str) -> Trainer:
+    def load(cls, path: str) -> Self:
         """Load trainer state_dict."""
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(f"Loaded model params = {sum(p.numel() for p in model.parameters()):,}")
         # drop model from trainer_args if present
         state["trainer_args"].pop("model", None)
-        trainer = Trainer(model=model, **state["trainer_args"])
+        trainer = cls(model=model, **state["trainer_args"])
         trainer.model.to(trainer.device)
         trainer.optimizer.load_state_dict(state["optimizer"])
         trainer.scheduler.load_state_dict(state["scheduler"])
@@ -791,6 +792,8 @@ class CombinedLoss(nn.Module):
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag
+        print(f"{list(prediction)=}")
+        print(f"{list(targets)=}")
         if "m" in self.target_str:
             mag_preds, mag_targets = [], []
             m_mae_size = 0
