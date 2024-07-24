@@ -89,7 +89,10 @@ class CHGNetCalculator(Calculator):
         self.device = device
 
         # Move the model to the specified device
-        self.model = (model or CHGNet.load(verbose=False)).to(self.device)
+        if model is None:
+            self.model = CHGNet.load(verbose=False, use_device=self.device)
+        else:
+            self.model = model.to(self.device)
         self.model.graph_converter.set_isolated_atom_response(on_isolated_atoms)
         self.stress_weight = stress_weight
         print(f"CHGNet will run on {self.device}")
