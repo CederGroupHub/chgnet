@@ -792,8 +792,6 @@ class CombinedLoss(nn.Module):
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag
-        print(f"{list(prediction)=}")
-        print(f"{list(targets)=}")
         if "m" in self.target_str:
             mag_preds, mag_targets = [], []
             m_mae_size = 0
