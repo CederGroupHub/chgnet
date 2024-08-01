@@ -636,7 +636,9 @@ class Trainer:
                 filename,
                 os.path.join(save_dir, f"bestE_epoch{epoch}_{err_str}.pth.tar"),
             )
-        if mae_error["f"] == min(self.training_history["f"]["val"]):
+        if "f" in self.targets and mae_error["f"] == min(
+            self.training_history["f"]["val"]
+        ):
             for fname in os.listdir(save_dir):
                 if fname.startswith("bestF"):
                     os.remove(os.path.join(save_dir, fname))
