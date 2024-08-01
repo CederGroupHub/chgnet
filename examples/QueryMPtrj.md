@@ -1,10 +1,10 @@
-# MPtrj Dataset Query and Parsing criterion
+# MPtrj Dataset Query and Parsing Criteria
 
 This file documents the major filters that were used when parsing
 Materials Project trajectory dataset in Sept.2022.
 Exact reproducibility of MPtrj is challenging since the evolution of MP dataset and `MPRester` syntax
 
-### Define your MPRester
+## Define your MPRester
 
 ```python
 from mp_api.client import MPRester
@@ -137,12 +137,13 @@ def check_energy_convergence(
 For trajectories(tasks) that are compatible, we further check each of its frames
 
 ```python
+from __future__ import annotations
+
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
-class Uniqueness_check(object):
-    '''
-    check whether a frame in trajectory is valid and unique
-    '''
+
+class UniquenessCheck:
+    """Check whether a frame in trajectory is valid and unique."""
 
     def __init__(
         self,
@@ -150,111 +151,110 @@ class Uniqueness_check(object):
         trj_data,
         ltol=0.002,
         stol=0.001,
-        angle_tol=0.05
+        angle_tol=0.05,
     ):
-        self.unique_struct_list = []
-        self.relaxed_entry_uncorrected_energy_per_atom = main_entry_uncorrected_energy_per_atom
+        self.uniq_struct_list = []
+        self.relaxed_entry_uncorrected_energy_per_atom = (
+            main_entry_uncorrected_energy_per_atom
+        )
         self.added_relaxed = False
         self.matcher = StructureMatcher(
-            ltol=ltol,
-            stol=stol,
-            angle_tol=angle_tol,
-            scale=False
+            ltol=ltol, stol=stol, angle_tol=angle_tol, scale=False
         )
         self.energy_threshold = 0.002
         self.trj_data = trj_data
 
     def is_unique(self, step, struct_id, NELM, mag=None):
         self.adjust_matcher(mag=mag)
-        struct = step['structure']
-        energy = step['e_fr_energy'] / struct.composition.num_atoms
+        struct = step["structure"]
+        energy = step["e_fr_energy"] / struct.composition.num_atoms
 
         # Check whether a frame is valid
         # Discard frame with no energy
-        if energy == None:
-            self.trj_data.exception[struct_id] = 'no energy'
+        if energy is None:
+            self.trj_data.exception[struct_id] = "no energy"
             return False
 
         # Always accept the relaxed frame on Materials Project website
-        if abs(energy - self.relaxed_entry_uncorrected_energy_per_atom) < 1e-5
-            and self.added_relaxed == False:
+        if (
+            abs(energy - self.relaxed_entry_uncorrected_energy_per_atom) < 1e-5
+            and self.added_relaxed is False
+        ):
             # we prioritize to add the relaxed entry
-            self.unique_struct_list.append((energy, struct))
+            self.uniq_struct_list.append((energy, struct))
             self.added_relaxed = True
             return True
 
         # Discard frame with electronic step not converged
-        if len(step['electronic_steps']) == NELM:
-            self.trj_data.exception[struct_id] = 'electronic step not converged'
+        if len(step["electronic_steps"]) == NELM:
+            self.trj_data.exception[struct_id] = "electronic step not converged"
             return False
 
         e_diff = energy - self.relaxed_entry_uncorrected_energy_per_atom
         if e_diff < -0.01:
             # Discard frame that is more stable than the Materials Project website frame
-            self.trj_data.exception[
-                struct_id] = f'ediff_per_atom = {e_diff}, energy is too low compared to relaxed entry'
+            self.trj_data.exception[struct_id] = (
+                f"ediff_per_atom = {e_diff}, energy is too low compared to relaxed entry"
+            )
             return False
-        elif e_diff > 1:
+        if e_diff > 1:
             # Discard frame that is too unstable than the Materials Project website frame
-            self.trj_data.exception[
-                struct_id] = f'ediff_per_atom = {e_diff}, energy is too high compared to relaxed entry'
+            self.trj_data.exception[struct_id] = (
+                f"ediff_per_atom = {e_diff}, energy is too high compared to relaxed entry"
+            )
             return False
 
         # Now we're in uniqueness check
         # Accept the frame if we still have no frame parsed
-        if len(self.unique_struct_list) == 0:
-            self.unique_struct_list.append((energy, struct))
+        if len(self.uniq_struct_list) == 0:
+            self.uniq_struct_list.append((energy, struct))
             return True
 
         n_atom = struct.composition.num_atoms
-        min_e_diff = min([abs(energy - tmp[0]) / n_atom
-                          for tmp in self.unique_struct_list])
+        min_e_diff = min(
+            [abs(energy - tmp[0]) / n_atom for tmp in self.uniq_struct_list]
+        )
 
         if min_e_diff > self.energy_threshold:
             # Accept the frame if its energy is different from all parsed frames
-            self.unique_struct_list.append((energy, struct))
+            self.uniq_struct_list.append((energy, struct))
             return True
 
-        # Discard the frame if it's structural similar to another frame in the unique_struc_list
-        for (unique_energy, unique_struct) in self.unique_struct_list:
-            if self.matcher.fit(struct, unique_struct):
+        # Discard the frame if it's structural similar to another frame in the uniq_struc_list
+        for uniq_energy, uniq_struct in self.uniq_struct_list:
+            if self.matcher.fit(struct, uniq_struct):
                 return False
 
         # Accept the frame
-        self.unique_struct_list.append((energy, struct))
+        self.uniq_struct_list.append((energy, struct))
         return True
 
     def adjust_matcher(self, mag):
-        if mag != None:
+        if mag is not None:
             # prioritize frame with mag
-            self.matcher = StructureMatcher(ltol=0.002,
-                                            stol=0.001,
-                                            angle_tol=0.05,
-                                            scale=False)
+            self.matcher = StructureMatcher(
+                ltol=0.002, stol=0.001, angle_tol=0.05, scale=False
+            )
             self.energy_threshold = 0.002
 
-        if len(self.unique_struct_list) > 50:
-            self.matcher = StructureMatcher(ltol=0.3,
-                                            stol=0.2,
-                                            angle_tol=3,
-                                            scale=False)
+        if len(self.uniq_struct_list) > 50:
+            self.matcher = StructureMatcher(
+                ltol=0.3, stol=0.2, angle_tol=3, scale=False
+            )
             self.energy_threshold = 0.03
-        elif len(self.unique_struc_list) > 30:
-            self.matcher = StructureMatcher(ltol=0.1,
-                                            stol=0.1,
-                                            angle_tol=1,
-                                            scale=False)
+        elif len(self.uniq_struc_list) > 30:
+            self.matcher = StructureMatcher(
+                ltol=0.1, stol=0.1, angle_tol=1, scale=False
+            )
             self.energy_threshold = 0.01
-        elif len(self.unique_struct_list) > 10:
-            self.matcher = StructureMatcher(ltol=0.01,
-                                            stol=0.01,
-                                            angle_tol=0.1,
-                                            scale=False)
+        elif len(self.uniq_struct_list) > 10:
+            self.matcher = StructureMatcher(
+                ltol=0.01, stol=0.01, angle_tol=0.1, scale=False
+            )
             self.energy_threshold = 0.005
         else:
-            self.matcher = StructureMatcher(ltol=0.002,
-                                            stol=0.001,
-                                            angle_tol=0.05,
-                                            scale=False)
+            self.matcher = StructureMatcher(
+                ltol=0.002, stol=0.001, angle_tol=0.05, scale=False
+            )
             self.energy_threshold = 0.002
 ```
