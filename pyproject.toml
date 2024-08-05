@@ -9,7 +9,7 @@ license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.23.0",
     "cython>=3",
-    "numpy>=1.26,<2",
+    "numpy>=1.26",
     "nvidia-ml-py3>=7.352.0",
     "pymatgen>=2023.10.11",
     "torch>=1.11.0",
@@ -47,7 +47,12 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 "chgnet.pretrained" = ["*", "**/*"]
 
 [build-system]
-requires = ["Cython", "setuptools>=65,<70", "wheel"]
+requires = [
+    "Cython",
+    "setuptools>=65,<70",
+    "wheel",
+    "numpy>=2.0.0rc1",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
