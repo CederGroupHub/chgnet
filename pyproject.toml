@@ -49,7 +49,7 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 [build-system]
 requires = [
     "Cython",
-    "setuptools>=65,<70",
+    "setuptools>=65",
     "wheel",
     "numpy>=2.0.0rc1",
 ]
