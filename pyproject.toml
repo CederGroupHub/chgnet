@@ -29,7 +29,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest-cov>=4", "pytest>=8"]
+test = ["pytest-cov>=4", "pytest>=8", "wandb>=0.17"]
 # needed to run interactive example notebooks
 examples = ["crystal-toolkit>=2023.11.3", "pandas>=2.2"]
 docs = ["lazydocs>=0.4"]
