@@ -153,11 +153,11 @@ def test_wandb_init(mock_wandb):
     )
 
 
-def test_wandb_log_frequency(mock_wandb):
+def test_wandb_log_frequency(tmp_path, mock_wandb):
     trainer = Trainer(model=chgnet, wandb_path="test-project/test-run", epochs=1)
 
     # Test epoch logging
-    trainer.train(train_loader, val_loader, wandb_log_freq="epoch", save_dir="")
+    trainer.train(train_loader, val_loader, wandb_log_freq="epoch", save_dir=tmp_path)
     assert (
         mock_wandb.log.call_count == 2 * trainer.epochs
     ), "Expected one train and one val log per epoch"
@@ -165,7 +165,7 @@ def test_wandb_log_frequency(mock_wandb):
     mock_wandb.log.reset_mock()
 
     # Test batch logging
-    trainer.train(train_loader, val_loader, wandb_log_freq="batch", save_dir="")
+    trainer.train(train_loader, val_loader, wandb_log_freq="batch", save_dir=tmp_path)
     expected_batch_calls = trainer.epochs * len(train_loader)
     assert (
         mock_wandb.log.call_count > expected_batch_calls
@@ -183,5 +183,5 @@ def test_wandb_log_frequency(mock_wandb):
 
     # Test no logging when wandb_path is not provided
     trainer_no_wandb = Trainer(model=chgnet, epochs=1)
-    trainer_no_wandb.train(train_loader, val_loader)
+    trainer_no_wandb.train(train_loader, val_loader, save_dir=tmp_path)
     mock_wandb.log.assert_not_called()
