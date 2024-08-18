@@ -43,7 +43,7 @@ Package = "https://pypi.org/project/chgnet"
 find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 
 [tool.setuptools.package-data]
-"chgnet" = ["*.json"]
+"chgnet" = ["*.json", "py.typed"]
 "chgnet.pretrained" = ["*", "**/*"]
 
 [build-system]
