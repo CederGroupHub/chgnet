@@ -17,7 +17,7 @@ coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 
 
-@pytest.fixture()
+@pytest.fixture
 def _set_make_graph() -> Generator[None, None, None]:
     # fixture to force make_graph to be None and then restore it after test
     from chgnet.graph import converter
