@@ -102,6 +102,7 @@ docstring-code-format = true
     "ANN201",
     "D100",
     "D103",
+    "DOC201",  # doc string missing Return section
     "FBT001",
     "FBT002",
     "INP001",
