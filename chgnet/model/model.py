@@ -547,7 +547,7 @@ class CHGNet(nn.Module):
         Args:
             structure (Structure | Sequence[Structure]): structure or a list of
                 structures to predict.
-            task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
+            task (str): can be "e" "ef", "em", "efs", "efsm"
                 Default = "efsm"
             return_site_energies (bool): whether to return per-site energies.
                 Default = False
