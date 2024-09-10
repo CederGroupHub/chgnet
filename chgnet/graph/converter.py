@@ -128,7 +128,9 @@ class CrystalGraphConverter(nn.Module):
             structure.lattice.matrix, dtype=datatype, requires_grad=True
         )
         center_index, neighbor_index, image, distance = structure.get_neighbor_list(
-            r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
+            r=self.atom_graph_cutoff,
+            sites=np.array(structure.sites, dtype=np.int64),
+            numerical_tol=1e-8,
         )
 
         # Make Graph
