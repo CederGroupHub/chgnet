@@ -19,10 +19,10 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics",
@@ -63,35 +63,31 @@ target-version = "py39"
 select = ["ALL"]
 ignore = [
     "ANN001",  # TODO add missing type annotations
-    "ANN003",
-    "ANN101",
-    "ANN102",
-    "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
-    "BLE001",
+    "ANN003",  # Missing type annotation for **{name}
+    "ANN101",  # Missing type annotation for {name} in method
+    "ANN102",  # Missing type annotation for {name} in classmethod
+    "BLE001",  # use of general except Exception
     "C408",    # unnecessary-collection-call
     "C901",    # function is too complex
     "COM812",  # trailing comma missing
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
-    "DTZ005",  # use of datetime.now() without timezone
     "E731",    # do not assign a lambda expression, use a def
-    "EM",
+    "EM",      # error message related
     "ERA001",  # found commented out code
-    "ISC001",
     "NPY002",  # TODO replace legacy np.random.seed
     "PLR0912", # too many branches
     "PLR0913", # too many args in function def
     "PLR0915", # too many statements
     "PLW2901", # Outer for loop variable overwritten by inner assignment target
-    "PT006",   # pytest-parametrize-names-wrong-type
     "PTH",     # prefer Path to os.path
-    "S108",
+    "S108",    # Probable insecure usage of temporary file or directory
     "S301",    # pickle can be unsafe
-    "S310",
-    "S311",
-    "TRY003",
-    "TRY300",
+    "S310",    # Audit URL open for permitted schemes
+    "S311",    # pseudo-random generators not suitable for cryptographic purposes
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "TRY300",  # Consider moving this statement to an else block
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
