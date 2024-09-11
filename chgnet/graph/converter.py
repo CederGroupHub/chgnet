@@ -150,7 +150,7 @@ class CrystalGraphConverter(nn.Module):
             # Report structures that failed creating bond graph
             # This happen occasionally with pymatgen version issue
             structure.to(filename="bond_graph_error.cif")
-            raise SystemExit(
+            raise RuntimeError(
                 f"Failed creating bond graph for {graph_id}, check bond_graph_error.cif"
             ) from exc
         bond_graph = torch.tensor(bond_graph, dtype=torch.int32)
