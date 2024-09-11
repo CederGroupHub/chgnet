@@ -66,12 +66,12 @@ cdef extern from 'fast_converter_libraries/create_graph.c':
     LongToDirectedEdgeList** get_neighbors(Node* node)
 
 def make_graph(
-        const np.intp_t[::1] center_index,
-        const np.intp_t n_e,
-        const np.intp_t[::1] neighbor_index,
-        const np.intp_t[:, ::1] image,
+        const np.int64_t[::1] center_index,
+        const np.int64_t n_e,
+        const np.int64_t[::1] neighbor_index,
+        const np.int64_t[:, ::1] image,
         const np.float64_t[::1] distance,
-        const np.intp_t num_atoms
+        const np.int64_t num_atoms
     ):
     cdef ReturnElems2* returned
     returned = <ReturnElems2*> create_graph(<long*> &center_index[0], n_e, <long*> &neighbor_index[0], <long*> &image[0][0], <double*> &distance[0], num_atoms)
