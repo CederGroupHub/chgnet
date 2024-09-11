@@ -38,7 +38,7 @@ def parse_vasp_dir(
         dict: a dictionary of lists with keys for structure, uncorrected_total_energy,
             energy_per_atom, force, magmom, stress.
     """
-    if os.path.isdir(base_dir) is False:
+    if not os.path.isdir(base_dir):
         raise NotADirectoryError(f"{base_dir=} is not a directory")
 
     oszicar_path = zpath(f"{base_dir}/OSZICAR")
