@@ -34,6 +34,7 @@ test = ["pytest-cov>=4", "pytest>=8", "wandb>=0.17"]
 examples = ["crystal-toolkit>=2023.11.3", "pandas>=2.2"]
 docs = ["lazydocs>=0.4"]
 logging = ["wandb>=0.17"]
+dispersion = ["dftd4>=3.6", "torch-dftd>=0.4"]
 
 [project.urls]
 Source = "https://github.com/CederGroupHub/chgnet"
@@ -43,7 +44,7 @@ Package = "https://pypi.org/project/chgnet"
 find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 
 [tool.setuptools.package-data]
-"chgnet" = ["*.json"]
+"chgnet" = ["*.json", "py.typed"]
 "chgnet.pretrained" = ["*", "**/*"]
 
 [build-system]
@@ -57,7 +58,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 target-version = "py39"
-extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -107,6 +107,7 @@ docstring-code-format = true
     "ANN201",
     "D100",
     "D103",
+    "DOC201",  # doc string missing Return section
     "FBT001",
     "FBT002",
     "INP001",

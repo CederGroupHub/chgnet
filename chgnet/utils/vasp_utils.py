@@ -30,9 +30,16 @@ def parse_vasp_dir(
             Exception to VASP calculation that did not achieve electronic convergence.
             Default = True
         save_path (str): path to save the parsed VASP labels
+
+    Raises:
+        NotADirectoryError: if the base_dir is not a directory
+
+    Returns:
+        dict: a dictionary of lists with keys for structure, uncorrected_total_energy,
+            energy_per_atom, force, magmom, stress.
     """
     if os.path.isdir(base_dir) is False:
-        raise FileNotFoundError(f"{base_dir=} is not a directory")
+        raise NotADirectoryError(f"{base_dir=} is not a directory")
 
     oszicar_path = zpath(f"{base_dir}/OSZICAR")
     vasprun_path = zpath(f"{base_dir}/vasprun.xml")
@@ -170,6 +177,9 @@ def solve_charge_by_mag(
                     (3.5, 4.2): 3,
                     (4.2, 5): 2
                 ))
+
+    Returns:
+        Structure: pymatgen Structure with oxidation states assigned based on magmoms.
     """
     out_structure = structure.copy()
     out_structure.remove_oxidation_states()

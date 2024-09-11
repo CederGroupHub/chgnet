@@ -39,6 +39,9 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
     """List available CUDA devices sorted by increasing available memory.
 
     To get the device with the most free memory, use the last list item.
+
+    Returns:
+        list[int]: CUDA device numbers sorted by increasing free memory.
     """
     if not torch.cuda.is_available():
         return []
@@ -94,10 +97,10 @@ def mae(prediction: Tensor, target: Tensor) -> Tensor:
 
 
 def read_json(filepath: str) -> dict:
-    """Read the json file.
+    """Read the JSON file.
 
     Args:
-        filepath (str): file name of json to read.
+        filepath (str): file name of JSON to read.
 
     Returns:
         dict: data stored in filepath
@@ -107,14 +110,11 @@ def read_json(filepath: str) -> dict:
 
 
 def write_json(dct: dict, filepath: str) -> dict:
-    """Write the json file.
+    """Write the JSON file.
 
     Args:
         dct (dict): dictionary to write
-        filepath (str): file name of json to write.
-
-    Returns:
-        written dictionary
+        filepath (str): file name of JSON to write.
     """
 
     def handler(obj: object) -> int | object:
@@ -122,12 +122,15 @@ def write_json(dct: dict, filepath: str) -> dict:
 
         Fixes TypeError: Object of type int64 is not JSON serializable
         reported in https://github.com/CederGroupHub/chgnet/issues/168.
+
+        Returns:
+            int | object: object for serialization
         """
         if isinstance(obj, np.integer):
             return int(obj)
         return obj
 
-    with open(filepath, "w") as file:
+    with open(filepath, mode="w") as file:
         json.dump(dct, file, default=handler)
 
 

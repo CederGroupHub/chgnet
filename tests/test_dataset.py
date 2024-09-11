@@ -16,27 +16,21 @@ coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 
 
-@pytest.fixture()
+@pytest.fixture
 def structure_data() -> StructureData:
     """Create a graph with 3 nodes and 3 directed edges."""
     random.seed(42)
-    structures, energies, forces, stresses, magmoms, structure_ids = (
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-    )
+    structures, energies, forces = [], [], []
+    stresses, magmoms, structure_ids = [], [], []
+
     for index in range(100):
-        struct = NaCl.copy()
-        struct.perturb(0.1)
-        structures.append(struct)
-        energies.append(np.random.random(1))
-        forces.append(np.random.random([2, 3]))
-        stresses.append(np.random.random([3, 3]))
-        magmoms.append(np.random.random([2, 1]))
-        structure_ids.append(index)
+        structures += [NaCl.copy().perturb(0.1)]
+        energies += [np.random.random(1)]
+        forces += [np.random.random([2, 3])]
+        stresses += [np.random.random([3, 3])]
+        magmoms += [np.random.random([2, 1])]
+        structure_ids += [index]
+
     return StructureData(
         structures=structures,
         energies=energies,

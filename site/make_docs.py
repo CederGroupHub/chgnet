@@ -49,5 +49,5 @@ for path in glob(f"{route}/*.md"):
     markdown = markdown.replace(
         "\n**Global Variables**\n---------------\n- **TYPE_CHECKING**\n\n", ""
     )
-    with open(path, "w") as file:
+    with open(path, mode="w") as file:
         file.write(markdown)

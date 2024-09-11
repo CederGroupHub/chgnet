@@ -58,8 +58,22 @@ def make_graphs(
     make_partition(labels, graph_dir, train_ratio, val_ratio)
 
 
-def make_one_graph(mp_id: str, graph_id: str, data, graph_dir) -> dict | bool:
-    """Convert a structure to a CrystalGraph and save it."""
+def make_one_graph(
+    mp_id: str, graph_id: str, data: StructureJsonData, graph_dir: str
+) -> dict | bool:
+    """Convert a structure to a CrystalGraph and save it.
+
+    Args:
+        mp_id (str): The material id.
+        graph_id (str): The graph id.
+        data (StructureJsonData): The dataset. Warning: Dicts are popped from the data,
+            i.e. modifying the data in place.
+        graph_dir (str): The directory to save the graphs.
+
+    Returns:
+        dict | bool: The label dictionary if the graph is saved successfully, False
+            otherwise.
+    """
     dct = data.data[mp_id].pop(graph_id)
     struct = Structure.from_dict(dct.pop("structure"))
     try:

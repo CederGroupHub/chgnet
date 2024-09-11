@@ -210,9 +210,8 @@ class UniquenessCheck:
             self.uniq_struct_list.append((energy, struct))
             return True
 
-        n_atom = struct.composition.num_atoms
         min_e_diff = min(
-            [abs(energy - tmp[0]) / n_atom for tmp in self.uniq_struct_list]
+            [abs(energy - tmp[0]) for tmp in self.uniq_struct_list]
         )
 
         if min_e_diff > self.energy_threshold:

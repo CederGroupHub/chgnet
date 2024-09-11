@@ -110,6 +110,12 @@ class Trainer:
                 that are not included in the trainer_args. Default = None
 
             **kwargs (dict): additional hyper-params for optimizer, scheduler, etc.
+
+        Raises:
+            NotImplementedError: If the optimizer or scheduler is not implemented
+            ImportError: If wandb_path is specified but wandb is not installed
+            ValueError: If wandb_path is specified but not in the format
+                'project/run_name'
         """
         # Store trainer args for reproducibility
         self.trainer_args = {
@@ -271,6 +277,9 @@ class Trainer:
             wandb_log_freq ("epoch" | "batch"): Frequency of logging to wandb.
                 'epoch' logs once per epoch, 'batch' logs after every batch.
                 Default = "batch"
+
+        Raises:
+            ValueError: If model is not initialized
         """
         if self.model is None:
             raise ValueError("Model needs to be initialized")
@@ -579,7 +588,11 @@ class Trainer:
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
     def get_best_model(self) -> CHGNet:
-        """Get best model recorded in the trainer."""
+        """Get best model recorded in the trainer.
+
+        Returns:
+            CHGNet: the model with lowest validation set energy error
+        """
         if self.best_model is None:
             raise RuntimeError("the model needs to be trained first")
         MAE = min(self.training_history["e"]["val"])  # noqa: N806
@@ -649,7 +662,14 @@ class Trainer:
 
     @classmethod
     def load(cls, path: str) -> Self:
-        """Load trainer state_dict."""
+        """Load trainer state_dict.
+
+        Args:
+            path (str): path to the saved model
+
+        Returns:
+            Trainer: the loaded trainer
+        """
         state = torch.load(path, map_location=torch.device("cpu"))
         model = CHGNet.from_dict(state["model"])
         print(f"Loaded model params = {sum(p.numel() for p in model.parameters()):,}")
@@ -664,8 +684,21 @@ class Trainer:
         return trainer
 
     @staticmethod
-    def move_to(obj, device) -> Tensor | list[Tensor]:
-        """Move object to device."""
+    def move_to(
+        obj: Tensor | list[Tensor], device: torch.device
+    ) -> Tensor | list[Tensor]:
+        """Move object to device.
+
+        Args:
+            obj (Tensor | list[Tensor]): object(s) to move to device
+            device (torch.device): device to move object to
+
+        Raises:
+            TypeError: if obj is not a tensor or list of tensors
+
+        Returns:
+            Tensor | list[Tensor]: moved object(s)
+        """
         if torch.is_tensor(obj):
             return obj.to(device)
         if isinstance(obj, list):

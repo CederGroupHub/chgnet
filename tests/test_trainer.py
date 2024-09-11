@@ -114,7 +114,7 @@ def test_trainer_composition_model(tmp_path: Path) -> None:
     assert torch.all(comparison == expect)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_wandb():
     with patch("chgnet.trainer.trainer.wandb") as mock:
         yield mock
