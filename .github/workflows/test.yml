@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }}
+          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml
