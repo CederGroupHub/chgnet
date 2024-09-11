@@ -61,6 +61,7 @@ ignore = [
     "ANN003",  # Missing type annotation for **{name}
     "ANN101",  # Missing type annotation for {name} in method
     "ANN102",  # Missing type annotation for {name} in classmethod
+    "B019",    # Use of functools.lru_cache on methods can lead to memory leaks
     "BLE001",  # use of general except Exception
     "C408",    # unnecessary-collection-call
     "C901",    # function is too complex

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import datetime
 import inspect
 import os
 import random
 import shutil
 import time
-from datetime import datetime
 from typing import TYPE_CHECKING, Literal, get_args
 
 import numpy as np
@@ -285,7 +285,7 @@ class Trainer:
             raise ValueError("Model needs to be initialized")
         global best_checkpoint  # noqa: PLW0603
         if save_dir is None:
-            save_dir = f"{datetime.now():%m-%d-%Y}"
+            save_dir = f"{datetime.datetime.now(tz=datetime.timezone.utc):%m-%d-%Y}"
 
         print(f"Begin Training: using {self.device} device")
         print(f"training targets: {self.targets}")
