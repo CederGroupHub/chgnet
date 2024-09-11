@@ -7,9 +7,13 @@
 # cython: profile=False
 # distutils: language = c
 
-import chgnet.graph.graph
 import numpy as np
+cimport numpy as np
+
+import chgnet.graph.graph
+
 from libc.stdlib cimport free
+
 
 cdef extern from 'fast_converter_libraries/create_graph.c':
     ctypedef struct Node:
@@ -62,12 +66,12 @@ cdef extern from 'fast_converter_libraries/create_graph.c':
     LongToDirectedEdgeList** get_neighbors(Node* node)
 
 def make_graph(
-        const long[::1] center_index,
-        const long n_e,
-        const long[::1] neighbor_index,
-        const long[:, ::1] image,
-        const double[::1] distance,
-        const long num_atoms
+        const np.intp_t[::1] center_index,
+        const np.intp_t n_e,
+        const np.intp_t[::1] neighbor_index,
+        const np.intp_t[:, ::1] image,
+        const np.float64_t[::1] distance,
+        const np.intp_t num_atoms
     ):
     cdef ReturnElems2* returned
     returned = <ReturnElems2*> create_graph(<long*> &center_index[0], n_e, <long*> &neighbor_index[0], <long*> &image[0][0], <double*> &distance[0], num_atoms)
