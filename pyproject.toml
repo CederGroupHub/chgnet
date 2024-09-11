@@ -48,7 +48,12 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 "chgnet.pretrained" = ["*", "**/*"]
 
 [build-system]
-requires = ["Cython", "numpy>=2", "setuptools>=65", "wheel"]
+requires = [
+    "Cython",
+    "setuptools>=65",
+    "wheel",
+    "numpy>=2.0.0",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
