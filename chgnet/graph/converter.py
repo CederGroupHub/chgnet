@@ -248,7 +248,7 @@ class CrystalGraphConverter(nn.Module):
         """
         center_index = np.ascontiguousarray(center_index)
         neighbor_index = np.ascontiguousarray(neighbor_index)
-        image = np.ascontiguousarray(image, dtype=np.int_)
+        image = np.ascontiguousarray(image, dtype=np.int64)
         distance = np.ascontiguousarray(distance)
         gc_saved = gc.get_threshold()
         gc.set_threshold(0)
