@@ -8,7 +8,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/CederGroupHub/chgnet?logo=github&logoColor=white&label=Repo%20Size)
 [![PyPI](https://img.shields.io/pypi/v/chgnet?logo=pypi&logoColor=white)](https://pypi.org/project/chgnet?logo=pypi&logoColor=white)
 [![Docs](https://img.shields.io/badge/API-Docs-blue?logo=readthedocs&logoColor=white)](https://chgnet.lbl.gov)
-[![Requires Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
+[![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 
 </h4>
 
