@@ -10,7 +10,6 @@ from chgnet import utils
 from chgnet.data.dataset import StructureData, StructureJsonData
 from chgnet.graph import CrystalGraphConverter
 
-datatype = torch.float32
 random.seed(100)
 
 

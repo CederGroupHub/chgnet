@@ -9,7 +9,7 @@ from torch import Tensor
 if TYPE_CHECKING:
     from typing_extensions import Self
 
-datatype = torch.float32
+TORCH_DTYPE = torch.float32
 
 
 class CrystalGraph:
