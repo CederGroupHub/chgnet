@@ -104,7 +104,7 @@ def test_directed_edge(capsys) -> None:
     captured = capsys.readouterr()
     expected_message = (
         "!!!!!! the two directed edges are equal but this operation is "
-        "not supposed to happen",
+        "not supposed to happen\n"
     )
     assert captured.err == expected_message
     assert edge != undirected
