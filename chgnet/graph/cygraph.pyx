@@ -7,81 +7,77 @@
 # cython: profile=False
 # distutils: language = c
 
-import numpy as np
-cimport numpy as np
-
 import chgnet.graph.graph
-
+import numpy as np
 from libc.stdlib cimport free
-
 
 cdef extern from 'fast_converter_libraries/create_graph.c':
     ctypedef struct Node:
-        np.int64_t index
+        long index
         LongToDirectedEdgeList* neighbors
-        np.int64_t num_neighbors
+        long num_neighbors
 
     ctypedef struct NodeIndexPair:
-        np.int64_t center
-        np.int64_t neighbor
+        long center
+        long neighbor
 
     ctypedef struct UndirectedEdge:
         NodeIndexPair nodes
-        np.int64_t index
-        np.int64_t* directed_edge_indices
-        np.int64_t num_directed_edges
-        np.float64_t distance
+        long index
+        long* directed_edge_indices
+        long num_directed_edges
+        double distance
 
     ctypedef struct DirectedEdge:
         NodeIndexPair nodes
-        np.int64_t index
-        const np.int64_t* image
-        np.int64_t undirected_edge_index
-        np.float64_t distance
+        long index
+        const long* image
+        long undirected_edge_index
+        double distance
 
     ctypedef struct LongToDirectedEdgeList:
-        np.int64_t key
+        long key
         DirectedEdge** directed_edges_list
         int num_directed_edges_in_group
 
     ctypedef struct ReturnElems2:
-        np.int64_t num_nodes
-        np.int64_t num_directed_edges
-        np.int64_t num_undirected_edges
+        long num_nodes
+        long num_directed_edges
+        long num_undirected_edges
         Node* nodes
         UndirectedEdge** undirected_edges_list
         DirectedEdge** directed_edges_list
 
     ReturnElems2* create_graph(
-        np.int64_t* center_index,
-        np.int64_t n_e,
-        np.int64_t* neighbor_index,
-        np.int64_t* image,
-        np.float64_t* distance,
-        np.int64_t num_atoms)
+        long* center_index,
+        long n_e,
+        long* neighbor_index,
+        long* image,
+        double* distance,
+        long num_atoms)
 
-    void free_LongToDirectedEdgeList_in_nodes(Node* nodes, np.int64_t num_nodes)
+    void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes)
 
 
     LongToDirectedEdgeList** get_neighbors(Node* node)
 
 def make_graph(
-        const np.int64_t[::1] center_index,
-        const np.int64_t n_e,
-        const np.int64_t[::1] neighbor_index,
-        const np.int64_t[:, ::1] image,
-        const np.float64_t[::1] distance,
-        const np.int64_t num_atoms
+        const long[::1] center_index,
+        const long n_e,
+        const long[::1] neighbor_index,
+        const long[:, ::1] image,
+        const double[::1] distance,
+        const long num_atoms
     ):
     cdef ReturnElems2* returned
-    returned = <ReturnElems2*> create_graph(<np.int64_t*> &center_index[0], n_e, <np.int64_t*> &neighbor_index[0], <np.int64_t*> &image[0][0], <np.float64_t*> &distance[0], num_atoms)
+    returned = <ReturnElems2*> create_graph(<long*> &center_index[0], n_e, <long*> &neighbor_index[0], <long*> &image[0][0], <double*> &distance[0], num_atoms)
 
     chg_DirectedEdge = chgnet.graph.graph.DirectedEdge
     chg_Node = chgnet.graph.graph.Node
     chg_UndirectedEdge = chgnet.graph.graph.UndirectedEdge
 
 
-    image_np = np.asarray(image, dtype=np.int64)
+    image_np = np.asarray(image)
 
     cdef LongToDirectedEdgeList** node_neighbors
     cdef Node this_node
