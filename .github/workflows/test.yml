@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  UV_SYSTEM_PYTHON: 1
-
 jobs:
   tests:
     strategy:
@@ -25,20 +22,20 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-
-      - name: Set up Python ${{ matrix.version.python }}
-        run: uv python install ${{ matrix.version.python }}
+          python-version: ${{ matrix.version.python }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install chgnet through uv
         run: |
-          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }}
+          pip install uv
+          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
       - name: Run Tests
-        run: uv run pytest --capture=no --cov --cov-report=xml
+        run: pytest --capture=no --cov --cov-report=xml
         env:
           CHGNET_DEVICE: cpu
 

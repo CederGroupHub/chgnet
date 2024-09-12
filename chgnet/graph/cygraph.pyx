@@ -81,7 +81,7 @@ def make_graph(
     chg_UndirectedEdge = chgnet.graph.graph.UndirectedEdge
 
 
-    image_np = np.asarray(image)
+    image_np = np.asarray(image, dtype=np.int64)
 
     cdef LongToDirectedEdgeList** node_neighbors
     cdef Node this_node
