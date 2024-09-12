@@ -28,7 +28,7 @@ def test_atom_embedding(atom_feature_dim: int, max_num_elements: int) -> None:
     assert "index out of range" in str(exc_info.value)
 
 
-@pytest.mark.parametrize("atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (6, 4)])
+@pytest.mark.parametrize(("atom_graph_cutoff", "bond_graph_cutoff"), [(5, 3), (6, 4)])
 def test_bond_encoder(atom_graph_cutoff: float, bond_graph_cutoff: float) -> None:
     undirected2directed = torch.tensor([0, 1])
     image = torch.zeros((2, 3))

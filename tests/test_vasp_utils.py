@@ -62,7 +62,7 @@ def test_parse_vasp_dir_without_magmoms(tmp_path: Path):
 
 def test_parse_vasp_dir_no_data():
     # test non-existing directory
-    with pytest.raises(FileNotFoundError, match="is not a directory"):
+    with pytest.raises(NotADirectoryError, match="is not a directory"):
         parse_vasp_dir(f"{ROOT}/tests/files/non-existent")
 
     # test existing directory without VASP files

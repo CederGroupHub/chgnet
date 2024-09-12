@@ -29,11 +29,10 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Install dependencies via uv
+      - name: Install chgnet through uv
         run: |
           pip install uv
-
-          uv pip install -e .[test,logging] --system --resolution=${{ matrix.version.resolution }}
+          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml

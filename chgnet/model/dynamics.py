@@ -5,14 +5,14 @@ import inspect
 import io
 import pickle
 import sys
+import warnings
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
 from ase.md.npt import NPT
-from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
-from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen, NVTBerendsen
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary
 from ase.md.verlet import VelocityVerlet
 from ase.optimize.bfgs import BFGS
@@ -610,11 +610,12 @@ class MolecularDynamics:
                 except Exception:
                     bulk_modulus_au = 2 / 160.2176
                     compressibility_au = 1 / bulk_modulus_au
-                    print(
+                    warnings.warn(
                         "Warning!!! Equation of State fitting failed, setting bulk "
                         "modulus to 2 GPa. NPT simulation can proceed with incorrect "
                         "pressure relaxation time."
-                        "User input for bulk modulus is recommended."
+                        "User input for bulk modulus is recommended.",
+                        stacklevel=2,
                     )
             self.bulk_modulus = bulk_modulus
 

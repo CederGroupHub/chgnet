@@ -14,7 +14,7 @@ from chgnet.model import CHGNet, StructOptimizer
 
 
 @pytest.mark.parametrize(
-    "algorithm, ase_filter, assign_magmoms",
+    ("algorithm", "ase_filter", "assign_magmoms"),
     [("legacy", FrechetCellFilter, True), ("fast", ExpCellFilter, False)],
 )
 def test_relaxation(

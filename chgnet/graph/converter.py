@@ -3,7 +3,7 @@ from __future__ import annotations
 import gc
 import sys
 import warnings
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -13,6 +13,8 @@ from chgnet.graph.crystalgraph import CrystalGraph
 from chgnet.graph.graph import Graph, Node
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from pymatgen.core import Structure
     from typing_extensions import Self
 
@@ -21,7 +23,7 @@ try:
 except (ImportError, AttributeError):
     make_graph = None
 
-datatype = torch.float32
+DATATYPE = torch.float32
 
 
 class CrystalGraphConverter(nn.Module):
@@ -122,10 +124,10 @@ class CrystalGraphConverter(nn.Module):
             requires_grad=False,
         )
         atom_frac_coord = torch.tensor(
-            structure.frac_coords, dtype=datatype, requires_grad=True
+            structure.frac_coords, dtype=DATATYPE, requires_grad=True
         )
         lattice = torch.tensor(
-            structure.lattice.matrix, dtype=datatype, requires_grad=True
+            structure.lattice.matrix, dtype=DATATYPE, requires_grad=True
         )
         center_index, neighbor_index, image, distance = structure.get_neighbor_list(
             r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
@@ -150,7 +152,7 @@ class CrystalGraphConverter(nn.Module):
             # Report structures that failed creating bond graph
             # This happen occasionally with pymatgen version issue
             structure.to(filename="bond_graph_error.cif")
-            raise SystemExit(
+            raise RuntimeError(
                 f"Failed creating bond graph for {graph_id}, check bond_graph_error.cif"
             ) from exc
         bond_graph = torch.tensor(bond_graph, dtype=torch.int32)
@@ -175,7 +177,7 @@ class CrystalGraphConverter(nn.Module):
             atomic_number=atomic_number,
             atom_frac_coord=atom_frac_coord,
             atom_graph=atom_graph,
-            neighbor_image=torch.tensor(image, dtype=datatype),
+            neighbor_image=torch.tensor(image, dtype=DATATYPE),
             directed2undirected=directed2undirected,
             undirected2directed=undirected2directed,
             bond_graph=bond_graph,

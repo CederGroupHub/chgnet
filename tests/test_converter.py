@@ -29,7 +29,7 @@ def _set_make_graph() -> Generator[None, None, None]:
 
 
 @pytest.mark.parametrize(
-    "atom_graph_cutoff, bond_graph_cutoff", [(5, 3), (5, None), (4, 2)]
+    ("atom_graph_cutoff", "bond_graph_cutoff"), [(5, 3), (5, None), (4, 2)]
 )
 def test_crystal_graph_converter_cutoff(
     atom_graph_cutoff: float | None, bond_graph_cutoff: float | None

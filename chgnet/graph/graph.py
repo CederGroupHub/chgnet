@@ -271,7 +271,7 @@ class Graph:
         if len(self.directed_edges_list) != 2 * len(self.undirected_edges_list):
             raise ValueError(
                 f"Error: number of directed edges={len(self.directed_edges_list)} != 2 "
-                f"* number of undirected edges={len(self.directed_edges_list)}!"
+                f"* number of undirected edges={len(self.undirected_edges_list)}!"
                 f"This indicates directed edges are not complete"
             )
         line_graph = []
