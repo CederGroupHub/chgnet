@@ -11,7 +11,7 @@ dependencies = [
     "cython>=3",
     "numpy>=1.26,<2",
     "nvidia-ml-py3>=7.352.0",
-    "pymatgen>=2024.9.10",
+    "pymatgen<2024.9.10",
     "torch>=1.11.0",
     "typing-extensions>=4.12",
 ]
@@ -52,7 +52,6 @@ requires = [
     "Cython",
     "setuptools>=65",
     "wheel",
-    "numpy>=2.0.0",
 ]
 build-backend = "setuptools.build_meta"
 
