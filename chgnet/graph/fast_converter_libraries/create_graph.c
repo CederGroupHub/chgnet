@@ -12,32 +12,32 @@ typedef struct _ReturnElems2 ReturnElems2;
 // in the graph class in chgnet.graph.graph such that anyone familiar with that code should be able to pick up this
 // code pretty easily.
 
-long MEM_ERR = 100;
+int64_t MEM_ERR = 100;
 
 typedef struct _Node {
-    long index;
+    int64_t index;
     LongToDirectedEdgeList* neighbors; // Assuming neighbors can only be directed edge. Key is dest_node, value is DirectedEdge struct
-    long num_neighbors;
+    int64_t num_neighbors;
 } Node;
 
 typedef struct _NodeIndexPair {
-    long center;
-    long neighbor;
+    int64_t center;
+    int64_t neighbor;
 } NodeIndexPair;
 
 typedef struct _UndirectedEdge {
     NodeIndexPair nodes;
-    long index;
-    long* directed_edge_indices;
-    long num_directed_edges;
+    int64_t index;
+    int64_t* directed_edge_indices;
+    int64_t num_directed_edges;
     double distance;
 } UndirectedEdge;
 
 typedef struct _DirectedEdge {
     NodeIndexPair nodes;
-    long index;
-    const long* image; // Only access the first 3, never edit
-    long undirected_edge_index;
+    int64_t index;
+    const int64_t* image; // Only access the first 3, never edit
+    int64_t undirected_edge_index;
     double distance;
 } DirectedEdge;
 
@@ -49,7 +49,7 @@ typedef struct _StructToUndirectedEdgeList {
 } StructToUndirectedEdgeList;
 
 typedef struct _LongToDirectedEdgeList {
-    long key;
+    int64_t key;
     DirectedEdge** directed_edges_list;
     int num_directed_edges_in_group;
     UT_hash_handle hh;
@@ -57,36 +57,36 @@ typedef struct _LongToDirectedEdgeList {
 
 
 typedef struct _ReturnElems2 {
-    long num_nodes;
-    long num_directed_edges;
-    long num_undirected_edges;
+    int64_t num_nodes;
+    int64_t num_directed_edges;
+    int64_t num_undirected_edges;
     Node* nodes;
     UndirectedEdge** undirected_edges_list;
     DirectedEdge** directed_edges_list;
 } ReturnElems2;
 
 bool find_in_undirected(NodeIndexPair* tmp, StructToUndirectedEdgeList** undirected_edges, StructToUndirectedEdgeList** found_entry);
-void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, long undirected_index);
+void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, int64_t undirected_index);
 void create_new_undirected_edges_entry(StructToUndirectedEdgeList** undirected_edges, NodeIndexPair* tmp, UndirectedEdge* new_undirected_edge);
 void append_to_undirected_edges_tmp(UndirectedEdge* undirected, StructToUndirectedEdgeList** undirected_edges, NodeIndexPair* tmp);
-void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, UndirectedEdge* to_add, long* num_undirected_edges);
-void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedEdge* to_add, long* num_directed_edges);
-void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* directed_edge);
+void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, UndirectedEdge* to_add, int64_t* num_undirected_edges);
+void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedEdge* to_add, int64_t* num_directed_edges);
+void add_neighbors_to_node(Node* node, int64_t neighbor_index, DirectedEdge* directed_edge);
 void print_neighbors(Node* node);
-void append_to_directed_edge_indices(UndirectedEdge* undirected_edge, long directed_edge_index);
+void append_to_directed_edge_indices(UndirectedEdge* undirected_edge, int64_t directed_edge_index);
 bool is_reversed_directed_edge(DirectedEdge* directed_edge1, DirectedEdge* directed_edge2);
 void free_undirected_edges(StructToUndirectedEdgeList** undirected_edges);
-void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes);
+void free_LongToDirectedEdgeList_in_nodes(Node* nodes, int64_t num_nodes);
 
 
-Node* create_nodes(long num_nodes) {
+Node* create_nodes(int64_t num_nodes) {
     Node* Nodes = (Node*) malloc(sizeof(Node) * num_nodes);
 
     if (Nodes == NULL) {
         return NULL;
     }
 
-    for (long i = 0; i < num_nodes; i++) {
+    for (int64_t i = 0; i < num_nodes; i++) {
         Nodes[i].index = i;
         Nodes[i].num_neighbors = 0;
 
@@ -98,22 +98,22 @@ Node* create_nodes(long num_nodes) {
 }
 
 ReturnElems2* create_graph(
-        long* center_indices,
-        long num_edges,
-        long* neighbor_indices,
-        long* images, // contiguous memory (row-major) of image elements (total of n_e * 3 integers)
+        int64_t* center_indices,
+        int64_t num_edges,
+        int64_t* neighbor_indices,
+        int64_t* images, // contiguous memory (row-major) of image elements (total of n_e * 3 integers)
         double* distances,
-        long num_atoms
+        int64_t num_atoms
     ) {
     // Initialize pertinent data structures ---------------------
     Node* nodes = create_nodes(num_atoms);
 
     DirectedEdge** directed_edges_list = calloc(num_edges, sizeof(DirectedEdge));
-    long num_directed_edges = 0;
+    int64_t num_directed_edges = 0;
 
     // There will never be more undirected edges than directed edges
     UndirectedEdge** undirected_edges_list = calloc(num_edges, sizeof(UndirectedEdge));
-    long num_undirected_edges = 0;
+    int64_t num_undirected_edges = 0;
     StructToUndirectedEdgeList* undirected_edges = NULL;
 
     // Pointer to beginning of list of UndirectedEdges corresponding to tmp of current iteration
@@ -133,7 +133,7 @@ ReturnElems2* create_graph(
     DirectedEdge* this_directed_edge;
 
     // Add all edges to graph information
-    for (long i = 0; i < num_edges; i++) {
+    for (int64_t i = 0; i < num_edges; i++) {
         // Haven't processed the edge yet
         processed_edge = false;
         // Create the current directed edge -------------------
@@ -236,11 +236,11 @@ void free_undirected_edges(StructToUndirectedEdgeList** undirected_edges) {
     }
 }
 
-void free_LongToDirectedEdgeList_in_nodes(Node* nodes, long num_nodes) {
+void free_LongToDirectedEdgeList_in_nodes(Node* nodes, int64_t num_nodes) {
     LongToDirectedEdgeList* current;
     LongToDirectedEdgeList* tmp;
 
-    for (long node_i = 0; node_i < num_nodes; node_i++) {
+    for (int64_t node_i = 0; node_i < num_nodes; node_i++) {
         HASH_ITER(hh, nodes[node_i].neighbors, current, tmp) {
             HASH_DEL(nodes[node_i].neighbors, current);
             free(current->directed_edges_list);
@@ -323,7 +323,7 @@ void append_to_undirected_edges_tmp(UndirectedEdge* undirected, StructToUndirect
     StructToUndirectedEdgeList* this_undirected_edges_item;
     find_in_undirected(tmp, undirected_edges, &this_undirected_edges_item);
 
-    long num_undirected_edges = this_undirected_edges_item->num_undirected_edges_in_group;
+    int64_t num_undirected_edges = this_undirected_edges_item->num_undirected_edges_in_group;
 
     // No need to worry about originally malloc'ing memory for this_undirected_edges_item->undirected_edges_list
     // this is because, we first call create_new_undirected_edges_entry for all entries. This function already mallocs for us.
@@ -340,7 +340,7 @@ void append_to_undirected_edges_tmp(UndirectedEdge* undirected, StructToUndirect
 }
 
 
-void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, long undirected_index) {
+void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, int64_t undirected_index) {
     // Copy over image and distance
     undirected->distance = directed->distance;
     undirected->nodes = directed->nodes;
@@ -348,12 +348,12 @@ void directed_to_undirected(DirectedEdge* directed, UndirectedEdge* undirected, 
 
     // Add a new directed_edge_index to the directed_edge_indices pointer. This should be the first
     undirected->num_directed_edges = 1;
-    undirected->directed_edge_indices = malloc(sizeof(long));
+    undirected->directed_edge_indices = malloc(sizeof(int64_t));
     undirected->directed_edge_indices[0] = directed->index;
 }
 
 
-void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, UndirectedEdge* to_add, long* num_undirected_edges) {
+void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, UndirectedEdge* to_add, int64_t* num_undirected_edges) {
     // No need to realloc for space since our original alloc should cover everything
 
     // Assign value to next available position
@@ -361,7 +361,7 @@ void append_to_undirected_edges_list(UndirectedEdge** undirected_edges_list, Und
     *num_undirected_edges += 1;
 }
 
-void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedEdge* to_add, long* num_directed_edges) {
+void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedEdge* to_add, int64_t* num_directed_edges) {
     // No need to realloc for space since our original alloc should cover everything
 
     // Assign value to next available position
@@ -369,21 +369,21 @@ void append_to_directed_edges_list(DirectedEdge** directed_edges_list, DirectedE
     *num_directed_edges += 1;
 }
 
-void append_to_directed_edge_indices(UndirectedEdge* undirected_edge, long directed_edge_index) {
+void append_to_directed_edge_indices(UndirectedEdge* undirected_edge, int64_t directed_edge_index) {
     // TODO: don't need to realloc if we always know that there will be 2 directed edges per undirected edge. Update this later for performance boosts.
-    // TODO: other random performance boost: don't pass longs into function parameters, pass long* instead
-    undirected_edge->directed_edge_indices = realloc(undirected_edge->directed_edge_indices, sizeof(long) * (undirected_edge->num_directed_edges + 1));
+    // TODO: other random performance boost: don't pass int64_ts into function parameters, pass int64_t* instead
+    undirected_edge->directed_edge_indices = realloc(undirected_edge->directed_edge_indices, sizeof(int64_t) * (undirected_edge->num_directed_edges + 1));
     undirected_edge->directed_edge_indices[undirected_edge->num_directed_edges] = directed_edge_index;
     undirected_edge->num_directed_edges += 1;
 }
 
 // If there already exists neighbor_index within the Node node, then adds directed_edge to the list of directed edges.
 // If there doesn't already exist neighbor_index within the Node node, then create a new entry into the node's neighbors hashmap and add the entry
-void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* directed_edge) {
+void add_neighbors_to_node(Node* node, int64_t neighbor_index, DirectedEdge* directed_edge) {
     LongToDirectedEdgeList* entry = NULL;
 
     // Search for the neighbor_index in our hashmap
-    HASH_FIND(hh, node->neighbors, &neighbor_index, sizeof(long), entry);
+    HASH_FIND(hh, node->neighbors, &neighbor_index, sizeof(int64_t), entry);
 
     if (entry) {
         // We found something, update the list within this pointer
@@ -401,7 +401,7 @@ void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* direct
         entry->key = neighbor_index;
 
         entry->num_directed_edges_in_group = 1;
-        HASH_ADD(hh, node->neighbors, key, sizeof(long), entry);
+        HASH_ADD(hh, node->neighbors, key, sizeof(int64_t), entry);
 
         node->num_neighbors += 1;
     }
@@ -409,11 +409,11 @@ void add_neighbors_to_node(Node* node, long neighbor_index, DirectedEdge* direct
 
 // Returns a list of LongToDirectedEdgeList pointers which are entries for the neighbors of the inputted node
 LongToDirectedEdgeList** get_neighbors(Node* node) {
-    long num_neighbors = HASH_COUNT(node->neighbors);
+    int64_t num_neighbors = HASH_COUNT(node->neighbors);
     LongToDirectedEdgeList** entries = malloc(sizeof(LongToDirectedEdgeList*) * num_neighbors);
 
     LongToDirectedEdgeList* entry;
-    long counter = 0;
+    int64_t counter = 0;
     for (entry = node->neighbors; entry != NULL; entry = entry->hh.next) {
         entries[counter] = entry;
         counter += 1;
