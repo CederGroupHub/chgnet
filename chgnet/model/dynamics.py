@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes, all_properties
-from ase.filters import FrechetCellFilter
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen, NVTBerendsen
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary
@@ -295,7 +294,7 @@ class StructOptimizer:
                 cry_obs = CrystalFeasObserver(atoms)
 
             if relax_cell:
-                atoms = FrechetCellFilter(atoms)
+                atoms = ase_filter(atoms)
             optimizer: Optimizer = self.optimizer_class(atoms, **kwargs)
             optimizer.attach(obs, interval=loginterval)
 
