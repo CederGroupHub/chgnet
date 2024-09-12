@@ -92,6 +92,8 @@ class DirectedEdge(Edge):
             bool: True if other is the same directed edge, or if other is the directed
                 edge with reverse direction of self, else False.
         """
+        if not isinstance(other, DirectedEdge):
+            return False
         self_img = (self.info or {}).get("image")
         other_img = (other.info or {}).get("image")
         none_img = self_img is other_img is None
