@@ -32,10 +32,11 @@ jobs:
 
       - name: Install chgnet through uv
         run: |
-          uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
+          uv sync --all-extras --dev
+          # uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
       - name: Run Tests
-        run: pytest --capture=no --cov --cov-report=xml
+        run: uv run pytest --capture=no --cov --cov-report=xml
         env:
           CHGNET_DEVICE: cpu
 
