@@ -23,7 +23,7 @@ try:
 except (ImportError, AttributeError):
     make_graph = None
 
-DATATYPE = torch.float32
+TORCH_DTYPE = torch.float32
 
 
 class CrystalGraphConverter(nn.Module):
@@ -124,10 +124,10 @@ class CrystalGraphConverter(nn.Module):
             requires_grad=False,
         )
         atom_frac_coord = torch.tensor(
-            structure.frac_coords, dtype=DATATYPE, requires_grad=True
+            structure.frac_coords, dtype=TORCH_DTYPE, requires_grad=True
         )
         lattice = torch.tensor(
-            structure.lattice.matrix, dtype=DATATYPE, requires_grad=True
+            structure.lattice.matrix, dtype=TORCH_DTYPE, requires_grad=True
         )
         center_index, neighbor_index, image, distance = structure.get_neighbor_list(
             r=self.atom_graph_cutoff, sites=structure.sites, numerical_tol=1e-8
@@ -177,7 +177,7 @@ class CrystalGraphConverter(nn.Module):
             atomic_number=atomic_number,
             atom_frac_coord=atom_frac_coord,
             atom_graph=atom_graph,
-            neighbor_image=torch.tensor(image, dtype=DATATYPE),
+            neighbor_image=torch.tensor(image, dtype=TORCH_DTYPE),
             directed2undirected=directed2undirected,
             undirected2directed=undirected2directed,
             bond_graph=bond_graph,
@@ -250,7 +250,7 @@ class CrystalGraphConverter(nn.Module):
         """
         center_index = np.ascontiguousarray(center_index)
         neighbor_index = np.ascontiguousarray(neighbor_index)
-        image = np.ascontiguousarray(image, dtype=np.int_)
+        image = np.ascontiguousarray(image, dtype=np.int64)
         distance = np.ascontiguousarray(distance)
         gc_saved = gc.get_threshold()
         gc.set_threshold(0)

@@ -96,12 +96,18 @@ def test_line_graph(bigraph: Graph) -> None:
     assert undirected2directed[2] == 3
 
 
-def test_directed_edge() -> None:
+def test_directed_edge(capsys) -> None:
     info = {"image": np.zeros(3), "distance": 1}
     edge = DirectedEdge([0, 1], index=0, info=info)
     undirected = edge.make_undirected(index=0, info=info)
     assert edge == edge  # noqa: PLR0124
-    assert edge == undirected
+    captured = capsys.readouterr()
+    expected_message = (
+        "!!!!!! the two directed edges are equal but this operation is "
+        "not supposed to happen\n"
+    )
+    assert captured.err == expected_message
+    assert edge != undirected
     assert edge.nodes == [0, 1]
     assert edge.index == 0
     assert repr(edge) == f"DirectedEdge(nodes=[0, 1], index=0, {info=})"

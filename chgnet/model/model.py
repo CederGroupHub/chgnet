@@ -11,7 +11,7 @@ from pymatgen.core import Structure
 from torch import Tensor, nn
 
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
-from chgnet.graph.crystalgraph import datatype
+from chgnet.graph.crystalgraph import TORCH_DTYPE
 from chgnet.model.composition_model import AtomRef
 from chgnet.model.encoders import AngleEncoder, AtomEmbedding, BondEncoder
 from chgnet.model.functions import MLP, GatedMLP, find_normalization
@@ -808,7 +808,7 @@ class BatchedGraph:
             if compute_stress:
                 strain = graph.lattice.new_zeros([3, 3], requires_grad=True)
                 lattice = graph.lattice @ (
-                    torch.eye(3, dtype=datatype).to(strain.device) + strain
+                    torch.eye(3, dtype=TORCH_DTYPE).to(strain.device) + strain
                 )
             else:
                 strain = None
@@ -878,7 +878,7 @@ class BatchedGraph:
             torch.cat(atom_owners, dim=0).type(torch.int32).to(atomic_numbers.device)
         )
         directed2undirected = torch.cat(directed2undirected, dim=0)
-        volumes = torch.tensor(volumes, dtype=datatype, device=atomic_numbers.device)
+        volumes = torch.tensor(volumes, dtype=TORCH_DTYPE, device=atomic_numbers.device)
 
         return cls(
             atomic_numbers=atomic_numbers,

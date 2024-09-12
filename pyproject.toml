@@ -9,10 +9,12 @@ license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.23.0",
     "cython>=3",
-    "numpy>=1.26,<2",
+    # "monty==2024.7.12",  # TODO: restore once readline fixed
+    # "numpy>=1.26",  # TODO: remove after test
+    "numpy>=2.0.0",
     "nvidia-ml-py3>=7.352.0",
-    "pymatgen==2024.8.9",
-    "torch>=1.11.0",
+    "pymatgen>=2024.9.10",
+    "torch>=2.4.1",
     "typing-extensions>=4.12",
 ]
 classifiers = [
@@ -33,7 +35,7 @@ test = ["pytest-cov>=4", "pytest>=8", "wandb>=0.17"]
 # needed to run interactive example notebooks
 examples = ["crystal-toolkit>=2023.11.3", "pandas>=2.2"]
 docs = ["lazydocs>=0.4"]
-logging = ["wandb>=0.17"]
+logging = ["wandb>=0.17.2"]
 dispersion = ["dftd4>=3.6", "torch-dftd>=0.4"]
 
 [project.urls]
@@ -49,11 +51,7 @@ find = { include = ["chgnet*"], exclude = ["tests", "tests*"] }
 "chgnet.pretrained" = ["*", "**/*"]
 
 [build-system]
-requires = [
-    "Cython",
-    "setuptools>=65",
-    "wheel",
-]
+requires = ["Cython", "numpy>=2.0.0", "setuptools>=65", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]

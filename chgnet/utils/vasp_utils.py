@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import os.path
+import os
 import re
+import warnings
 from typing import TYPE_CHECKING
 
 from monty.io import reverse_readfile
@@ -114,7 +115,7 @@ def parse_vasp_dir(
             read_charge = read_mag_x = read_mag_y = read_mag_z = False
 
     if len(oszicar.ionic_steps) == len(mag_x_all):  # unfinished VASP job
-        print("Unfinished OUTCAR")
+        warnings.warn("Unfinished OUTCAR", stacklevel=2)
     elif len(oszicar.ionic_steps) == (len(mag_x_all) - 1):  # finished job
         mag_x_all.pop(-1)
 
@@ -213,5 +214,6 @@ def solve_charge_by_mag(
         print(f"Solved oxidation state, {total_charge=}")
         out_structure.add_oxidation_state_by_site(ox_list)
         return out_structure
-    print("Failed to solve oxidation state")
+
+    warnings.warn("Failed to solve oxidation state", stacklevel=2)
     return None
