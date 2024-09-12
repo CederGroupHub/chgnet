@@ -59,8 +59,8 @@ def bigraph() -> Graph:
     bigraph.add_edge(0, 2, np.zeros(3), 2)
     bigraph.add_edge(1, 0, np.zeros(3), 1)
     bigraph.add_edge(1, 2, np.zeros(3), 5)
-    bigraph.add_edge(1, 1, np.array([0, 0, 1], dtype=np.int64), 4)
-    bigraph.add_edge(1, 1, np.array([0, 0, -1], dtype=np.int64), 4)
+    bigraph.add_edge(1, 1, np.array([0, 0, 1]), 4)
+    bigraph.add_edge(1, 1, np.array([0, 0, -1]), 4)
     bigraph.add_edge(2, 0, np.zeros(3), 2)
     bigraph.add_edge(2, 1, np.zeros(3), 5)
     return bigraph
