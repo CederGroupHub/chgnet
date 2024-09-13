@@ -224,7 +224,7 @@ class UniquenessCheck:
                 ltol=0.3, stol=0.2, angle_tol=3, scale=False
             )
             self.energy_threshold = 0.03
-        elif len(self.uniq_struc_list) > 30:
+        elif len(self.uniq_struct_list) > 30:
             self.matcher = StructureMatcher(
                 ltol=0.1, stol=0.1, angle_tol=1, scale=False
             )
