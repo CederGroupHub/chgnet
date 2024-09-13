@@ -67,7 +67,6 @@ and converged results with MP main entry.
 def calc_type_equal(
     task_doc,
     main_entry,
-    trj_data
 ) -> bool:
     # Check the LDAU of task
     try:
@@ -78,7 +77,6 @@ def calc_type_equal(
     # Make sure we don't include both GGA and GGA+U for the same mp_id
     if main_entry.parameters['is_hubbard'] != is_hubbard:
         print(f'{main_entry.entry_id}, {task_doc.task_id} is_hubbard= {is_hubbard}')
-        trj_data.exception[task_doc.task_id] = f'is_hubbard inconsistent task is_hubbard={is_hubbard}'
         return False
     elif is_hubbard == True:
         # If the task is calculated with GGA+U
@@ -89,27 +87,23 @@ def calc_type_equal(
                         task_doc.calcs_reversed[0].input['incar']['LDAUU'])}
         if main_entry.parameters['hubbards'] != hubbards:
             thermo_hubbards = main_entry.parameters['hubbards']
-            trj_data.exception[task_doc.task_id] = f'hubbards inconsistent task hubbards={hubbards}, thermo hubbards={thermo_hubbards}'
             return False
         else:
             # Check the energy convergence of the task wrt. the main entry
             return check_energy_convergence(
                 task_doc,
                 main_entry.uncorrected_energy_per_atom,
-                trj_data=trj_data
             )
     else:
         # Check energy convergence for pure GGA tasks
         check_energy_convergence(
             task_doc,
             main_entry.uncorrected_energy_per_atom,
-            trj_data=trj_data
         )
 
 def check_energy_convergence(
     task_doc,
     relaxed_entry_uncorrected_energy_per_atom,
-    trj_data
 ) -> bool:
     task_energy = task_doc.calcs_reversed[0].output['ionic_steps'][-1]['e_fr_energy']
     n_atom = task_doc.calcs_reversed[0].output['ionic_steps'][-1][
@@ -125,7 +119,6 @@ def check_energy_convergence(
         # The task is falsely relaxed, we will discard the whole task
         # This step will filter out tasks that relaxed into different spin states
         # that caused large energy discrepancies
-        trj_data.exception[task_doc.task_id] =
         f'e_diff is too large, '
         f'task last step energy_per_atom = {e_per_atom}, '
         f'relaxed_entry_uncorrected_e_per_atom = {relaxed_entry_uncorrected_energy_per_atom}'
@@ -148,7 +141,6 @@ class UniquenessCheck:
     def __init__(
         self,
         main_entry_uncorrected_energy_per_atom,
-        trj_data,
         ltol=0.002,
         stol=0.001,
         angle_tol=0.05,
@@ -162,7 +154,6 @@ class UniquenessCheck:
             ltol=ltol, stol=stol, angle_tol=angle_tol, scale=False
         )
         self.energy_threshold = 0.002
-        self.trj_data = trj_data
 
     def is_unique(self, step, struct_id, NELM, mag=None):
         self.adjust_matcher(mag=mag)
@@ -172,7 +163,6 @@ class UniquenessCheck:
         # Check whether a frame is valid
         # Discard frame with no energy
         if energy is None:
-            self.trj_data.exception[struct_id] = "no energy"
             return False
 
         # Always accept the relaxed frame on Materials Project website
@@ -187,21 +177,14 @@ class UniquenessCheck:
 
         # Discard frame with electronic step not converged
         if len(step["electronic_steps"]) == NELM:
-            self.trj_data.exception[struct_id] = "electronic step not converged"
             return False
 
         e_diff = energy - self.relaxed_entry_uncorrected_energy_per_atom
         if e_diff < -0.01:
             # Discard frame that is more stable than the Materials Project website frame
-            self.trj_data.exception[struct_id] = (
-                f"ediff_per_atom = {e_diff}, energy is too low compared to relaxed entry"
-            )
             return False
         if e_diff > 1:
             # Discard frame that is too unstable than the Materials Project website frame
-            self.trj_data.exception[struct_id] = (
-                f"ediff_per_atom = {e_diff}, energy is too high compared to relaxed entry"
-            )
             return False
 
         # Now we're in uniqueness check
