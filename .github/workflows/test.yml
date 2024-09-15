@@ -34,9 +34,6 @@ jobs:
           pip install uv
           uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
-          # TODO: test monty fix for reverse readline
-          uv pip install git+https://github.com/DanielYang59/monty.git@readline-line-ending --system
-
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml
         env:

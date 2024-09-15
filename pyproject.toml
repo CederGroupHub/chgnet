@@ -9,7 +9,6 @@ license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.23.0",
     "cython>=3",
-    # "monty==2024.7.12",  # TODO: restore once readline fixed
     # "numpy>=1.26",  # TODO: remove after test
     "numpy>=2.0.0",
     "nvidia-ml-py3>=7.352.0",
