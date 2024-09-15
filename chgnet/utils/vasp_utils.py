@@ -5,7 +5,7 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
-from monty.io import reverse_readfile
+from monty.io import zopen
 from monty.os.path import zpath
 from pymatgen.io.vasp.outputs import Oszicar, Vasprun
 
@@ -58,13 +58,11 @@ def parse_vasp_dir(
         exception_on_bad_xml=False,
     )
 
-    charge, mag_x, mag_y, mag_z, header, all_lines = [], [], [], [], [], []
+    charge, mag_x, mag_y, mag_z, header = [], [], [], [], []
 
-    for line in reverse_readfile(outcar_path):
-        clean = line.strip()
-        all_lines.append(clean)
+    with zopen(outcar_path, encoding="utf-8") as file:
+        all_lines = [line.strip() for line in file.readlines()]
 
-    all_lines.reverse()
     # For single atom systems, VASP doesn't print a total line, so
     # reverse parsing is very difficult
     # for SOC calculations only
@@ -79,23 +77,21 @@ def parse_vasp_dir(
             if clean.startswith("# of ion"):
                 header = re.split(r"\s{2,}", clean.strip())
                 header.pop(0)
-            else:
-                m = re.match(r"\s*(\d+)\s+(([\d\.\-]+)\s+)+", clean)
-                if m:
-                    tokens = [float(token) for token in re.findall(r"[\d\.\-]+", clean)]
-                    tokens.pop(0)
-                    if read_charge:
-                        charge.append(dict(zip(header, tokens)))
-                    elif read_mag_x:
-                        mag_x.append(dict(zip(header, tokens)))
-                    elif read_mag_y:
-                        mag_y.append(dict(zip(header, tokens)))
-                    elif read_mag_z:
-                        mag_z.append(dict(zip(header, tokens)))
-                elif clean.startswith("tot"):
-                    if ion_step_count == (len(mag_x_all) + 1):
-                        mag_x_all.append(mag_x)
-                    read_charge = read_mag_x = read_mag_y = read_mag_z = False
+            elif re.match(r"\s*(\d+)\s+(([\d\.\-]+)\s+)+", clean):
+                tokens = [float(token) for token in re.findall(r"[\d\.\-]+", clean)]
+                tokens.pop(0)
+                if read_charge:
+                    charge.append(dict(zip(header, tokens)))
+                elif read_mag_x:
+                    mag_x.append(dict(zip(header, tokens)))
+                elif read_mag_y:
+                    mag_y.append(dict(zip(header, tokens)))
+                elif read_mag_z:
+                    mag_z.append(dict(zip(header, tokens)))
+            elif clean.startswith("tot"):
+                if ion_step_count == (len(mag_x_all) + 1):
+                    mag_x_all.append(mag_x)
+                read_charge = read_mag_x = read_mag_y = read_mag_z = False
         if clean == "total charge":
             read_charge = True
             read_mag_x = read_mag_y = read_mag_z = False
