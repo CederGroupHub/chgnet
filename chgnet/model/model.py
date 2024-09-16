@@ -622,7 +622,7 @@ class CHGNet(nn.Module):
                 m (Tensor) : magnetic moments of sites [num_atoms, 3] in Bohr
                     magneton mu_B
         """
-        if not isinstance(graph, (CrystalGraph, Sequence)):
+        if not isinstance(graph, CrystalGraph | Sequence):
             raise TypeError(
                 f"{type(graph)=} must be CrystalGraph or list of CrystalGraphs"
             )
