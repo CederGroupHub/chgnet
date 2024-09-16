@@ -81,13 +81,13 @@ def parse_vasp_dir(
                 tokens = [float(token) for token in re.findall(r"[\d\.\-]+", clean)]
                 tokens.pop(0)
                 if read_charge:
-                    charge.append(dict(zip(header, tokens)))
+                    charge.append(dict(zip(header, tokens, strict=True)))
                 elif read_mag_x:
-                    mag_x.append(dict(zip(header, tokens)))
+                    mag_x.append(dict(zip(header, tokens, strict=True)))
                 elif read_mag_y:
-                    mag_y.append(dict(zip(header, tokens)))
+                    mag_y.append(dict(zip(header, tokens, strict=True)))
                 elif read_mag_z:
-                    mag_z.append(dict(zip(header, tokens)))
+                    mag_z.append(dict(zip(header, tokens, strict=True)))
             elif clean.startswith("tot"):
                 if ion_step_count == (len(mag_x_all) + 1):
                     mag_x_all.append(mag_x)

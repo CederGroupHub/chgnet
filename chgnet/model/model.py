@@ -379,7 +379,10 @@ class CHGNet(nn.Module):
         if return_site_energies and self.composition_model is not None:
             site_energy_shifts = self.composition_model.get_site_energies(graphs)
             prediction["site_energies"] = [
-                i + j for i, j in zip(prediction["site_energies"], site_energy_shifts)
+                i + j
+                for i, j in zip(
+                    prediction["site_energies"], site_energy_shifts, strict=True
+                )
             ]
         return prediction
 
@@ -437,7 +440,12 @@ class CHGNet(nn.Module):
 
         # Message Passing
         for idx, (atom_layer, bond_layer, angle_layer) in enumerate(
-            zip(self.atom_conv_layers[:-1], self.bond_conv_layers, self.angle_layers)
+            zip(
+                self.atom_conv_layers[:-1],
+                self.bond_conv_layers,
+                self.angle_layers,
+                strict=False,
+            )
         ):
             # Atom Conv
             atom_feas = atom_layer(
@@ -522,7 +530,7 @@ class CHGNet(nn.Module):
             )
             # Convert Stress unit from eV/A^3 to GPa
             scale = 1 / g.volumes * 160.21766208
-            stress = [i * j for i, j in zip(stress, scale)]
+            stress = [i * j for i, j in zip(stress, scale, strict=False)]
             prediction["s"] = stress
 
         # Normalize energy if model is intensive

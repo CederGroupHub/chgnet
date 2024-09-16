@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from collections.abc import Sequence
 
 import torch
@@ -83,7 +84,7 @@ class MLP(nn.Module):
                 find_activation(activation),
             ]
             if len(hidden_dim) != 1:
-                for h_in, h_out in zip(hidden_dim[0:-1], hidden_dim[1:]):
+                for h_in, h_out in itertools.pairwise(hidden_dim):
                     layers.append(nn.Linear(h_in, h_out, bias=bias))
                     layers.append(find_activation(activation))
             layers.append(nn.Dropout(dropout))
