@@ -499,7 +499,7 @@ class MolecularDynamics:
         """
         self.ensemble = ensemble
         self.thermostat = thermostat
-        if isinstance(atoms, (Structure, Molecule)):
+        if isinstance(atoms, Structure | Molecule):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
             # atoms = atoms.to_ase_atoms()
 

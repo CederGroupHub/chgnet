@@ -141,7 +141,7 @@ class AtomRef(nn.Module):
         composition_feas = torch.zeros([num_data, self.max_num_elements])
         e = torch.zeros([num_data])
         for index, (structure, energy) in enumerate(
-            zip(structures_or_graphs, energies)
+            zip(structures_or_graphs, energies, strict=True)
         ):
             if isinstance(structure, Structure):
                 atomic_number = torch.tensor(
