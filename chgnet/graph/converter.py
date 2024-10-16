@@ -273,11 +273,7 @@ class CrystalGraphConverter(nn.Module):
         """Set the graph converter's response to isolated atom graph
         Args:
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms.
-                Default = 'error'.
-
-        Returns:
-            None
+                with isolated atoms. Default = 'error'.
         """
         self.on_isolated_atoms = on_isolated_atoms
 

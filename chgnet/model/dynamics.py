@@ -814,9 +814,6 @@ class EquationOfState:
             verbose (bool): Whether to print the output of the ASE optimizer.
                 Default = False
             **kwargs: Additional parameters for the optimizer.
-
-        Returns:
-            Bulk Modulus (float)
         """
         if isinstance(atoms, Atoms):
             atoms = AseAtomsAdaptor.get_structure(atoms)
@@ -848,7 +845,7 @@ class EquationOfState:
         self.bm.fit()
         self.fitted = True
 
-    def get_bulk_modulus(self, unit: str = "eV/A^3") -> float:
+    def get_bulk_modulus(self, unit: Literal["eV/A^3", "GPa"] = "eV/A^3") -> float:
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
 
         Args:
@@ -856,7 +853,10 @@ class EquationOfState:
                 Default = "eV/A^3"
 
         Returns:
-            Bulk Modulus (float)
+            float: Bulk Modulus
+
+        Raises:
+            ValueError: If the equation of state is not fitted.
         """
         if self.fitted is False:
             raise ValueError(
@@ -866,7 +866,7 @@ class EquationOfState:
             return self.bm.b0
         if unit == "GPa":
             return self.bm.b0_GPa
-        raise NotImplementedError("unit has to be eV/A^3 or GPa")
+        raise ValueError("unit has to be eV/A^3 or GPa")
 
     def get_compressibility(self, unit: str = "A^3/eV") -> float:
         """Get the bulk modulus of from the fitted Birch-Murnaghan equation of state.
