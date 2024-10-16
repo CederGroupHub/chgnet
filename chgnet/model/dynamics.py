@@ -814,9 +814,6 @@ class EquationOfState:
             verbose (bool): Whether to print the output of the ASE optimizer.
                 Default = False
             **kwargs: Additional parameters for the optimizer.
-
-        Returns:
-            Bulk Modulus (float)
         """
         if isinstance(atoms, Atoms):
             atoms = AseAtomsAdaptor.get_structure(atoms)
