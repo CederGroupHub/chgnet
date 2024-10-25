@@ -18,6 +18,10 @@ changelog:
       labels: [refactor]
     - title: 🧪 Tests
       labels: [tests]
+    - title: 🧹 Linting
+      labels: [linting]
+    - title: 🏷️ Static Typing
+      labels: [types] # as in static typing
     - title: 💥 Breaking Changes
       labels: [breaking]
     - title: 🔒 Security Fixes

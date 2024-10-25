@@ -4,7 +4,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.4
+    rev: v0.6.9
     hooks:
       - id: ruff
         args: [--fix]
@@ -13,7 +13,7 @@ repos:
         types_or: [python, jupyter]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -48,7 +48,7 @@ repos:
           - svelte
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.10.0
+    rev: v9.12.0
     hooks:
       - id: eslint
         types: [file]

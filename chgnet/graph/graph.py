@@ -309,7 +309,7 @@ class Graph:
             # We will need to find directed edges with center = center1
             # and create angles with DE1, then do the same for center2 and DE2
             for center, dir_edge in zip(
-                u_edge.nodes, u_edge.info["directed_edge_index"]
+                u_edge.nodes, u_edge.info["directed_edge_index"], strict=True
             ):
                 for directed_edges in self.nodes[center].neighbors.values():
                     for directed_edge in directed_edges:

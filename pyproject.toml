@@ -1,17 +1,15 @@
 [project]
 name = "chgnet"
-version = "0.3.8"
+version = "0.4.0"
 description = "Pretrained Universal Neural Network Potential for Charge-informed Atomistic Modeling"
 authors = [{ name = "Bowen Deng", email = "bowendeng@berkeley.edu" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "Modified BSD" }
 dependencies = [
     "ase>=3.23.0",
     "cython>=3",
-    # "monty==2024.7.12",  # TODO: restore once readline fixed
-    # "numpy>=1.26",  # TODO: remove after test
-    "numpy>=2.0.0",
+    "numpy>=1.26",
     "nvidia-ml-py3>=7.352.0",
     "pymatgen>=2024.9.10",
     "torch>=2.4.1",
@@ -21,7 +19,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -55,7 +52,8 @@ requires = ["Cython", "numpy>=2.0.0", "setuptools>=65", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
+output-format = "concise"
 
 [tool.ruff.lint]
 select = ["ALL"]

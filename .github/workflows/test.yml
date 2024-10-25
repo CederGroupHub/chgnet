@@ -34,9 +34,6 @@ jobs:
           pip install uv
           uv pip install -e .[test,logging] --resolution=${{ matrix.version.resolution }} --system
 
-          # TODO: remove pin once reverse readline fixed
-          uv pip install monty==2024.7.12 --system
-
       - name: Run Tests
         run: pytest --capture=no --cov --cov-report=xml
         env:

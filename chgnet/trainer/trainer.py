@@ -830,7 +830,7 @@ class CombinedLoss(nn.Module):
         if "m" in self.target_str:
             mag_preds, mag_targets = [], []
             m_mae_size = 0
-            for mag_pred, mag_target in zip(prediction["m"], targets["m"]):
+            for mag_pred, mag_target in zip(prediction["m"], targets["m"], strict=True):
                 # exclude structures without magmom labels
                 if mag_target is not None:
                     mag_preds.append(mag_pred)

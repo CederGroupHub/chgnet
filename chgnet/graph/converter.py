@@ -215,7 +215,9 @@ class CrystalGraphConverter(nn.Module):
             Graph data structure used to create Crystal_Graph object
         """
         graph = Graph([Node(index=idx) for idx in range(n_atoms)])
-        for ii, jj, img, dist in zip(center_index, neighbor_index, image, distance):
+        for ii, jj, img, dist in zip(
+            center_index, neighbor_index, image, distance, strict=True
+        ):
             graph.add_edge(center_index=ii, neighbor_index=jj, image=img, distance=dist)
 
         return graph
@@ -271,11 +273,7 @@ class CrystalGraphConverter(nn.Module):
         """Set the graph converter's response to isolated atom graph
         Args:
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
-                with isolated atoms.
-                Default = 'error'.
-
-        Returns:
-            None
+                with isolated atoms. Default = 'error'.
         """
         self.on_isolated_atoms = on_isolated_atoms
 
