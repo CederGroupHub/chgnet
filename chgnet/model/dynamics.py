@@ -51,7 +51,7 @@ OPTIMIZERS = {
 class CHGNetCalculator(Calculator):
     """CHGNet Calculator for ASE applications."""
 
-    implemented_properties = ("energy", "forces", "stress", "magmoms")
+    implemented_properties = ("energy", "forces", "stress", "magmoms", "energies")
 
     def __init__(
         self,
@@ -61,6 +61,7 @@ class CHGNetCalculator(Calculator):
         check_cuda_mem: bool = False,
         stress_weight: float | None = 1 / 160.21766208,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
+        return_site_energies: bool = False,
         **kwargs,
     ) -> None:
         """Provide a CHGNet instance to calculate various atomic properties using ASE.
@@ -80,6 +81,7 @@ class CHGNetCalculator(Calculator):
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
                 with isolated atoms.
                 Default = 'warn'
+            return_site_energies (bool): whether to return the energy of each atom
             **kwargs: Passed to the Calculator parent class.
         """
         super().__init__(**kwargs)
@@ -95,6 +97,7 @@ class CHGNetCalculator(Calculator):
             self.model = model.to(self.device)
         self.model.graph_converter.set_isolated_atom_response(on_isolated_atoms)
         self.stress_weight = stress_weight
+        self.return_site_energies = return_site_energies
         print(f"CHGNet will run on {self.device}")
 
     @classmethod
@@ -143,7 +146,10 @@ class CHGNetCalculator(Calculator):
         structure = AseAtomsAdaptor.get_structure(atoms)
         graph = self.model.graph_converter(structure)
         model_prediction = self.model.predict_graph(
-            graph.to(self.device), task="efsm", return_crystal_feas=True
+            graph.to(self.device),
+            task="efsm",
+            return_crystal_feas=True,
+            return_site_energies=self.return_site_energies,
         )
 
         # Convert Result
@@ -156,6 +162,8 @@ class CHGNetCalculator(Calculator):
             stress=model_prediction["s"] * self.stress_weight,
             crystal_fea=model_prediction["crystal_fea"],
         )
+        if self.return_site_energies:
+            self.results.update(energies=model_prediction["site_energies"])
 
 
 class StructOptimizer:
@@ -430,6 +438,7 @@ class MolecularDynamics:
         crystal_feas_logfile: str | None = None,
         append_trajectory: bool = False,
         on_isolated_atoms: Literal["ignore", "warn", "error"] = "warn",
+        return_site_energies: bool = False,
         use_device: str | None = None,
     ) -> None:
         """Initialize the MD class.
@@ -494,6 +503,7 @@ class MolecularDynamics:
             on_isolated_atoms ('ignore' | 'warn' | 'error'): how to handle Structures
                 with isolated atoms.
                 Default = 'warn'
+            return_site_energies (bool): whether to return the energy of each atom
             use_device (str): the device for the MD run
                 Default = None
         """
@@ -517,6 +527,7 @@ class MolecularDynamics:
                 model=model,
                 use_device=use_device,
                 on_isolated_atoms=on_isolated_atoms,
+                return_site_energies=return_site_energies,
             )
 
         if taut is None:

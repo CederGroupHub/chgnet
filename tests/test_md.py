@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import pytest
 from ase import Atoms
+from ase.io.trajectory import Trajectory
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -75,6 +76,7 @@ def test_md_nvt_berendsen(
         trajectory="md_out.traj",
         logfile="md_out.log",
         loginterval=10,
+        return_site_energies=True,
     )
     md.run(100)
 
@@ -101,6 +103,10 @@ def test_md_nvt_berendsen(
         sep=" ",
     )
     assert_allclose(logs, ref, rtol=2.1e-3, atol=1e-8)
+
+    traj = Trajectory("md_out.traj")
+    assert isinstance(traj[0].get_potential_energy(), float)
+    assert isinstance(traj[0].get_potential_energies(), np.ndarray)
 
 
 def test_md_nve(tmp_path: Path, monkeypatch: MonkeyPatch):
