@@ -21,7 +21,7 @@ species = ["Na", "Cl"]
 coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
 NaCl = Structure(lattice, species, coords)
 structures, energies, forces, stresses, magmoms = [], [], [], [], []
-for _ in range(100):
+for _ in range(20):
     struct = NaCl.copy()
     struct.perturb(0.1)
     structures.append(struct)
@@ -30,15 +30,22 @@ for _ in range(100):
     stresses.append(np.random.random([3, 3]))
     magmoms.append(np.random.random(2))
 
+# Create some missing labels
+energies[10] = np.nan
+forces[4] = (np.nan * np.ones((len(structures[4]), 3))).tolist()
+stresses[6] = (np.nan * np.ones((3, 3))).tolist()
+magmoms[8] = (np.nan * np.ones((len(structures[8]), 1))).tolist()
+
 data = StructureData(
     structures=structures,
     energies=energies,
     forces=forces,
     stresses=stresses,
     magmoms=magmoms,
+    shuffle=False,
 )
 train_loader, val_loader, _test_loader = get_train_val_test_loader(
-    data, batch_size=16, train_ratio=0.9, val_ratio=0.05
+    data, batch_size=4, train_ratio=0.9, val_ratio=0.05
 )
 chgnet = CHGNet.load()
 
@@ -55,6 +62,7 @@ def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         wandb_path="test/run",
         wandb_init_kwargs=dict(anonymous="must"),
         extra_run_config=extra_run_config,
+        allow_missing_labels=True,
     )
     trainer.train(
         train_loader,
@@ -66,7 +74,9 @@ def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     for param in chgnet.composition_model.parameters():
         assert param.requires_grad is False
     assert tmp_path.is_dir(), "Training dir was not created"
-
+    for target_str in ["e", "f", "s", "m"]:
+        assert ~np.isnan(trainer.training_history[target_str]["train"]).any()
+        assert ~np.isnan(trainer.training_history[target_str]["val"]).any()
     output_files = [file.name for file in tmp_path.iterdir()]
     for prefix in ("epoch", "bestE_", "bestF_"):
         n_matches = sum(file.startswith(prefix) for file in output_files)
@@ -147,6 +157,7 @@ def test_wandb_init(mock_wandb):
         "wandb_path": "test-project/test-run",
         "wandb_init_kwargs": {"tags": ["test"]},
         "extra_run_config": None,
+        "allow_missing_labels": True,
     }
     mock_wandb.init.assert_called_once_with(
         project="test-project", name="test-run", config=expected_config, tags=["test"]

@@ -49,6 +49,7 @@ class Trainer:
         force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
+        allow_missing_labels: bool = True,
         optimizer: str = "Adam",
         scheduler: str = "CosLR",
         criterion: str = "MSE",
@@ -78,6 +79,9 @@ class Trainer:
                 Default = 0.1
             mag_loss_ratio (float): magmom loss ratio in loss function
                 Default = 0.1
+            allow_missing_labels (bool): whether to allow missing labels in the dataset,
+                missed target will not contribute to loss and MAEs
+                Default = True
             optimizer (str): optimizer to update model. Can be "Adam", "SGD", "AdamW",
                 "RAdam". Default = 'Adam'
             scheduler (str): learning rate scheduler. Can be "CosLR", "ExponentialLR",
@@ -209,6 +213,7 @@ class Trainer:
             force_loss_ratio=force_loss_ratio,
             stress_loss_ratio=stress_loss_ratio,
             mag_loss_ratio=mag_loss_ratio,
+            allow_missing_labels=allow_missing_labels,
             **kwargs,
         )
         self.epochs = epochs
@@ -726,6 +731,7 @@ class CombinedLoss(nn.Module):
         stress_loss_ratio: float = 0.1,
         mag_loss_ratio: float = 0.1,
         delta: float = 0.1,
+        allow_missing_labels: bool = True,
     ) -> None:
         """Initialize the combined loss.
 
@@ -745,6 +751,8 @@ class CombinedLoss(nn.Module):
             mag_loss_ratio (float): magmom loss ratio in loss function
                 Default = 0.1
             delta (float): delta for torch.nn.HuberLoss. Default = 0.1
+            allow_missing_labels (bool): whether to allow missing labels in the dataset,
+                missed target will not contribute to loss and MAEs
         """
         super().__init__()
         # Define loss criterion
@@ -771,6 +779,7 @@ class CombinedLoss(nn.Module):
             self.mag_loss_ratio = 0
         else:
             self.mag_loss_ratio = mag_loss_ratio
+        self.allow_missing_labels = allow_missing_labels
 
     def forward(
         self,
@@ -791,25 +800,37 @@ class CombinedLoss(nn.Module):
         out = {"loss": 0.0}
         # Energy
         if "e" in self.target_str:
-            if self.is_intensive:
-                out["loss"] += self.energy_loss_ratio * self.criterion(
-                    targets["e"], prediction["e"]
-                )
-                out["e_MAE"] = mae(targets["e"], prediction["e"])
-                out["e_MAE_size"] = prediction["e"].shape[0]
+            if self.allow_missing_labels:
+                valid_value_indices = ~torch.isnan(targets["e"])
+                valid_e_target = targets["e"][valid_value_indices]
+                valid_atoms_per_graph = prediction["atoms_per_graph"][
+                    valid_value_indices
+                ]
+                valid_e_pred = prediction["e"][valid_value_indices]
+                if valid_e_pred.shape == torch.Size([]):
+                    valid_e_pred = valid_e_pred.view(1)
             else:
-                e_per_atom_target = targets["e"] / prediction["atoms_per_graph"]
-                e_per_atom_pred = prediction["e"] / prediction["atoms_per_graph"]
-                out["loss"] += self.energy_loss_ratio * self.criterion(
-                    e_per_atom_target, e_per_atom_pred
-                )
-                out["e_MAE"] = mae(e_per_atom_target, e_per_atom_pred)
-                out["e_MAE_size"] = prediction["e"].shape[0]
+                valid_e_target = targets["e"]
+                valid_atoms_per_graph = prediction["atoms_per_graph"]
+                valid_e_pred = prediction["e"]
+            if self.is_intensive:
+                valid_e_target = valid_e_target / valid_atoms_per_graph
+                valid_e_pred = valid_e_pred / valid_atoms_per_graph
+
+            out["loss"] += self.energy_loss_ratio * self.criterion(
+                valid_e_target, valid_e_pred
+            )
+            out["e_MAE"] = mae(valid_e_target, valid_e_pred)
+            out["e_MAE_size"] = prediction["e"].shape[0]
 
         # Force
         if "f" in self.target_str:
             forces_pred = torch.cat(prediction["f"], dim=0)
             forces_target = torch.cat(targets["f"], dim=0)
+            if self.allow_missing_labels:
+                valid_value_indices = ~torch.isnan(forces_target)
+                forces_target = forces_target[valid_value_indices]
+                forces_pred = forces_pred[valid_value_indices]
             out["loss"] += self.force_loss_ratio * self.criterion(
                 forces_target, forces_pred
             )
@@ -820,6 +841,10 @@ class CombinedLoss(nn.Module):
         if "s" in self.target_str:
             stress_pred = torch.cat(prediction["s"], dim=0)
             stress_target = torch.cat(targets["s"], dim=0)
+            if self.allow_missing_labels:
+                valid_value_indices = ~torch.isnan(stress_target)
+                stress_target = stress_target[valid_value_indices]
+                stress_pred = stress_pred[valid_value_indices]
             out["loss"] += self.stress_loss_ratio * self.criterion(
                 stress_target, stress_pred
             )
@@ -832,7 +857,12 @@ class CombinedLoss(nn.Module):
             m_mae_size = 0
             for mag_pred, mag_target in zip(prediction["m"], targets["m"], strict=True):
                 # exclude structures without magmom labels
-                if mag_target is not None:
+                if self.allow_missing_labels:
+                    if mag_target is not None and not np.isnan(mag_target).any():
+                        mag_preds.append(mag_pred)
+                        mag_targets.append(mag_target)
+                        m_mae_size += mag_target.shape[0]
+                else:
                     mag_preds.append(mag_pred)
                     mag_targets.append(mag_target)
                     m_mae_size += mag_target.shape[0]
