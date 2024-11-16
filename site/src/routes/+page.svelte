@@ -1,12 +1,9 @@
 <script lang="ts">
   import Readme from '$root/README.md'
-  import MetricsTable from '$src/MetricsTable.svelte'
 </script>
 
 <main>
-  <Readme>
-    <MetricsTable slot="metrics-table" />
-  </Readme>
+  <Readme />
 </main>
 
 <style>

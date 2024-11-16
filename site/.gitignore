@@ -5,4 +5,3 @@ node_modules
 .svelte-kit
 build
 src/routes/api/*.md
-src/MetricsTable.svelte
