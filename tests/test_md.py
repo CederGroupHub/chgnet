@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import pickle
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 import numpy as np
 import pytest
@@ -22,7 +22,7 @@ from chgnet import ROOT
 from chgnet.graph import CrystalGraphConverter
 from chgnet.model import StructOptimizer
 from chgnet.model.dynamics import CHGNetCalculator, EquationOfState, MolecularDynamics
-from chgnet.model.model import CHGNet
+from chgnet.model.model import CHGNet, PredTask
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -314,3 +314,27 @@ def test_md_crystal_feas_log(tmp_path: Path, monkeypatch: MonkeyPatch):
     assert crystal_feas[0][1] == approx(-1.4285042, abs=1e-5)
     assert crystal_feas[10][0] == approx(-0.0020592688, abs=1e-5)
     assert crystal_feas[10][1] == approx(-1.4284436, abs=1e-5)
+
+
+@pytest.mark.parametrize("task", [*get_args(PredTask)])
+def test_calculator_task_valid(task: PredTask):
+    """Test that the task kwarg of CHGNetCalculator.calculate() works correctly."""
+    key_map = dict(e="energy", f="forces", m="magmoms", s="stress")
+    calculator = CHGNetCalculator()
+    atoms = AseAtomsAdaptor.get_atoms(structure)
+    atoms.calc = calculator
+
+    calculator.calculate(atoms=atoms, task=task)
+
+    for key, prop in key_map.items():
+        assert (prop in calculator.results) == (key in task)
+
+
+def test_calculator_task_invalid():
+    """Test that invalid task raises ValueError."""
+    calculator = CHGNetCalculator()
+    atoms = AseAtomsAdaptor.get_atoms(structure)
+    atoms.calc = calculator
+
+    with pytest.raises(ValueError, match="Invalid task='invalid'."):
+        calculator.calculate(atoms=atoms, task="invalid")

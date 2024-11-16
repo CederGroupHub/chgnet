@@ -858,7 +858,7 @@ class CombinedLoss(nn.Module):
             for mag_pred, mag_target in zip(prediction["m"], targets["m"], strict=True):
                 # exclude structures without magmom labels
                 if self.allow_missing_labels:
-                    if mag_target is not None and not np.isnan(mag_target).any():
+                    if mag_target is not None and not torch.isnan(mag_target).any():
                         mag_preds.append(mag_pred)
                         mag_targets.append(mag_target)
                         m_mae_size += mag_target.shape[0]

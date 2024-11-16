@@ -50,7 +50,9 @@ def test_relaxation(
     assert {*traj.__dict__} == {
         *"atoms energies forces stresses magmoms atom_positions cells".split()
     }
-    assert len(traj) == 2 if algorithm == "legacy" else 4
+    assert len(traj) == (
+        2 if algorithm == "legacy" else 4
+    ), f"{len(traj)=}, {algorithm=}"
 
     # make sure final structure is more relaxed than initial one
     assert traj.energies[-1] == pytest.approx(-58.94209, rel=1e-4)
