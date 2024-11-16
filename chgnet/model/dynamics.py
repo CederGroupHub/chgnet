@@ -158,9 +158,7 @@ class CHGNetCalculator(Calculator):
         )
 
         # Convert Result
-        extensive_factor = (
-            1 if not self.model.is_intensive else structure.composition.num_atoms
-        )
+        extensive_factor = len(structure) if self.model.is_intensive else 1
         key_map = dict(
             e=("energy", extensive_factor),
             f=("forces", 1),

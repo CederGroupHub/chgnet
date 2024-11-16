@@ -74,9 +74,9 @@ def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     for param in chgnet.composition_model.parameters():
         assert param.requires_grad is False
     assert tmp_path.is_dir(), "Training dir was not created"
-    for target_str in ["e", "f", "s", "m"]:
-        assert ~np.isnan(trainer.training_history[target_str]["train"]).any()
-        assert ~np.isnan(trainer.training_history[target_str]["val"]).any()
+    for prop in "efsm":
+        assert ~np.isnan(trainer.training_history[prop]["train"]).any()
+        assert ~np.isnan(trainer.training_history[prop]["val"]).any()
     output_files = [file.name for file in tmp_path.iterdir()]
     for prefix in ("epoch", "bestE_", "bestF_"):
         n_matches = sum(file.startswith(prefix) for file in output_files)
