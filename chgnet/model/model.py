@@ -4,12 +4,13 @@ import math
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 import torch
 from pymatgen.core import Structure
 from torch import Tensor, nn
 
+from chgnet import PredTask
 from chgnet.graph import CrystalGraph, CrystalGraphConverter
 from chgnet.graph.crystalgraph import TORCH_DTYPE
 from chgnet.model.composition_model import AtomRef
@@ -27,7 +28,6 @@ from chgnet.utils import determine_device
 if TYPE_CHECKING:
     from typing_extensions import Self
 
-    from chgnet import PredTask
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -603,7 +603,7 @@ class CHGNet(nn.Module):
 
         Args:
             graph (CrystalGraph | Sequence[CrystalGraph]): CrystalGraph(s) to predict.
-            task (str): can be 'e' 'ef', 'em', 'efs', 'efsm'
+            task (PredTask): one of 'e', 'ef', 'em', 'efs', 'efsm'
                 Default = "efsm"
             return_site_energies (bool): whether to return per-site energies.
                 Default = False
@@ -626,6 +626,9 @@ class CHGNet(nn.Module):
             raise TypeError(
                 f"{type(graph)=} must be CrystalGraph or list of CrystalGraphs"
             )
+        valid_tasks = get_args(PredTask)
+        if task not in valid_tasks:
+            raise ValueError(f"Invalid {task=}. Must be one of {valid_tasks}.")
 
         model_device = next(self.parameters()).device
 
