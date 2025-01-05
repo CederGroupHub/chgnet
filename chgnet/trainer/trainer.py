@@ -208,7 +208,6 @@ class Trainer:
         self.criterion = CombinedLoss(
             target_str=self.targets,
             criterion=criterion,
-            is_intensive=self.model.is_intensive,
             energy_loss_ratio=energy_loss_ratio,
             force_loss_ratio=force_loss_ratio,
             stress_loss_ratio=stress_loss_ratio,
@@ -725,7 +724,6 @@ class CombinedLoss(nn.Module):
         *,
         target_str: str = "ef",
         criterion: str = "MSE",
-        is_intensive: bool = True,
         energy_loss_ratio: float = 1,
         force_loss_ratio: float = 1,
         stress_loss_ratio: float = 0.1,
@@ -740,8 +738,6 @@ class CombinedLoss(nn.Module):
                 Default = "ef"
             criterion: loss criterion to use
                 Default = "MSE"
-            is_intensive (bool): whether the energy label is intensive
-                Default = True
             energy_loss_ratio (float): energy loss ratio in loss function
                 Default = 1
             force_loss_ratio (float): force loss ratio in loss function
@@ -765,7 +761,6 @@ class CombinedLoss(nn.Module):
         else:
             raise NotImplementedError
         self.target_str = target_str
-        self.is_intensive = is_intensive
         self.energy_loss_ratio = energy_loss_ratio
         if "f" not in self.target_str:
             self.force_loss_ratio = 0
@@ -803,19 +798,12 @@ class CombinedLoss(nn.Module):
             if self.allow_missing_labels:
                 valid_value_indices = ~torch.isnan(targets["e"])
                 valid_e_target = targets["e"][valid_value_indices]
-                valid_atoms_per_graph = prediction["atoms_per_graph"][
-                    valid_value_indices
-                ]
                 valid_e_pred = prediction["e"][valid_value_indices]
                 if valid_e_pred.shape == torch.Size([]):
                     valid_e_pred = valid_e_pred.view(1)
             else:
                 valid_e_target = targets["e"]
-                valid_atoms_per_graph = prediction["atoms_per_graph"]
                 valid_e_pred = prediction["e"]
-            if self.is_intensive:
-                valid_e_target = valid_e_target / valid_atoms_per_graph
-                valid_e_pred = valid_e_pred / valid_atoms_per_graph
 
             out["loss"] += self.energy_loss_ratio * self.criterion(
                 valid_e_target, valid_e_pred

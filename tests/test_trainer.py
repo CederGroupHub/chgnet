@@ -11,7 +11,7 @@ from pymatgen.core import Lattice, Structure
 
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
 from chgnet.model import CHGNet
-from chgnet.trainer import Trainer
+from chgnet.trainer.trainer import CombinedLoss, Trainer
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -48,6 +48,60 @@ train_loader, val_loader, _test_loader = get_train_val_test_loader(
     data, batch_size=4, train_ratio=0.9, val_ratio=0.05
 )
 chgnet = CHGNet.load()
+
+
+def test_combined_loss() -> None:
+    criterion = CombinedLoss(
+        target_str="ef",
+        criterion="MSE",
+        energy_loss_ratio=1,
+        force_loss_ratio=1,
+        stress_loss_ratio=0.1,
+        mag_loss_ratio=0.1,
+        allow_missing_labels=False,
+    )
+    target1 = {"e": torch.Tensor([1]), "f": [torch.Tensor([[[1, 1, 1], [2, 2, 2]]])]}
+    prediction1 = chgnet.predict_structure(NaCl)
+    prediction1 = {
+        "e": torch.from_numpy(prediction1["e"]).unsqueeze(0),
+        "f": [torch.from_numpy(prediction1["f"])],
+        "atoms_per_graph": torch.tensor([2]),
+    }
+    out1 = criterion(
+        targets=target1,
+        prediction=prediction1,
+    )
+    target2 = {
+        "e": torch.Tensor([1]),
+        "f": [
+            torch.Tensor(
+                [
+                    [
+                        [1, 1, 1],
+                        [1, 1, 1],
+                        [1, 1, 1],
+                        [1, 1, 1],
+                        [2, 2, 2],
+                        [2, 2, 2],
+                        [2, 2, 2],
+                        [2, 2, 2],
+                    ]
+                ]
+            )
+        ],
+    }
+    supercell = NaCl.make_supercell([2, 2, 1], in_place=False)
+    prediction2 = chgnet.predict_structure(supercell)
+    prediction2 = {
+        "e": torch.from_numpy(prediction2["e"]).unsqueeze(0),
+        "f": [torch.from_numpy(prediction2["f"])],
+        "atoms_per_graph": torch.tensor([8]),
+    }
+    out2 = criterion(
+        targets=target2,
+        prediction=prediction2,
+    )
+    assert np.isclose(out1["loss"], out2["loss"], rtol=1e-04, atol=1e-05)
 
 
 def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
