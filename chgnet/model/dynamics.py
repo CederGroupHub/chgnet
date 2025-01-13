@@ -530,7 +530,7 @@ class MolecularDynamics:
             Stationary(atoms)
 
         self.atoms = atoms
-        if isinstance(model, CHGNetCalculator):
+        if isinstance(model, Calculator):
             self.atoms.calc = model
         else:
             self.atoms.calc = CHGNetCalculator(
