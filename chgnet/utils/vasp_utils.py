@@ -60,7 +60,7 @@ def parse_vasp_dir(
 
     charge, mag_x, mag_y, mag_z, header = [], [], [], [], []
 
-    with zopen(outcar_path, encoding="utf-8") as file:
+    with zopen(outcar_path, mode="rt", encoding="utf-8") as file:
         all_lines = [line.strip() for line in file.readlines()]
 
     # For single atom systems, VASP doesn't print a total line, so
