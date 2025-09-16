@@ -117,17 +117,21 @@ def write_json(dct: dict, filepath: str) -> dict:
         filepath (str): file name of JSON to write.
     """
 
-    def handler(obj: object) -> int | object:
-        """Convert numpy int64 to int.
+    def handler(obj: object) -> int | float | list | object:
+        """Convert numpy types to JSON serializable types.
 
         Fixes TypeError: Object of type int64 is not JSON serializable
         reported in https://github.com/CederGroupHub/chgnet/issues/168.
 
         Returns:
-            int | object: object for serialization
+            int | float | list | object: object for serialization
         """
         if isinstance(obj, np.integer):
             return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
         return obj
 
     with open(filepath, mode="w") as file:

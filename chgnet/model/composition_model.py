@@ -210,6 +210,8 @@ class AtomRef(nn.Module):
             self.initialize_from_MPtrj()
         elif dataset == "MPF":
             self.initialize_from_MPF()
+        elif dataset == "MP-r2SCAN":
+            self.initialize_from_mp_r2scan()
         else:
             raise NotImplementedError(f"{dataset=} not supported yet")
 
@@ -419,6 +421,113 @@ class AtomRef(nn.Module):
                 -1.5473e01,
             ]
         ).view([1, 94])
+        self.fc.load_state_dict(state_dict)
+        self.is_intensive = False
+        self.fitted = True
+
+    def initialize_from_mp_r2scan(self) -> None:
+        """Initialize pre-fitted weights from MP-r2SCAN dataset."""
+        state_dict = collections.OrderedDict()
+
+        state_dict["weight"] = torch.tensor(
+            [
+                -3.4690e00,
+                -3.0982e-01,
+                -3.3199e00,
+                -4.7963e00,
+                -8.0507e00,
+                -9.5759e00,
+                -9.8677e00,
+                -9.1242e00,
+                -6.7546e00,
+                -1.9120e00,
+                -4.5438e00,
+                -4.0474e00,
+                -7.2176e00,
+                -9.6473e00,
+                -9.6514e00,
+                -9.5449e00,
+                -7.9040e00,
+                -4.8555e00,
+                -7.0955e00,
+                -8.4121e00,
+                -1.2896e01,
+                -1.4512e01,
+                -1.5121e01,
+                -1.5248e01,
+                -1.4923e01,
+                -1.4040e01,
+                -1.2751e01,
+                -1.1945e01,
+                -1.0464e01,
+                -8.9017e00,
+                -1.1722e01,
+                -1.4170e01,
+                -1.5067e01,
+                -1.5418e01,
+                -1.4794e01,
+                -1.1486e01,
+                -1.5029e01,
+                -1.6974e01,
+                -2.1922e01,
+                -2.4265e01,
+                -2.5605e01,
+                -2.6075e01,
+                -2.5442e01,
+                -2.5286e01,
+                -2.4571e01,
+                -2.3376e01,
+                -2.0786e01,
+                -2.0013e01,
+                -2.2626e01,
+                -2.4799e01,
+                -2.5832e01,
+                -2.5982e01,
+                -2.5459e01,
+                -2.2229e01,
+                -2.6402e01,
+                -2.8426e01,
+                -3.1738e01,
+                -3.2878e01,
+                -3.0945e01,
+                -3.0967e01,
+                -2.9942e01,
+                -3.1421e01,
+                -4.0080e01,
+                -4.5251e01,
+                -3.2790e01,
+                -3.3584e01,
+                -3.4371e01,
+                -3.5534e01,
+                -3.6623e01,
+                5.6469e-14,
+                -3.9644e01,
+                -4.6709e01,
+                -4.9586e01,
+                -5.1200e01,
+                -5.1762e01,
+                -5.2404e01,
+                -5.2657e01,
+                -5.2166e01,
+                -5.0671e01,
+                -4.8918e01,
+                -5.2844e01,
+                -5.6015e01,
+                -5.8066e01,
+                1.8537e-14,
+                -1.0885e-15,
+                -1.0417e-16,
+                -2.1228e-16,
+                5.6561e-16,
+                -6.9083e01,
+                -7.4960e01,
+                -7.8234e01,
+                -8.1985e01,
+                -8.4724e01,
+                -8.7538e01,
+            ]
+        ).view([1, 94])
+
         self.fc.load_state_dict(state_dict)
         self.is_intensive = False
         self.fitted = True
