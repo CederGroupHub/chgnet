@@ -210,6 +210,8 @@ class AtomRef(nn.Module):
             self.initialize_from_MPtrj()
         elif dataset == "MPF":
             self.initialize_from_MPF()
+        elif dataset == "MP-r2SCAN":
+            self.initialize_from_MP_r2SCAN()
         else:
             raise NotImplementedError(f"{dataset=} not supported yet")
 
@@ -422,6 +424,37 @@ class AtomRef(nn.Module):
         self.fc.load_state_dict(state_dict)
         self.is_intensive = False
         self.fitted = True
+
+    def initialize_from_MP_r2SCAN(self) -> None:  
+        """Initialize pre-fitted weights from MP-r2SCAN dataset."""
+        state_dict = collections.OrderedDict()
+
+        state_dict["weight"] = torch.tensor(
+        [-3.4690e+00, -3.0982e-01, -3.3199e+00, -4.7963e+00, -8.0507e+00,
+         -9.5759e+00, -9.8677e+00, -9.1242e+00, -6.7546e+00, -1.9120e+00,
+         -4.5438e+00, -4.0474e+00, -7.2176e+00, -9.6473e+00, -9.6514e+00,
+         -9.5449e+00, -7.9040e+00, -4.8555e+00, -7.0955e+00, -8.4121e+00,
+         -1.2896e+01, -1.4512e+01, -1.5121e+01, -1.5248e+01, -1.4923e+01,
+         -1.4040e+01, -1.2751e+01, -1.1945e+01, -1.0464e+01, -8.9017e+00,
+         -1.1722e+01, -1.4170e+01, -1.5067e+01, -1.5418e+01, -1.4794e+01,
+         -1.1486e+01, -1.5029e+01, -1.6974e+01, -2.1922e+01, -2.4265e+01,
+         -2.5605e+01, -2.6075e+01, -2.5442e+01, -2.5286e+01, -2.4571e+01,
+         -2.3376e+01, -2.0786e+01, -2.0013e+01, -2.2626e+01, -2.4799e+01,
+         -2.5832e+01, -2.5982e+01, -2.5459e+01, -2.2229e+01, -2.6402e+01,
+         -2.8426e+01, -3.1738e+01, -3.2878e+01, -3.0945e+01, -3.0967e+01,
+         -2.9942e+01, -3.1421e+01, -4.0080e+01, -4.5251e+01, -3.2790e+01,
+         -3.3584e+01, -3.4371e+01, -3.5534e+01, -3.6623e+01,  5.6469e-14,
+         -3.9644e+01, -4.6709e+01, -4.9586e+01, -5.1200e+01, -5.1762e+01,
+         -5.2404e+01, -5.2657e+01, -5.2166e+01, -5.0671e+01, -4.8918e+01,
+         -5.2844e+01, -5.6015e+01, -5.8066e+01,  1.8537e-14, -1.0885e-15,
+         -1.0417e-16, -2.1228e-16,  5.6561e-16, -6.9083e+01, -7.4960e+01,
+         -7.8234e+01, -8.1985e+01, -8.4724e+01, -8.7538e+01]
+        ).view([1, 94])
+
+        self.fc.load_state_dict(state_dict)
+        self.is_intensive = False
+        self.fitted = True
+        
 
     def initialize_from_numpy(self, file_name: str | Path) -> None:
         """Initialize pre-fitted weights from numpy file."""
