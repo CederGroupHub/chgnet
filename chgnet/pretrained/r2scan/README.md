@@ -76,10 +76,10 @@ trainer = Trainer(
 
 # Fine-tune the model
 trainer.train(
-    train_loader=train_loader, 
-    val_loader=val_loader, 
-    test_loader=test_loader, 
-    save_dir=save_dir, 
+    train_loader=train_loader,
+    val_loader=val_loader,
+    test_loader=test_loader,
+    save_dir=save_dir,
     train_composition_model=False
 )
 ```
