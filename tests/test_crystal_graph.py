@@ -136,20 +136,20 @@ def test_crystal_graph_perturb_legacy():
     print("Legacy test_crystal_graph_perturb time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
-    assert list(graph.atom_graph.shape) == [420, 2]
-    assert (graph.atom_graph[:, 0] == 3).sum().item() == 54
-    assert (graph.atom_graph[:, 1] == 3).sum().item() == 54
-    assert (graph.atom_graph[:, 1] == 6).sum().item() == 54
+    assert list(graph.atom_graph.shape) == [392, 2]
+    assert (graph.atom_graph[:, 0] == 3).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 3).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 6).sum().item() == 50
 
-    assert list(graph.bond_graph.shape) == [850, 5]
-    assert (graph.bond_graph[:, 0] == 1).sum().item() == 156
-    assert (graph.bond_graph[:, 1] == 36).sum().item() == 18
-    assert (graph.bond_graph[:, 3] == 36).sum().item() == 18
+    assert list(graph.bond_graph.shape) == [732, 5]
+    assert (graph.bond_graph[:, 0] == 1).sum().item() == 90
+    assert (graph.bond_graph[:, 1] == 36).sum().item() == 0
+    assert (graph.bond_graph[:, 3] == 36).sum().item() == 0
     assert (graph.bond_graph[:, 2] == 306).sum().item() == 0
     assert (graph.bond_graph[:, 4] == 120).sum().item() == 0
     assert list(graph.lattice.shape) == [3, 3]
-    assert list(graph.undirected2directed.shape) == [210]
-    assert list(graph.directed2undirected.shape) == [420]
+    assert list(graph.undirected2directed.shape) == [196]
+    assert list(graph.directed2undirected.shape) == [392]
 
 
 def test_crystal_graph_perturb_fast():
@@ -163,20 +163,20 @@ def test_crystal_graph_perturb_fast():
     print("Fast test_crystal_graph_perturb time:", perf_counter() - start)  # noqa: T201
 
     assert list(graph.atom_frac_coord.shape) == [8, 3]
-    assert list(graph.atom_graph.shape) == [420, 2]
-    assert (graph.atom_graph[:, 0] == 3).sum().item() == 54
-    assert (graph.atom_graph[:, 1] == 3).sum().item() == 54
-    assert (graph.atom_graph[:, 1] == 6).sum().item() == 54
+    assert list(graph.atom_graph.shape) == [392, 2]
+    assert (graph.atom_graph[:, 0] == 3).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 3).sum().item() == 48
+    assert (graph.atom_graph[:, 1] == 6).sum().item() == 50
 
-    assert list(graph.bond_graph.shape) == [850, 5]
-    assert (graph.bond_graph[:, 0] == 1).sum().item() == 156
-    assert (graph.bond_graph[:, 1] == 36).sum().item() == 18
-    assert (graph.bond_graph[:, 3] == 36).sum().item() == 18
+    assert list(graph.bond_graph.shape) == [732, 5]
+    assert (graph.bond_graph[:, 0] == 1).sum().item() == 90
+    assert (graph.bond_graph[:, 1] == 36).sum().item() == 0
+    assert (graph.bond_graph[:, 3] == 36).sum().item() == 0
     assert (graph.bond_graph[:, 2] == 306).sum().item() == 0
     assert (graph.bond_graph[:, 4] == 120).sum().item() == 0
     assert list(graph.lattice.shape) == [3, 3]
-    assert list(graph.undirected2directed.shape) == [210]
-    assert list(graph.directed2undirected.shape) == [420]
+    assert list(graph.undirected2directed.shape) == [196]
+    assert list(graph.directed2undirected.shape) == [392]
 
 
 def test_crystal_graph_isotropic_strained_legacy():
