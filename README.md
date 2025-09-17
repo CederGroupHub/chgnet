@@ -67,18 +67,17 @@ from chgnet.model.model import CHGNet
 
 # Load the latest CHGNet model (default: 0.3.0)
 chgnet = CHGNet.load()
-
 # Load specific CHGNet versions
 chgnet_r2scan = CHGNet.load('r2scan')
 ```
 
 **Model Details:**
 
-- **CHGNet 0.3.0** (default): MPtrj-pretrained CHGNet
-- **CHGNet 0.2.0**: Deprecated MPtrj version for backward compatibility with NMI paper
-- **CHGNet R2SCAN**: R2SCAN level model transfer learned from MP-R2SCAN dataset
+- `'0.3.0'` (default): MPtrj-pretrained CHGNet
+- `'0.2.0'` : Deprecated MPtrj version for backward compatibility with NMI paper
+- `'r2scan'` : R2SCAN level model transfer learned from MP-R2SCAN dataset
 
-Besides these checkpoints, we also have new CHGNet implementation and checkpoints based on [MatPES](https://matpes.ai/) available in the [MatGL](https://github.com/materialsvirtuallab/matgl) repo. The MatPES trained model are expected to be significantly better than MPtrj trained models in non-ground-state calculations like Molecular Dybamics.
+Besides these checkpoints, we also have new CHGNet implementation and checkpoints based on the [MatPES](https://matpes.ai/) dataset available in the [MatGL](https://github.com/materialsvirtuallab/matgl) repo. The MatPES trained model are expected to be significantly better than MPtrj trained models in non-ground-state calculations like Molecular Dynamics.
 
 ### Direct Inference (Static Calculation)
 
