@@ -58,6 +58,28 @@ See the [sciML webinar tutorial](https://youtu.be/Lm148F_1Dn4) on 2023-11-02 and
 
 ## Usage
 
+### Available Pretrained Models
+
+CHGNet provides several pretrained models for different use cases:
+
+```python
+from chgnet.model.model import CHGNet
+
+# Load the latest CHGNet model (default: 0.3.0)
+chgnet = CHGNet.load()
+
+# Load specific CHGNet versions
+chgnet_r2scan = CHGNet.load('r2scan')
+```
+
+**Model Details:**
+
+- **CHGNet 0.3.0** (default): MPtrj-pretrained CHGNet
+- **CHGNet 0.2.0**: Deprecated MPtrj version for backward compatibility with NMI paper
+- **CHGNet R2SCAN**: R2SCAN level model transfer learned from MP-R2SCAN dataset
+
+Besides these checkpoints, we also have new CHGNet implementation and checkpoints based on [MatPES](https://matpes.ai/) available in the [MatGL](https://github.com/materialsvirtuallab/matgl) repo. The MatPES trained model are expected to be significantly better than MPtrj trained models in non-ground-state calculations like Molecular Dybamics.
+
 ### Direct Inference (Static Calculation)
 
 Pretrained `CHGNet` can predict the energy (eV/atom), force (eV/A), stress (GPa) and
