@@ -698,7 +698,10 @@ class CHGNet(nn.Module):
         """Load pretrained CHGNet model.
 
         Args:
-            model_name (str, optional):
+            model_name (str, optional): Model name to load. Supported models:
+                - "0.3.0": Latest MPtrj-pretrained CHGNet (default)
+                - "0.2.0": Deprecated MPtrj version for backward compatibility
+                - "r2scan": R2SCAN level model transfer learned from MP-R2SCAN dataset
                 Default = "0.3.0".
             use_device (str, optional): The device to be used for predictions,
                 either "cpu", "cuda", or "mps". If not specified, the default device is
@@ -714,6 +717,9 @@ class CHGNet(nn.Module):
         checkpoint_path = {
             "0.3.0": "../pretrained/0.3.0/chgnet_0.3.0_e29f68s314m37.pth.tar",
             "0.2.0": "../pretrained/0.2.0/chgnet_0.2.0_e30f77s348m32.pth.tar",
+            "r2scan": (
+                "../pretrained/r2scan/chgnet_r2scan_transfer_learning_e15f36s161m23.pth.tar"
+            ),
         }.get(model_name)
 
         if checkpoint_path is None:
