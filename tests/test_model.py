@@ -275,3 +275,54 @@ def test_model_load_version_params(
     # check check_cuda_mem defaults to False
     inspect_signature = inspect.signature(CHGNet.load)
     assert inspect_signature.parameters["check_cuda_mem"].default is False
+
+
+def test_model_load_r2scan(capsys: pytest.CaptureFixture) -> None:
+    """Test loading the r2scan pretrained model."""
+    model = CHGNet.load(model_name="r2scan", use_device="cpu")
+    r2scan_key, r2scan_params = "r2scan", 412_525
+    assert model.version == r2scan_key
+    assert model.n_params == r2scan_params
+    stdout, stderr = capsys.readouterr()
+
+    assert stdout == (
+        f"CHGNet v{r2scan_key} initialized with {r2scan_params:,} parameters\n"
+        "CHGNet will run on cpu\n"
+    )
+    assert stderr == ""
+
+
+def test_model_load_all_pretrained_models() -> None:
+    """Test loading all three pretrained models."""
+    # Test default model (0.3.0)
+    model_030 = CHGNet.load(use_device="cpu")
+    assert model_030.version == "0.3.0"
+    assert model_030.n_params == 412_525
+
+    # Test 0.2.0 model
+    model_020 = CHGNet.load(model_name="0.2.0", use_device="cpu")
+    assert model_020.version == "0.2.0"
+    assert model_020.n_params == 400_438
+
+    # Test r2scan model
+    model_r2scan = CHGNet.load(model_name="r2scan", use_device="cpu")
+    assert model_r2scan.version == "r2scan"
+    assert model_r2scan.n_params == 412_525
+
+    # Test that all models can make predictions
+    from pymatgen.core import Structure
+
+    from chgnet import ROOT
+
+    structure = Structure.from_file(f"{ROOT}/examples/mp-18767-LiMnO2.cif")
+    converter = CrystalGraphConverter()
+    graph = converter(structure, graph_id="test-all-models")
+
+    # Test prediction with all models
+    for model in [model_030, model_020, model_r2scan]:
+        prediction = model.predict_graph(graph, task="e")
+        assert "e" in prediction
+        # prediction["e"] is a numpy array, convert to float for assertion
+        energy = float(prediction["e"])
+        assert isinstance(energy, float)
+        assert energy < 0  # Energy should be negative
