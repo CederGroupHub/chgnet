@@ -68,7 +68,7 @@ from chgnet.model.model import CHGNet
 # Load the latest CHGNet model (default: 0.3.0)
 chgnet = CHGNet.load()
 # Load specific CHGNet versions
-chgnet_r2scan = CHGNet.load('r2scan')
+chgnet = CHGNet.load(model_name='r2scan')
 ```
 
 **Model Details:**

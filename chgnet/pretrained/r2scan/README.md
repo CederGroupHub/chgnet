@@ -1,10 +1,10 @@
 ## Model r2SCAN
 
-This is the pretrained weights of CHGNet fine-tuned on the MP-r2SCAN dataset. The model was initialized from the GGA/GGA+U trained CHGNet v0.3.0 and then transferred to the R2SCAN functional dataset. This work is published in the npj Computational Materials paper titled "Cross-functional transferability in foundation machine learning interatomic potentials."
+This is the pretrained weights of CHGNet fine-tuned on the MP-r2SCAN dataset. The model was initialized from the GGA/GGA+U trained CHGNet v0.3.0 and then transferred to the R2SCAN functional dataset. This work is published in the npj Computational Materials paper titled "Cross-functional transferability in foundation machine learning interatomic potentials".
 
 All experiments and results shown in the paper (Method 4) were performed with this version of weights.
 
-Date: 9/15/2025
+Date: 9/21/2025
 
 Author: Xu Huang
 
@@ -43,6 +43,12 @@ model = CHGNet(
 ## Dataset Used
 
 MP-r2SCAN dataset (https://doi.org/10.6084/m9.figshare.28245650.v2) with 8-1-1 train-val-test splitting
+
+## Load the Model
+
+```python
+chgnet = CHGNet.load(model_name='r2scan')
+```
 
 ## Training Configuration
 
