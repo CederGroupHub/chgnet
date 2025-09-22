@@ -529,7 +529,7 @@ class AtomRef(nn.Module):
         ).view([1, 94])
 
         self.fc.load_state_dict(state_dict)
-        self.is_intensive = False
+        self.is_intensive = True
         self.fitted = True
 
     def initialize_from_numpy(self, file_name: str | Path) -> None:
