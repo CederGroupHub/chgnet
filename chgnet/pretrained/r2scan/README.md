@@ -8,6 +8,8 @@ Date: 9/21/2025
 
 Author: Xu Huang
 
+If you use CHGNet_r2scan or MP-r2SCAN dataset, please cite <a href="https://www.nature.com/articles/s41524-025-01796-y" target="_blank">this paper</a>.
+
 ## Model Parameters
 
 ```python
