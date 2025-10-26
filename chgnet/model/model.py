@@ -530,7 +530,8 @@ class CHGNet(nn.Module):
             )
             # Convert Stress unit from eV/A^3 to GPa
             scale = 1 / g.volumes * 160.21766208
-            stress = [i * j for i, j in zip(stress, scale, strict=False)]
+            # Apply scale to each stress tensor
+            stress = [stress[i] * scale[i] for i in range(len(stress))]
             prediction["s"] = stress
 
         # Normalize energy if model is intensive
