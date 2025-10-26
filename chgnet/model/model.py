@@ -895,7 +895,7 @@ class BatchedGraph:
             torch.cat(atom_owners, dim=0).type(torch.int32).to(atomic_numbers.device)
         )
         directed2undirected = torch.cat(directed2undirected, dim=0)
-        volumes = torch.tensor(volumes, dtype=TORCH_DTYPE, device=atomic_numbers.device)
+        volumes = torch.stack(volumes).to(atomic_numbers.device)
 
         return cls(
             atomic_numbers=atomic_numbers,
