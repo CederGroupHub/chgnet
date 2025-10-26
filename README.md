@@ -253,5 +253,5 @@ If you use CHGNet or MPtrj dataset, please cite [this paper](https://nature.com/
 
 ## Development & Bugs
 
-`CHGNet` is under active development, if you encounter any bugs in installation and usage,
+The current `CHGNet` implementation has been migrated to [MatGL](https://github.com/materialsvirtuallab/matgl) repo, which includes more accurate checkpoints. Unless critical bugs, feature developments will be limited under this legacy implementation. If you encounter critical bugs,
 please open an [issue](https://github.com/CederGroupHub/chgnet/issues). We appreciate your contributions!
