@@ -889,9 +889,9 @@ class EquationOfState:
                 "Equation of state needs to be fitted first through self.fit()"
             )
         if unit == "eV/A^3":
-            return self.bm.b0
+            return float(self.bm.b0)
         if unit == "GPa":
-            return self.bm.b0_GPa
+            return float(self.bm.b0_GPa)
         raise ValueError("unit has to be eV/A^3 or GPa")
 
     def get_compressibility(self, unit: str = "A^3/eV") -> float:
@@ -910,9 +910,9 @@ class EquationOfState:
                 "Equation of state needs to be fitted first through self.fit()"
             )
         if unit == "A^3/eV":
-            return 1 / self.bm.b0
+            return float(1 / self.bm.b0)
         if unit == "GPa^-1":
-            return 1 / self.bm.b0_GPa
+            return float(1 / self.bm.b0_GPa)
         if unit in {"Pa^-1", "m^2/N"}:
-            return 1 / (self.bm.b0_GPa * 1e9)
+            return float(1 / (self.bm.b0_GPa * 1e9))
         raise NotImplementedError("unit has to be one of A^3/eV, GPa^-1 Pa^-1 or m^2/N")
