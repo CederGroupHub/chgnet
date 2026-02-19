@@ -4,7 +4,7 @@ import json
 import os
 
 import numpy as np
-import nvidia_smi
+import pynvml
 import torch
 from torch import Tensor
 
@@ -47,13 +47,13 @@ def cuda_devices_sorted_by_free_mem() -> list[int]:
         return []
 
     free_memories = []
-    nvidia_smi.nvmlInit()
-    device_count = nvidia_smi.nvmlDeviceGetCount()
+    pynvml.nvmlInit()
+    device_count = pynvml.nvmlDeviceGetCount()
     for idx in range(device_count):
-        handle = nvidia_smi.nvmlDeviceGetHandleByIndex(idx)
-        info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
+        handle = pynvml.nvmlDeviceGetHandleByIndex(idx)
+        info = pynvml.nvmlDeviceGetMemoryInfo(handle)
         free_memories.append(info.free)
-    nvidia_smi.nvmlShutdown()
+    pynvml.nvmlShutdown()
 
     return sorted(range(len(free_memories)), key=lambda x: free_memories[x])
 
