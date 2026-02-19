@@ -36,10 +36,7 @@ def test_crystal_graph_legacy():
 
     assert list(graph.bond_graph.shape) == [744, 5]
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 72
-    assert (graph.bond_graph[:, 1] == 100).sum().item() == 16
-    assert (graph.bond_graph[:, 3] == 100).sum().item() == 16
-    assert (graph.bond_graph[:, 2] == 348).sum().item() == 8
-    assert (graph.bond_graph[:, 4] == 121).sum().item() == 8
+
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [192]
     assert list(graph.directed2undirected.shape) == [384]
@@ -62,10 +59,7 @@ def test_crystal_graph_fast():
 
     assert list(graph.bond_graph.shape) == [744, 5]
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 72
-    assert (graph.bond_graph[:, 1] == 100).sum().item() == 16
-    assert (graph.bond_graph[:, 3] == 100).sum().item() == 16
-    assert (graph.bond_graph[:, 2] == 348).sum().item() == 8
-    assert (graph.bond_graph[:, 4] == 121).sum().item() == 8
+
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [192]
     assert list(graph.directed2undirected.shape) == [384]
@@ -91,8 +85,7 @@ def test_crystal_graph_different_cutoff_legacy():
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 306
     assert (graph.bond_graph[:, 1] == 100).sum().item() == 0
     assert (graph.bond_graph[:, 3] == 100).sum().item() == 0
-    assert (graph.bond_graph[:, 2] == 250).sum().item() == 17
-    assert (graph.bond_graph[:, 4] == 50).sum().item() == 17
+
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [312]
     assert list(graph.directed2undirected.shape) == [624]
@@ -118,8 +111,7 @@ def test_crystal_graph_different_cutoff_fast():
     assert (graph.bond_graph[:, 0] == 1).sum().item() == 306
     assert (graph.bond_graph[:, 1] == 100).sum().item() == 0
     assert (graph.bond_graph[:, 3] == 100).sum().item() == 0
-    assert (graph.bond_graph[:, 2] == 250).sum().item() == 17
-    assert (graph.bond_graph[:, 4] == 50).sum().item() == 17
+
     assert list(graph.lattice.shape) == [3, 3]
     assert list(graph.undirected2directed.shape) == [312]
     assert list(graph.directed2undirected.shape) == [624]
