@@ -78,10 +78,12 @@ class CHGNetCalculator(Calculator):
                 the pretrained CHGNet is loaded.
                 Default = None
             use_device (str, optional): The device to be used for predictions,
-                either "cpu", "cuda", or "mps". If not specified, the default device is
-                automatically selected based on the available options.
+                either "cpu", "cuda", "xpu", or "mps". If not specified, the
+                default device is automatically selected based on the
+                available options.
                 Default = None
-            check_cuda_mem (bool): Whether to use cuda with most available memory
+            check_cuda_mem (bool): Whether to use the accelerator with most
+                available memory
                 Default = False
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
@@ -201,8 +203,9 @@ class StructOptimizer:
             optimizer_class (Optimizer,str): choose optimizer from ASE.
                 Default = "FIRE"
             use_device (str, optional): The device to be used for predictions,
-                either "cpu", "cuda", or "mps". If not specified, the default device is
-                automatically selected based on the available options.
+                either "cpu", "cuda", "xpu", or "mps". If not specified, the
+                default device is automatically selected based on the
+                available options.
                 Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21
@@ -800,8 +803,9 @@ class EquationOfState:
             optimizer_class (Optimizer,str): choose optimizer from ASE.
                 Default = "FIRE"
             use_device (str, optional): The device to be used for predictions,
-                either "cpu", "cuda", or "mps". If not specified, the default device is
-                automatically selected based on the available options.
+                either "cpu", "cuda", "xpu", or "mps". If not specified, the
+                default device is automatically selected based on the
+                available options.
                 Default = None
             stress_weight (float): the conversion factor to convert GPa to eV/A^3.
                 Default = 1/160.21

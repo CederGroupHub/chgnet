@@ -705,10 +705,12 @@ class CHGNet(nn.Module):
                 - "r2scan": R2SCAN level model transfer learned from MP-R2SCAN dataset
                 Default = "0.3.0".
             use_device (str, optional): The device to be used for predictions,
-                either "cpu", "cuda", or "mps". If not specified, the default device is
-                automatically selected based on the available options.
+                either "cpu", "cuda", "xpu", or "mps". If not specified, the
+                default device is automatically selected based on the
+                available options.
                 Default = None
-            check_cuda_mem (bool): Whether to use cuda with most available memory
+            check_cuda_mem (bool): Whether to use the accelerator with most
+                available memory
                 Default = False
             verbose (bool): whether to print model device information
                 Default = True

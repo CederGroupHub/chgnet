@@ -4,9 +4,21 @@ import json
 import os
 
 import numpy as np
-import pynvml
 import torch
 from torch import Tensor
+
+
+def _default_accelerator() -> str:
+    """Return the name of the best available torch accelerator backend.
+
+    Returns:
+        str: "cuda", "xpu" or "cpu" depending on what torch can see.
+    """
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch, "xpu", None) is not None and torch.xpu.is_available():
+        return "xpu"
+    return "cpu"
 
 
 def determine_device(
@@ -18,8 +30,10 @@ def determine_device(
 
     Args:
         use_device (str): User specify device name
-        check_cuda_mem (bool): Whether to return cuda with most available memory
-            Default = False
+        check_cuda_mem (bool): Whether to return the accelerator with the most
+            available memory. Applies to both CUDA and XPU devices. Falls back
+            to an unindexed device when free memory cannot be queried, see
+            `gpu_devices_sorted_by_free_mem`. Default = False
 
     Returns:
         device (str): device name to be passed to model.to(device)
@@ -28,34 +42,69 @@ def determine_device(
     if use_device in {"mps", None} and torch.backends.mps.is_available():
         device = "mps"
     else:
-        device = use_device or ("cuda" if torch.cuda.is_available() else "cpu")
-        if device == "cuda" and check_cuda_mem:
-            device = f"cuda:{cuda_devices_sorted_by_free_mem()[-1]}"
+        device = use_device or _default_accelerator()
+        if check_cuda_mem and device in {"cuda", "xpu"}:
+            devices_by_mem = gpu_devices_sorted_by_free_mem(device_type=device)
+            if devices_by_mem:
+                device = f"{device}:{devices_by_mem[-1]}"
 
     return device
+
+
+def gpu_devices_sorted_by_free_mem(device_type: str | None = None) -> list[int]:
+    """List available GPU devices sorted by increasing available memory.
+
+    Free memory is queried through torch itself (`mem_get_info`), so no
+    vendor-specific management library is needed. Indices are torch device
+    indices, so they respect `CUDA_VISIBLE_DEVICES` / `ZE_AFFINITY_MASK` and
+    can be passed straight to `.to(device)`.
+
+    To get the device with the most free memory, use the last list item.
+
+    Backend caveats:
+
+    - CUDA: `torch.cuda.mem_get_info` calls `cudaMemGetInfo` and reports
+      device-wide free memory, matching what NVML reported.
+    - XPU: `torch.xpu.mem_get_info` requires torch >= 2.6 and reads the SYCL
+      `ext_intel_free_memory` device query. On some multi-tile Intel GPUs
+      that query is reported per card rather than per tile, so the ranking
+      can be coarse. Returned indices are always valid either way.
+
+    An empty list is returned when free memory cannot be queried, in which
+    case callers should fall back to an unindexed device.
+
+    Args:
+        device_type (str): "cuda" or "xpu". If None, the available accelerator
+            is auto-detected. Default = None
+
+    Returns:
+        list[int]: GPU device indices sorted by increasing free memory.
+    """
+    device_type = device_type or _default_accelerator()
+    backend = getattr(torch, device_type, None)
+
+    if backend is None or not backend.is_available():
+        return []
+    # mps has no mem_get_info, and torch only added it for xpu in 2.6
+    if not hasattr(backend, "mem_get_info"):
+        return []
+
+    free_memories = [
+        backend.mem_get_info(idx)[0] for idx in range(backend.device_count())
+    ]
+    return sorted(range(len(free_memories)), key=lambda idx: free_memories[idx])
 
 
 def cuda_devices_sorted_by_free_mem() -> list[int]:
     """List available CUDA devices sorted by increasing available memory.
 
-    To get the device with the most free memory, use the last list item.
+    Deprecated alias kept for backward compatibility, prefer
+    `gpu_devices_sorted_by_free_mem`.
 
     Returns:
         list[int]: CUDA device numbers sorted by increasing free memory.
     """
-    if not torch.cuda.is_available():
-        return []
-
-    free_memories = []
-    pynvml.nvmlInit()
-    device_count = pynvml.nvmlDeviceGetCount()
-    for idx in range(device_count):
-        handle = pynvml.nvmlDeviceGetHandleByIndex(idx)
-        info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        free_memories.append(info.free)
-    pynvml.nvmlShutdown()
-
-    return sorted(range(len(free_memories)), key=lambda x: free_memories[x])
+    return gpu_devices_sorted_by_free_mem(device_type="cuda")
 
 
 class AverageMeter:
