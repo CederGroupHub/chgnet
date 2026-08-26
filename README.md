@@ -50,6 +50,10 @@ if PyPI installation fails or you need the latest `main` branch commits, you can
 pip install git+https://github.com/CederGroupHub/chgnet
 ```
 
+CHGNet runs on CPU, NVIDIA GPUs (CUDA), Intel GPUs (XPU) and Apple silicon (MPS).
+The device is picked automatically and can be overridden per call with
+`use_device=...` or globally with the `CHGNET_DEVICE` environment variable.
+
 ## Tutorials and Docs
 
 [![2023-11-02-sciML-webinar](https://github.com/CederGroupHub/chgnet/assets/30958850/49fe7d89-bf47-4ea0-aca6-f9014d2f41b8)](https://youtu.be/Lm148F_1Dn4)
@@ -130,8 +134,9 @@ md = MolecularDynamics(
 md.run(50)  # run a 0.1 ps MD simulation
 ```
 
-The MD defaults to CUDA if available, to manually set device to cpu or mps:
-`MolecularDynamics(use_device='cpu')`.
+The MD defaults to the available accelerator (CUDA, then Intel XPU), to manually
+set the device to cpu, cuda, xpu or mps: `MolecularDynamics(use_device='cpu')`.
+The device can also be set globally with the `CHGNET_DEVICE` environment variable.
 
 MD outputs are saved to the ASE trajectory file, to visualize the MD trajectory
 and magnetic moments after the MD run:

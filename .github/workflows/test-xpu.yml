@@ -1,0 +1,77 @@
+name: Tests (Intel XPU)
+
+# Opt-in workflow for the Intel XPU backend. Trigger it manually, or add the
+# `xpu` label to a pull request. Repositories that do not use Intel GPUs are
+# unaffected, and `test.yml` is untouched.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs on a GitHub-hosted runner with no Intel GPU attached. The XPU-enabled
+  # torch build ships from a separate index, so this checks that chgnet imports
+  # and selects a device correctly against it when `torch.xpu.is_available()`
+  # is False.
+  test-xpu-build:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'xpu')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install chgnet against the XPU torch build
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/xpu
+          pip install -e .[test]
+
+      - name: Check device selection with no Intel GPU present
+        run: |
+          python - <<'EOF'
+          import torch
+          from chgnet.utils import determine_device, gpu_devices_sorted_by_free_mem
+
+          print("torch", torch.__version__, "xpu", torch.xpu.is_available())
+          assert determine_device() == "cpu"
+          assert gpu_devices_sorted_by_free_mem("xpu") == []
+          EOF
+
+      - name: Run tests
+        run: pytest --capture=no
+        env:
+          CHGNET_DEVICE: cpu
+
+  # Requires a self-hosted runner labelled `intel-gpu` with real hardware.
+  test-xpu:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'xpu')
+    runs-on: [self-hosted, intel-gpu]
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Report XPU visibility
+        run: |
+          python -c "import torch; print('torch', torch.__version__); print('xpu', torch.xpu.is_available(), torch.xpu.device_count())"
+
+      - name: Install chgnet
+        run: pip install -e .[test,logging]
+
+      - name: Run tests on XPU
+        run: pytest --capture=no
+        env:
+          CHGNET_DEVICE: xpu
