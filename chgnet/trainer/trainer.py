@@ -100,10 +100,12 @@ class Trainer:
             data_seed (int): random seed for random
                 Default = None
             use_device (str, optional): The device to be used for predictions,
-                either "cpu", "cuda", or "mps". If not specified, the default device is
-                automatically selected based on the available options.
+                either "cpu", "cuda", "xpu", or "mps". If not specified, the
+                default device is automatically selected based on the
+                available options.
                 Default = None
-            check_cuda_mem (bool): Whether to use cuda with most available memory
+            check_cuda_mem (bool): Whether to use the accelerator with most
+                available memory
                 Default = False
             wandb_path (str | None): The project and run name separated by a slash:
                 "project/run_name". If None, wandb logging is not used.

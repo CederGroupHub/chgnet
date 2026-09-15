@@ -64,11 +64,20 @@ no_cuda = pytest.mark.skipif(not torch.cuda.is_available(), reason="No CUDA devi
 no_mps = pytest.mark.skipif(
     not torch.backends.mps.is_available() or "CI" in os.environ, reason="No MPS device"
 )
+no_xpu = pytest.mark.skipif(
+    getattr(torch, "xpu", None) is None or not torch.xpu.is_available(),
+    reason="No XPU device",
+)
 
 
 @pytest.mark.parametrize(
     "use_device",
-    ["cpu", pytest.param("cuda", marks=no_cuda), pytest.param("mps", marks=no_mps)],
+    [
+        "cpu",
+        pytest.param("cuda", marks=no_cuda),
+        pytest.param("xpu", marks=no_xpu),
+        pytest.param("mps", marks=no_mps),
+    ],
 )
 def test_structure_optimizer_passes_kwargs_to_model(use_device: str) -> None:
     relaxer = StructOptimizer(use_device=use_device)
