@@ -444,6 +444,7 @@ class GraphData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
+        seed: int | None = None,
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the GraphData using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
@@ -465,6 +466,8 @@ class GraphData(Dataset):
                 Default = 0
             pin_memory (bool): Whether to pin the memory of the data loaders
                 Default: True
+            seed (int, optional): seed for the random train/val/test split
+                Default = None (use the global random state)
 
         Returns:
             train_loader, val_loader, test_loader
@@ -472,7 +475,8 @@ class GraphData(Dataset):
         train_labels, val_labels, test_labels = {}, {}, {}
         if train_key is None:
             mp_ids = list(self.labels)
-            random.shuffle(mp_ids)
+            rng = random if seed is None else random.Random(seed)
+            rng.shuffle(mp_ids)
             n_train = int(train_ratio * len(mp_ids))
             n_val = int(val_ratio * len(mp_ids))
             train_key = mp_ids[:n_train]
@@ -673,6 +677,7 @@ class StructureJsonData(Dataset):
         batch_size=32,
         num_workers=0,
         pin_memory=True,
+        seed: int | None = None,
     ) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Partition the Dataset using materials id,
         randomly select the train_keys, val_keys, test_keys by train val test ratio,
@@ -694,6 +699,8 @@ class StructureJsonData(Dataset):
                 Default = 0
             pin_memory (bool): Whether to pin the memory of the data loaders
                 Default: True
+            seed (int, optional): seed for the random train/val/test split
+                Default = None (use the global random state)
 
         Returns:
             train_loader, val_loader, test_loader
@@ -701,7 +708,8 @@ class StructureJsonData(Dataset):
         train_data, val_data, test_data = {}, {}, {}
         if train_key is None:
             mp_ids = list(self.data)
-            random.shuffle(mp_ids)
+            rng = random if seed is None else random.Random(seed)
+            rng.shuffle(mp_ids)
             n_train = int(train_ratio * len(mp_ids))
             n_val = int(val_ratio * len(mp_ids))
             train_key = mp_ids[:n_train]
@@ -797,6 +805,7 @@ def get_train_val_test_loader(
     return_test: bool = True,
     num_workers: int = 0,
     pin_memory: bool = True,
+    seed: int | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
     """Randomly partition a dataset into train, val, test loaders.
 
@@ -815,13 +824,16 @@ def get_train_val_test_loader(
             Default = 0
         pin_memory (bool): Whether to pin the memory of the data loaders
             Default: True
+        seed (int, optional): seed for the random train/val/test split
+            Default = None (use the global random state)
 
     Returns:
         train_loader, val_loader and optionally test_loader
     """
     total_size = len(dataset)
     indices = list(range(total_size))
-    random.shuffle(indices)
+    rng = random if seed is None else random.Random(seed)
+    rng.shuffle(indices)
     train_size = int(train_ratio * total_size)
     val_size = int(val_ratio * total_size)
 

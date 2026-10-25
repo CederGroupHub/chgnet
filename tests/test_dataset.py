@@ -70,6 +70,15 @@ def test_data_loader(structure_data: StructureData) -> None:
     assert targets["m"][0].shape == (2, 1)
 
 
+def test_data_loader_seed(structure_data: StructureData) -> None:
+    def split(seed: int) -> list[list[int]]:
+        loaders = get_train_val_test_loader(structure_data, seed=seed)
+        return [list(loader.sampler.indices) for loader in loaders]
+
+    assert split(0) == split(0)
+    assert split(0) != split(1)
+
+
 def test_structure_data_inconsistent_length():
     # https://github.com/CederGroupHub/chgnet/pull/69
     structures = [NaCl.copy() for _ in range(5)]
