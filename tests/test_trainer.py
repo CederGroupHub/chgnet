@@ -12,6 +12,7 @@ from pymatgen.core import Lattice, Structure
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
 from chgnet.model import CHGNet
 from chgnet.trainer.trainer import CombinedLoss, Trainer
+from chgnet.utils import AverageMeter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -102,6 +103,67 @@ def test_combined_loss() -> None:
         prediction=prediction2,
     )
     assert np.isclose(out1["loss"], out2["loss"], rtol=1e-04, atol=1e-05)
+
+
+@pytest.mark.parametrize("target", ["e", "f", "s"])
+@pytest.mark.parametrize("criterion", ["MSE", "MAE", "Huber"])
+def test_combined_loss_empty_labels(target: str, criterion: str) -> None:
+    """An unsupervised target contributes zero, including during backpropagation."""
+    shape = {"e": (2,), "f": (2, 3), "s": (3, 3)}[target]
+    labels = torch.full(shape, torch.nan, dtype=torch.float64)
+    pred = torch.full(shape, torch.nan, dtype=torch.float64, requires_grad=True)
+    out = CombinedLoss(target_str=target, criterion=criterion)(
+        {target: labels if target == "e" else [labels]},
+        {target: pred if target == "e" else [pred]},
+    )
+    assert out["loss"].item() == 0
+    assert out["loss"].dtype == pred.dtype
+    assert out[f"{target}_MAE"].item() == 0
+    assert out[f"{target}_MAE_size"] == 0
+    out["loss"].backward()
+    torch.testing.assert_close(pred.grad, torch.zeros_like(pred))
+
+
+@pytest.mark.parametrize(
+    ("target", "shape", "ratio"),
+    [("e", (2,), 1), ("f", (2, 3), 1), ("s", (3, 3), 0.1)],
+)
+def test_combined_loss_partial_labels(
+    target: str, shape: tuple[int, ...], ratio: float
+) -> None:
+    """Only supervised entries affect the loss, gradient and metric denominator."""
+    labels = torch.full(shape, torch.nan)
+    labels.view(-1)[0] = 0
+    pred = torch.full(shape, 100.0)
+    pred.view(-1)[0] = 2
+    pred.requires_grad_()
+    out = CombinedLoss(target_str=target)(
+        {target: labels if target == "e" else [labels]},
+        {target: pred if target == "e" else [pred]},
+    )
+    assert out["loss"].item() == pytest.approx(4 * ratio)
+    assert out[f"{target}_MAE"].item() == 2
+    assert out[f"{target}_MAE_size"] == 1
+    out["loss"].backward()
+    expected_grad = torch.zeros_like(pred)
+    expected_grad.view(-1)[0] = 4 * ratio
+    torch.testing.assert_close(pred.grad, expected_grad)
+
+
+def test_energy_mae_uses_valid_labels_across_batches() -> None:
+    """Epoch MAE is independent of batching, including an entirely unlabelled batch."""
+    labels = torch.tensor([0.0, torch.nan, 0.0, 0.0, torch.nan])
+    pred = torch.tensor([2.0, torch.nan, 4.0, 6.0, torch.nan])
+    criterion = CombinedLoss(target_str="e")
+    meter = AverageMeter()
+    for batch in (slice(0, 2), slice(2, 4), slice(4, 5)):
+        out = criterion({"e": labels[batch]}, {"e": pred[batch]})
+        meter.update(out["e_MAE"].item(), out["e_MAE_size"])
+    assert meter.count == 3
+    assert meter.avg == 4
+    whole_batch = criterion({"e": labels}, {"e": pred})
+    assert whole_batch["e_MAE_size"] == 3
+    assert whole_batch["e_MAE"].item() == meter.avg
 
 
 def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
