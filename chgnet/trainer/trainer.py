@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import datetime
 import inspect
 import os
@@ -594,7 +595,9 @@ class Trainer:
         return {k: round(mae_error.avg, 6) for k, mae_error in mae_errors.items()}
 
     def get_best_model(self) -> CHGNet:
-        """Get best model recorded in the trainer.
+        """Get the model captured at the lowest validation energy error.
+
+        Its weights are independent of subsequent updates to the training model.
 
         Returns:
             CHGNet: the model with lowest validation set energy error
@@ -647,7 +650,7 @@ class Trainer:
 
         # save the model if it has minimal val energy error or val force error
         if mae_error["e"] == min(self.training_history["e"]["val"]):
-            self.best_model = self.model
+            self.best_model = copy.deepcopy(self.model)
             for fname in os.listdir(save_dir):
                 if fname.startswith("bestE"):
                     os.remove(os.path.join(save_dir, fname))
