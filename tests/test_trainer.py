@@ -178,6 +178,59 @@ def test_trainer_composition_model(tmp_path: Path) -> None:
     assert torch.all(comparison == expect)
 
 
+def test_get_best_model_returns_best_checkpoint(tmp_path: Path) -> None:
+    """Best weights survive later updates and are replaced when validation improves."""
+    torch.manual_seed(0)
+    model = CHGNet(
+        atom_fea_dim=8,
+        bond_fea_dim=8,
+        angle_fea_dim=8,
+        num_radial=5,
+        num_angular=5,
+        n_conv=2,
+        atom_conv_hidden_dim=8,
+        bond_conv_hidden_dim=8,
+        mlp_hidden_dims=(8,),
+        graph_converter_algorithm="legacy",
+    )
+    trainer = Trainer(
+        model=model, targets="e", optimizer="SGD", learning_rate=0.01, use_device="cpu"
+    )
+    graph = model.graph_converter(NaCl)
+    best_error = float("inf")
+    for epoch, error in enumerate([1.0, 2.0, 0.5, 3.0]):
+        trainer.optimizer.zero_grad()
+        loss = (model([graph], task="e")["e"] + 5).square().sum()
+        loss.backward()
+        trainer.optimizer.step()
+        with torch.no_grad():
+            current_energy = model([graph], task="e")["e"]
+        if error < best_error:
+            best_error = error
+            best_state = {
+                key: value.detach().clone() for key, value in model.state_dict().items()
+            }
+            best_energy = current_energy.clone()
+        else:
+            assert not torch.equal(current_energy, best_energy)
+
+        trainer.training_history["e"]["val"].append(error)
+        trainer.save_checkpoint(epoch, {"e": error}, str(tmp_path))
+        best_model = trainer.get_best_model()
+        for key, expected in best_state.items():
+            torch.testing.assert_close(
+                best_model.state_dict()[key], expected, rtol=0, atol=0
+            )
+        saved_model = CHGNet.from_file(next(tmp_path.glob("bestE_*")))
+        with torch.no_grad():
+            torch.testing.assert_close(
+                best_model([graph], task="e")["e"], best_energy, rtol=0, atol=0
+            )
+            torch.testing.assert_close(
+                saved_model([graph], task="e")["e"], best_energy, rtol=0, atol=0
+            )
+
+
 @pytest.fixture
 def mock_wandb():
     with patch("chgnet.trainer.trainer.wandb") as mock:
