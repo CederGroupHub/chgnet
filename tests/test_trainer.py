@@ -6,6 +6,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import torch
+import torch.nn as nn
 import wandb
 from pymatgen.core import Lattice, Structure
 
@@ -164,6 +165,92 @@ def test_energy_mae_uses_valid_labels_across_batches() -> None:
     whole_batch = criterion({"e": labels}, {"e": pred})
     assert whole_batch["e_MAE_size"] == 3
     assert whole_batch["e_MAE"].item() == meter.avg
+
+
+@pytest.mark.parametrize("criterion", ["MSE", "MAE", "Huber"])
+def test_combined_loss_fully_labeled_matches_direct_criterion(criterion: str) -> None:
+    """Fully labeled efs loss and gradients match the weighted direct PyTorch criteria."""
+    prediction = {
+        "e": torch.tensor([1.0, -2.0, 3.0, -4.0], requires_grad=True),
+        "f": [torch.tensor([[0.5, 1.5, -2.5]], requires_grad=True)],
+        "s": [torch.diag(torch.tensor([1.0, 2.0, 3.0])).requires_grad_(True)],
+    }
+    targets = {
+        "e": torch.tensor([0.5, 1.0, -1.0, 2.0]),
+        "f": [torch.tensor([[0.0, 1.0, -2.0]])],
+        "s": [torch.diag(torch.tensor([2.0, 4.0, 6.0]))],
+    }
+    loss_fn = CombinedLoss(
+        target_str="efs",
+        criterion=criterion,
+        energy_loss_ratio=2.0,
+        force_loss_ratio=3.0,
+        stress_loss_ratio=0.5,
+    )
+    out = loss_fn(targets, prediction)
+
+    crit = {
+        "MSE": nn.MSELoss(),
+        "MAE": nn.L1Loss(),
+        "Huber": nn.HuberLoss(delta=0.1),  # CombinedLoss default delta
+    }[criterion]
+    direct_pred = {
+        "e": prediction["e"].detach().clone().requires_grad_(True),
+        "f": [prediction["f"][0].detach().clone().requires_grad_(True)],
+        "s": [prediction["s"][0].detach().requires_grad_(True)],
+    }
+    direct = (
+        2.0 * crit(direct_pred["e"], targets["e"])
+        + 3.0
+        * crit(
+            torch.cat(direct_pred["f"], dim=0),
+            torch.cat(targets["f"], dim=0),
+        )
+        + 0.5
+        * crit(
+            torch.cat(direct_pred["s"], dim=0),
+            torch.cat(targets["s"], dim=0),
+        )
+    )
+    assert torch.allclose(out["loss"], direct)
+
+    out["loss"].backward()
+    direct.backward()
+    torch.testing.assert_close(prediction["e"].grad, direct_pred["e"].grad)
+    torch.testing.assert_close(prediction["f"][0].grad, direct_pred["f"][0].grad)
+    torch.testing.assert_close(prediction["s"][0].grad, direct_pred["s"][0].grad)
+
+
+def test_combined_loss_all_missing_combined_batch_backpropagates_zeros() -> None:
+    """An efs batch without any labels still backpropagates zero gradients."""
+    nan = float("nan")
+    targets = {
+        "e": torch.tensor([nan, nan]),
+        "f": [torch.full((2, 3), nan)],
+        "s": [torch.full((3, 3), nan)],
+    }
+    prediction = {
+        "e": torch.tensor([1.0, 2.0], requires_grad=True),
+        "f": [torch.full((2, 3), nan, requires_grad=True)],
+        "s": [torch.full((3, 3), nan, requires_grad=True)],
+    }
+    out = CombinedLoss(target_str="efs")(targets, prediction)
+    assert isinstance(out["loss"], torch.Tensor)
+    assert out["loss"].item() == 0
+    out["loss"].backward()
+    for tensor in (prediction["e"], prediction["f"][0], prediction["s"][0]):
+        assert torch.all(tensor.grad == 0)
+
+
+def test_combined_loss_no_missing_labels_keeps_nan() -> None:
+    """With allow_missing_labels=False an unlabeled target still yields a NaN loss."""
+    out = CombinedLoss(target_str="e", allow_missing_labels=False)(
+        {"e": torch.tensor([0.0, torch.nan])},
+        {"e": torch.tensor([2.0, 3.0], requires_grad=True)},
+    )
+    assert torch.isnan(out["loss"])
+    assert torch.isnan(out["e_MAE"])
+    assert out["e_MAE_size"] == 2
 
 
 def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
