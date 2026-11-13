@@ -783,9 +783,12 @@ class CombinedLoss(nn.Module):
         targets: dict[str, Tensor],
         prediction: dict[str, Tensor],
     ) -> dict[str, Tensor]:
-        """Compute the combined loss using CHGNet prediction and labels
-        this function can automatically mask out magmom loss contribution of
-        data points without magmom labels.
+        """Compute weighted losses and MAEs for available labels.
+
+        When missing labels are allowed, NaN energy, force and stress entries are
+        excluded. A target with no valid labels contributes a differentiable zero
+        loss, zero MAE and zero MAE_size. Energy MAE_size counts valid energies,
+        not the original batch size.
 
         Args:
             targets (dict): DFT labels
@@ -807,11 +810,17 @@ class CombinedLoss(nn.Module):
                 valid_e_target = targets["e"]
                 valid_e_pred = prediction["e"]
 
-            out["loss"] += self.energy_loss_ratio * self.criterion(
-                valid_e_target, valid_e_pred
-            )
-            out["e_MAE"] = mae(valid_e_target, valid_e_pred)
-            out["e_MAE_size"] = prediction["e"].shape[0]
+            if self.allow_missing_labels and valid_e_target.numel() == 0:
+                # Empty sums retain autograd without reading masked-out predictions.
+                zero = valid_e_pred.sum()
+                out["loss"] += self.energy_loss_ratio * zero
+                out["e_MAE"] = zero
+            else:
+                out["loss"] += self.energy_loss_ratio * self.criterion(
+                    valid_e_target, valid_e_pred
+                )
+                out["e_MAE"] = mae(valid_e_target, valid_e_pred)
+            out["e_MAE_size"] = valid_e_target.shape[0]
 
         # Force
         if "f" in self.target_str:
@@ -821,10 +830,15 @@ class CombinedLoss(nn.Module):
                 valid_value_indices = ~torch.isnan(forces_target)
                 forces_target = forces_target[valid_value_indices]
                 forces_pred = forces_pred[valid_value_indices]
-            out["loss"] += self.force_loss_ratio * self.criterion(
-                forces_target, forces_pred
-            )
-            out["f_MAE"] = mae(forces_target, forces_pred)
+            if self.allow_missing_labels and forces_target.numel() == 0:
+                zero = forces_pred.sum()
+                out["loss"] += self.force_loss_ratio * zero
+                out["f_MAE"] = zero
+            else:
+                out["loss"] += self.force_loss_ratio * self.criterion(
+                    forces_target, forces_pred
+                )
+                out["f_MAE"] = mae(forces_target, forces_pred)
             out["f_MAE_size"] = forces_target.shape[0]
 
         # Stress
@@ -835,10 +849,15 @@ class CombinedLoss(nn.Module):
                 valid_value_indices = ~torch.isnan(stress_target)
                 stress_target = stress_target[valid_value_indices]
                 stress_pred = stress_pred[valid_value_indices]
-            out["loss"] += self.stress_loss_ratio * self.criterion(
-                stress_target, stress_pred
-            )
-            out["s_MAE"] = mae(stress_target, stress_pred)
+            if self.allow_missing_labels and stress_target.numel() == 0:
+                zero = stress_pred.sum()
+                out["loss"] += self.stress_loss_ratio * zero
+                out["s_MAE"] = zero
+            else:
+                out["loss"] += self.stress_loss_ratio * self.criterion(
+                    stress_target, stress_pred
+                )
+                out["s_MAE"] = mae(stress_target, stress_pred)
             out["s_MAE_size"] = stress_target.shape[0]
 
         # Mag

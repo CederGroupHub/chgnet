@@ -6,12 +6,14 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import torch
+import torch.nn as nn
 import wandb
 from pymatgen.core import Lattice, Structure
 
 from chgnet.data.dataset import StructureData, get_train_val_test_loader
 from chgnet.model import CHGNet
 from chgnet.trainer.trainer import CombinedLoss, Trainer
+from chgnet.utils import AverageMeter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -102,6 +104,153 @@ def test_combined_loss() -> None:
         prediction=prediction2,
     )
     assert np.isclose(out1["loss"], out2["loss"], rtol=1e-04, atol=1e-05)
+
+
+@pytest.mark.parametrize("target", ["e", "f", "s"])
+@pytest.mark.parametrize("criterion", ["MSE", "MAE", "Huber"])
+def test_combined_loss_empty_labels(target: str, criterion: str) -> None:
+    """An unsupervised target contributes zero, including during backpropagation."""
+    shape = {"e": (2,), "f": (2, 3), "s": (3, 3)}[target]
+    labels = torch.full(shape, torch.nan, dtype=torch.float64)
+    pred = torch.full(shape, torch.nan, dtype=torch.float64, requires_grad=True)
+    out = CombinedLoss(target_str=target, criterion=criterion)(
+        {target: labels if target == "e" else [labels]},
+        {target: pred if target == "e" else [pred]},
+    )
+    assert out["loss"].item() == 0
+    assert out["loss"].dtype == pred.dtype
+    assert out[f"{target}_MAE"].item() == 0
+    assert out[f"{target}_MAE_size"] == 0
+    out["loss"].backward()
+    torch.testing.assert_close(pred.grad, torch.zeros_like(pred))
+
+
+@pytest.mark.parametrize(
+    ("target", "shape", "ratio"),
+    [("e", (2,), 1), ("f", (2, 3), 1), ("s", (3, 3), 0.1)],
+)
+def test_combined_loss_partial_labels(
+    target: str, shape: tuple[int, ...], ratio: float
+) -> None:
+    """Only supervised entries affect the loss, gradient and metric denominator."""
+    labels = torch.full(shape, torch.nan)
+    labels.view(-1)[0] = 0
+    pred = torch.full(shape, 100.0)
+    pred.view(-1)[0] = 2
+    pred.requires_grad_()
+    out = CombinedLoss(target_str=target)(
+        {target: labels if target == "e" else [labels]},
+        {target: pred if target == "e" else [pred]},
+    )
+    assert out["loss"].item() == pytest.approx(4 * ratio)
+    assert out[f"{target}_MAE"].item() == 2
+    assert out[f"{target}_MAE_size"] == 1
+    out["loss"].backward()
+    expected_grad = torch.zeros_like(pred)
+    expected_grad.view(-1)[0] = 4 * ratio
+    torch.testing.assert_close(pred.grad, expected_grad)
+
+
+def test_energy_mae_uses_valid_labels_across_batches() -> None:
+    """Epoch MAE is independent of batching, including an entirely unlabelled batch."""
+    labels = torch.tensor([0.0, torch.nan, 0.0, 0.0, torch.nan])
+    pred = torch.tensor([2.0, torch.nan, 4.0, 6.0, torch.nan])
+    criterion = CombinedLoss(target_str="e")
+    meter = AverageMeter()
+    for batch in (slice(0, 2), slice(2, 4), slice(4, 5)):
+        out = criterion({"e": labels[batch]}, {"e": pred[batch]})
+        meter.update(out["e_MAE"].item(), out["e_MAE_size"])
+    assert meter.count == 3
+    assert meter.avg == 4
+    whole_batch = criterion({"e": labels}, {"e": pred})
+    assert whole_batch["e_MAE_size"] == 3
+    assert whole_batch["e_MAE"].item() == meter.avg
+
+
+@pytest.mark.parametrize("criterion", ["MSE", "MAE", "Huber"])
+def test_combined_loss_fully_labeled_matches_direct_criterion(criterion: str) -> None:
+    """Fully labeled efs loss and gradients match the weighted direct PyTorch criteria."""
+    prediction = {
+        "e": torch.tensor([1.0, -2.0, 3.0, -4.0], requires_grad=True),
+        "f": [torch.tensor([[0.5, 1.5, -2.5]], requires_grad=True)],
+        "s": [torch.diag(torch.tensor([1.0, 2.0, 3.0])).requires_grad_(True)],
+    }
+    targets = {
+        "e": torch.tensor([0.5, 1.0, -1.0, 2.0]),
+        "f": [torch.tensor([[0.0, 1.0, -2.0]])],
+        "s": [torch.diag(torch.tensor([2.0, 4.0, 6.0]))],
+    }
+    loss_fn = CombinedLoss(
+        target_str="efs",
+        criterion=criterion,
+        energy_loss_ratio=2.0,
+        force_loss_ratio=3.0,
+        stress_loss_ratio=0.5,
+    )
+    out = loss_fn(targets, prediction)
+
+    crit = {
+        "MSE": nn.MSELoss(),
+        "MAE": nn.L1Loss(),
+        "Huber": nn.HuberLoss(delta=0.1),  # CombinedLoss default delta
+    }[criterion]
+    direct_pred = {
+        "e": prediction["e"].detach().clone().requires_grad_(True),
+        "f": [prediction["f"][0].detach().clone().requires_grad_(True)],
+        "s": [prediction["s"][0].detach().requires_grad_(True)],
+    }
+    direct = (
+        2.0 * crit(direct_pred["e"], targets["e"])
+        + 3.0
+        * crit(
+            torch.cat(direct_pred["f"], dim=0),
+            torch.cat(targets["f"], dim=0),
+        )
+        + 0.5
+        * crit(
+            torch.cat(direct_pred["s"], dim=0),
+            torch.cat(targets["s"], dim=0),
+        )
+    )
+    assert torch.allclose(out["loss"], direct)
+
+    out["loss"].backward()
+    direct.backward()
+    torch.testing.assert_close(prediction["e"].grad, direct_pred["e"].grad)
+    torch.testing.assert_close(prediction["f"][0].grad, direct_pred["f"][0].grad)
+    torch.testing.assert_close(prediction["s"][0].grad, direct_pred["s"][0].grad)
+
+
+def test_combined_loss_all_missing_combined_batch_backpropagates_zeros() -> None:
+    """An efs batch without any labels still backpropagates zero gradients."""
+    nan = float("nan")
+    targets = {
+        "e": torch.tensor([nan, nan]),
+        "f": [torch.full((2, 3), nan)],
+        "s": [torch.full((3, 3), nan)],
+    }
+    prediction = {
+        "e": torch.tensor([1.0, 2.0], requires_grad=True),
+        "f": [torch.full((2, 3), nan, requires_grad=True)],
+        "s": [torch.full((3, 3), nan, requires_grad=True)],
+    }
+    out = CombinedLoss(target_str="efs")(targets, prediction)
+    assert isinstance(out["loss"], torch.Tensor)
+    assert out["loss"].item() == 0
+    out["loss"].backward()
+    for tensor in (prediction["e"], prediction["f"][0], prediction["s"][0]):
+        assert torch.all(tensor.grad == 0)
+
+
+def test_combined_loss_no_missing_labels_keeps_nan() -> None:
+    """With allow_missing_labels=False an unlabeled target still yields a NaN loss."""
+    out = CombinedLoss(target_str="e", allow_missing_labels=False)(
+        {"e": torch.tensor([0.0, torch.nan])},
+        {"e": torch.tensor([2.0, 3.0], requires_grad=True)},
+    )
+    assert torch.isnan(out["loss"])
+    assert torch.isnan(out["e_MAE"])
+    assert out["e_MAE_size"] == 2
 
 
 def test_trainer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
