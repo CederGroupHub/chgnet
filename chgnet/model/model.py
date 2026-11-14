@@ -775,7 +775,7 @@ class BatchedGraph:
             [[num_atoms_1, 3], [num_atoms_2, 3], ...]
         strains (list[Tensor]): a list of strains that's initialized to be zeros
             [[3, 3], [3, 3], ...]
-        volumes (Tensor): the volume of each structure in the batch
+        volumes (Tensor): the nonnegative volume in A^3 of each structure in the batch
             [batch_size]
     """
 
@@ -834,7 +834,7 @@ class BatchedGraph:
                 strain = None
                 lattice = graph.lattice
             volumes.append(
-                torch.dot(lattice[0], torch.linalg.cross(lattice[1], lattice[2]))
+                torch.dot(lattice[0], torch.linalg.cross(lattice[1], lattice[2])).abs()
             )
             strains.append(strain)
 
